@@ -108,7 +108,7 @@ export default function Login({
                                             </Label>
                                             {canResetPassword && (
                                                 <TextLink
-                                                    href={request()}
+                                                    href={request().url}
                                                     className="ml-auto text-sm text-slate-500 hover:text-blue-600 font-medium"
                                                     tabIndex={5}
                                                 >
@@ -170,7 +170,7 @@ export default function Login({
                         <div className="mt-4 text-center text-sm text-slate-600">
                             Don&apos;t have an account?{' '}
                             <TextLink
-                                href={register()}
+                                href={register().url}
                                 tabIndex={5}
                                 className="font-semibold underline text-blue-600 hover:text-blue-800"
                             >

@@ -1,6 +1,5 @@
 import { Package2, Truck } from 'lucide-react';
 import { Link } from '@inertiajs/react';
-import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
 export default function WarehouseLayout({
@@ -13,7 +12,7 @@ export default function WarehouseLayout({
             <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-white">
                 <div className="mx-auto grid w-full max-w-[400px] gap-6">
                     <div className="grid gap-2 text-center">
-                        <Link href={home()} className="mx-auto mb-4 flex items-center gap-2 font-bold text-xl text-blue-600 md:hidden">
+                        <Link href="/" className="mx-auto mb-4 flex items-center gap-2 font-bold text-xl text-blue-600 md:hidden">
                             <Package2 className="h-6 w-6" />
                             GudangKu
                         </Link>
