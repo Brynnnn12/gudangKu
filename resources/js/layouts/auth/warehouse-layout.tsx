@@ -1,5 +1,5 @@
-import { Package2, Truck } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { Package2, Truck } from 'lucide-react';
 import type { AuthLayoutProps } from '@/types';
 
 export default function WarehouseLayout({
@@ -10,7 +10,7 @@ export default function WarehouseLayout({
     return (
         <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
             <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-white">
-                <div className="mx-auto grid w-full max-w-[400px] gap-6">
+                <div className="mx-auto grid w-full max-w-100 gap-6">
                     <div className="grid gap-2 text-center">
                         <Link href="/" className="mx-auto mb-4 flex items-center gap-2 font-bold text-xl text-blue-600 md:hidden">
                             <Package2 className="h-6 w-6" />
@@ -29,8 +29,8 @@ export default function WarehouseLayout({
             </div>
 
             <div className="bg-slate-50 relative hidden flex-col items-center justify-center overflow-hidden p-8 lg:flex border-l border-slate-100">
-                <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-[size:60px_60px]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-50 to-transparent" />
+                <div className="absolute inset-0 bg-grid-slate-200/[0.5] bg-size-[60px_60px]" />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-50 to-transparent" />
 
                 <div className="relative z-10 flex max-w-md flex-col items-center gap-6 text-center">
                     <div className="rounded-2xl bg-white p-4 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200 backdrop-blur-sm">

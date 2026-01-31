@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Folder, LayoutGrid } from 'lucide-react';
+import { Folder, LayoutGrid, User2Icon } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -20,6 +20,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard Analytics',
         href: dashboard.url(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Employees',
+        href: '/dashboard/employees',
+        icon: User2Icon,
     },
     {
         title: 'Master Data',

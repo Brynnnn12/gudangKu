@@ -7,20 +7,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
-    canRegister: boolean;
 };
 
 export default function Login({
     status,
     canResetPassword,
-    canRegister,
 }: Props) {
     return (
         <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
@@ -165,19 +162,6 @@ export default function Login({
                             )}
                         </Form>
                     </div>
-
-                    {canRegister && (
-                        <div className="mt-4 text-center text-sm text-slate-600">
-                            Don&apos;t have an account?{' '}
-                            <TextLink
-                                href={register().url}
-                                tabIndex={5}
-                                className="font-semibold underline text-blue-600 hover:text-blue-800"
-                            >
-                                Sign up
-                            </TextLink>
-                        </div>
-                    )}
                 </div>
             </div>
 

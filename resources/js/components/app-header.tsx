@@ -10,8 +10,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
     NavigationMenu,
+    NavigationMenuContent,
     NavigationMenuItem,
+    NavigationMenuLink,
     NavigationMenuList,
+    NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import {
@@ -42,9 +45,24 @@ type Props = {
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
+        title: 'Dashboard Analytics',
+        href: dashboard.url(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Master Data',
+        href: '#',
+        icon: Folder,
+        items: [
+            {
+                title: 'Categories',
+                href: '#',
+            },
+            {
+                title: 'Products',
+                href: '#',
+            },
+        ],
     },
 ];
 
@@ -80,7 +98,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="mr-2 h-[34px] w-[34px]"
+                                    className="mr-2 h-8.5 w-8.5"
                                 >
                                     <Menu className="h-5 w-5" />
                                 </Button>
@@ -99,16 +117,39 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
                                             {mainNavItems.map((item) => (
-                                                <Link
-                                                    key={item.title}
-                                                    href={item.href}
-                                                    className="flex items-center space-x-2 font-medium"
-                                                >
-                                                    {item.icon && (
-                                                        <item.icon className="h-5 w-5" />
+                                                <div key={item.title} className="flex flex-col space-y-2">
+                                                    {item.items ? (
+                                                        <>
+                                                            <div className="flex items-center space-x-2 font-medium">
+                                                                {item.icon && (
+                                                                    <item.icon className="h-5 w-5" />
+                                                                )}
+                                                                <span>{item.title}</span>
+                                                            </div>
+                                                            <div className="ml-7 flex flex-col space-y-3 border-l pl-3">
+                                                                {item.items.map((subItem) => (
+                                                                    <Link
+                                                                        key={subItem.title}
+                                                                        href={subItem.href}
+                                                                        className="font-medium text-muted-foreground hover:text-foreground"
+                                                                    >
+                                                                        {subItem.title}
+                                                                    </Link>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <Link
+                                                            href={item.href}
+                                                            className="flex items-center space-x-2 font-medium"
+                                                        >
+                                                            {item.icon && (
+                                                                <item.icon className="h-5 w-5" />
+                                                            )}
+                                                            <span>{item.title}</span>
+                                                        </Link>
                                                     )}
-                                                    <span>{item.title}</span>
-                                                </Link>
+                                                </div>
                                             ))}
                                         </div>
 
@@ -135,7 +176,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={dashboard.url()}
                         prefetch
                         className="flex items-center space-x-2"
                     >
@@ -151,23 +192,52 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                         key={index}
                                         className="relative flex h-full items-center"
                                     >
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                whenCurrentUrl(
-                                                    item.href,
-                                                    activeItemStyles,
-                                                ),
-                                                'h-9 cursor-pointer px-3',
-                                            )}
-                                        >
-                                            {item.icon && (
-                                                <item.icon className="mr-2 h-4 w-4" />
-                                            )}
-                                            {item.title}
-                                        </Link>
-                                        {isCurrentUrl(item.href) && (
+                                        {item.items ? (
+                                            <>
+                                                <NavigationMenuTrigger className="h-9 px-3">
+                                                    {item.icon && (
+                                                        <item.icon className="mr-2 h-4 w-4" />
+                                                    )}
+                                                    {item.title}
+                                                </NavigationMenuTrigger>
+                                                <NavigationMenuContent>
+                                                    <ul className="grid w-100-3 p-4 md:w-125 md:grid-cols-2 lg:w-150 bg-popover text-popover-foreground">
+                                                        {item.items.map((subItem) => (
+                                                            <li key={subItem.title}>
+                                                                <NavigationMenuLink asChild>
+                                                                    <Link
+                                                                        href={subItem.href}
+                                                                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                                    >
+                                                                        <div className="text-sm font-medium leading-none">
+                                                                            {subItem.title}
+                                                                        </div>
+                                                                    </Link>
+                                                                </NavigationMenuLink>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </NavigationMenuContent>
+                                            </>
+                                        ) : (
+                                            <Link
+                                                href={item.href}
+                                                className={cn(
+                                                    navigationMenuTriggerStyle(),
+                                                    whenCurrentUrl(
+                                                        item.href,
+                                                        activeItemStyles,
+                                                    ),
+                                                    'h-9 cursor-pointer px-3',
+                                                )}
+                                            >
+                                                {item.icon && (
+                                                    <item.icon className="mr-2 h-4 w-4" />
+                                                )}
+                                                {item.title}
+                                            </Link>
+                                        )}
+                                        {!item.items && isCurrentUrl(item.href) && (
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
                                         )}
                                     </NavigationMenuItem>
@@ -183,7 +253,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 size="icon"
                                 className="group h-9 w-9 cursor-pointer"
                             >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                <Search className="size-5! opacity-80 group-hover:opacity-100" />
                             </Button>
                             <div className="ml-1 hidden gap-1 lg:flex">
                                 {rightNavItems.map((item) => (

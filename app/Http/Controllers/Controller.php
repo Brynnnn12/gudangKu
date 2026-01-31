@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
-abstract class Controller
+// 1. Import BaseController dari Laravel
+use Illuminate\Routing\Controller as BaseController;
+
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+
+// 2. Tambahkan "extends BaseController" di sini
+abstract class Controller extends BaseController
 {
-    //
+    use AuthorizesRequests, ValidatesRequests;
 }

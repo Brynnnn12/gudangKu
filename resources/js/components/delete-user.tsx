@@ -40,7 +40,7 @@ export default function DeleteUser() {
                             variant="destructive"
                             data-test="delete-user-button"
                         >
-                            Delete account
+                            Hapus Akun
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
