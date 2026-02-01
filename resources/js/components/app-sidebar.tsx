@@ -1,5 +1,6 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Folder, LayoutGrid, User2Icon } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -12,12 +13,11 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem, SharedData } from '@/types';
+import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
-    const { auth } = usePage<SharedData>().props;
-    const isSuperAdmin = auth.user.roles?.some((role) => role.name === 'super-admin');
+    const { isSuperAdmin } = useAuth();
 
     const mainNavItems: NavItem[] = [
         {
