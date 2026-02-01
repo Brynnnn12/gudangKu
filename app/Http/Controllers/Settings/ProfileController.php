@@ -60,7 +60,7 @@ class ProfileController extends Controller
         return redirect('/');
     }
 
-      public function google_redirect()
+    public function google_redirect()
     {
         return Socialite::driver('google')->redirect();
     }
@@ -74,7 +74,7 @@ class ProfileController extends Controller
             $user = User::where('email', $googleUser->email)->first();
 
             // JIKA USER TIDAK DITEMUKAN (Artinya emailnya belum didaftarkan Admin)
-            if (!$user) {
+            if (! $user) {
                 return redirect()->route('login')
                     ->with('error', 'Email Anda tidak terdaftar di sistem. Silakan hubungi Admin.');
             }
@@ -87,6 +87,7 @@ class ProfileController extends Controller
             ]);
 
             Auth::login($user);
+
             return redirect()->route('dashboard.index');
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Gagal login.');

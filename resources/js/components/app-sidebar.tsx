@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Folder, LayoutGrid, User2Icon } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -12,38 +12,41 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavItem, SharedData } from '@/types';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard Analytics',
-        href: dashboard.url(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Employees',
-        href: '/dashboard/employees',
-        icon: User2Icon,
-    },
-    {
-        title: 'Master Data',
-        href: '#',
-        icon: Folder,
-        items: [
-             {
-                 title: 'Categories',
-                 href: '#',
-             },
-             {
-                 title: 'Products',
-                 href: '#',
-             },
-         ],
-    }
-];
-
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const isSuperAdmin = auth.user.roles?.some((role) => role.name === 'super-admin');
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard Analytics',
+            href: dashboard.url(),
+            icon: LayoutGrid,
+        },
+        ...(isSuperAdmin ? [{
+            title: 'Employees',
+            href: '/dashboard/employees',
+            icon: User2Icon,
+        }] : []),
+        ...(isSuperAdmin ? [{
+            title: 'Master Data',
+            href: '#',
+            icon: Folder,
+            items: [
+                 {
+                     title: 'Categories',
+                     href: '/dashboard/categories',
+                 },
+                 {
+                     title: 'Products',
+                     href: '#',
+                 },
+             ],
+        }] : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

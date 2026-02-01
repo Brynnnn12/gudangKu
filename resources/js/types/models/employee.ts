@@ -8,8 +8,7 @@ interface User {
     id: number;
     name: string;
     email: string;
-    roles?: Role[]; // Spatie mengirim role sebagai array
-    // Tambahkan properti lain jika ada (misal: email_verified_at, etc)
+    roles?: Role[];
 }
 
 interface EditProps {

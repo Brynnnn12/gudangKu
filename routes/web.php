@@ -15,6 +15,9 @@ Route::get('dashboard', function () {
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('employees', \App\Http\Controllers\EmployeeController::class)
         ->parameters(['employees' => 'employee']);
+
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class)
+        ->parameters(['categories' => 'category']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');

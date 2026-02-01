@@ -15,13 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     Table,
     TableBody,
     TableCell,
@@ -30,63 +23,56 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import CreateEmployeeModal from '@/pages/employees/create';
-import EditEmployeeModal from '@/pages/employees/edit';
+import CreateCategoryModal from '@/pages/categories/create';
+import EditCategoryModal from '@/pages/categories/edit';
 import { type BreadcrumbItem } from '@/types';
-import type { PageProps, User as EmployeeUser } from '@/types/models/employee';
+import type { Category, Filters, PageProps } from '@/types/models/categories';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Employees', href: '/dashboard/employees' },
+    { title: 'Categories', href: '/dashboard/categories' },
 ];
 
-interface Filters {
-    search?: string;
-    role?: string;
-}
-
 export default function Index({
-    employees,
+    categories,
     filters = {},
 }: {
-    employees: PageProps;
+    categories: PageProps;
     filters?: Filters;
 }) {
     const searchForm = useForm({
         search: filters.search || '',
-        role: filters.role || '',
     });
 
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
-        employee: EmployeeUser | null;
+        category: Category | null;
     }>({
         isOpen: false,
-        employee: null,
+        category: null,
     });
 
     const [createModal, setCreateModal] = useState(false);
     const [editModal, setEditModal] = useState<{
         isOpen: boolean;
-        employee: EmployeeUser | null;
+        category: Category | null;
     }>({
         isOpen: false,
-        employee: null,
+        category: null,
     });
 
     // Clean query params - remove empty values
     const queryParams = useMemo(() => {
         const params: Record<string, string> = {};
         if (searchForm.data.search) params.search = searchForm.data.search;
-        if (searchForm.data.role && searchForm.data.role !== 'all') params.role = searchForm.data.role;
         return params;
-    }, [searchForm.data.search, searchForm.data.role]);
+    }, [searchForm.data.search]);
 
     // Debounced search with clean URL
     useEffect(() => {
         const timer = setTimeout(() => {
             router.get(
-                '/dashboard/employees',
+                '/dashboard/categories',
                 queryParams,
                 {
                     preserveState: true,
@@ -99,47 +85,55 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [queryParams]);
 
-    const openDeleteModal = (employee: EmployeeUser) => {
-        setDeleteModal({ isOpen: true, employee });
+    const openEditModal = (category: Category) => {
+        setEditModal({ isOpen: true, category });
+    };
+
+    const closeEditModal = () => {
+        setEditModal({ isOpen: false, category: null });
+    };
+
+    const openDeleteModal = (category: Category) => {
+        setDeleteModal({ isOpen: true, category });
     };
 
     const closeDeleteModal = () => {
-        setDeleteModal({ isOpen: false, employee: null });
+        setDeleteModal({ isOpen: false, category: null });
     };
 
     const confirmDelete = () => {
-        if (!deleteModal.employee) return;
+        if (!deleteModal.category) return;
 
-        router.delete(`/dashboard/employees/${deleteModal.employee.id}`, {
+        router.delete(`/dashboard/categories/${deleteModal.category.id}`, {
             preserveScroll: true,
             onSuccess: () => closeDeleteModal(),
         });
     };
 
     const clearFilters = () => {
-        searchForm.setData({ search: '', role: '' });
+        searchForm.setData({ search: '' });
     };
 
-    const hasActiveFilters = searchForm.data.search || searchForm.data.role;
+    const hasActiveFilters = searchForm.data.search;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Employees" />
+            <Head title="Categories" />
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-semibold">Employees</h1>
+                    <h1 className="text-2xl font-semibold">Categories</h1>
                     <Button onClick={() => setCreateModal(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Employee
+                        Add Category
                     </Button>
                 </div>
 
-                {/* Search and Filter */}
+                {/* Search */}
                 <div className="mb-4 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search by name or email..."
+                            placeholder="Search by name or slug..."
                             value={searchForm.data.search}
                             onChange={(e) => searchForm.setData('search', e.target.value)}
                             className="pl-9"
@@ -147,20 +141,6 @@ export default function Index({
                         />
                     </div>
                     <div className="flex gap-2">
-                        <Select
-                            value={searchForm.data.role || undefined}
-                            onValueChange={(value) => searchForm.setData('role', value)}
-                            disabled={searchForm.processing}
-                        >
-                            <SelectTrigger className="w-45">
-                                <SelectValue placeholder="Filter by role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Roles</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="user">User</SelectItem>
-                            </SelectContent>
-                        </Select>
                         {hasActiveFilters && (
                             <Button
                                 variant="outline"
@@ -180,25 +160,21 @@ export default function Index({
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
+                                <TableHead>Slug</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {employees.data.length > 0 ? (
-                                employees.data.map((employee) => (
-                                    <TableRow key={employee.id}>
-                                        <TableCell>{employee.name}</TableCell>
-                                        <TableCell>{employee.email}</TableCell>
-                                        <TableCell className="capitalize">
-                                            {employee.roles?.map((r) => r.name).join(', ') ?? '-'}
-                                        </TableCell>
+                            {categories.data.length > 0 ? (
+                                categories.data.map((category) => (
+                                    <TableRow key={category.id}>
+                                        <TableCell>{category.name}</TableCell>
+                                        <TableCell className="text-muted-foreground">{category.slug}</TableCell>
                                         <TableCell className="text-right space-x-2">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => setEditModal({ isOpen: true, employee })}
+                                                onClick={() => openEditModal(category)}
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Button>
@@ -206,7 +182,7 @@ export default function Index({
                                                 variant="ghost"
                                                 size="icon"
                                                 className="text-destructive hover:text-destructive"
-                                                onClick={() => openDeleteModal(employee)}
+                                                onClick={() => openDeleteModal(category)}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -215,22 +191,22 @@ export default function Index({
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">
-                                        No employees found.
+                                    <TableCell colSpan={3} className="h-24 text-center">
+                                        No categories found.
                                     </TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
                     <Pagination
-                        links={employees.links}
+                        links={categories.links}
                         meta={{
-                            current_page: employees.current_page,
-                            last_page: employees.last_page,
-                            per_page: employees.per_page,
-                            total: employees.total,
-                            from: employees.from,
-                            to: employees.to,
+                            current_page: categories.current_page,
+                            last_page: categories.last_page,
+                            per_page: categories.per_page,
+                            total: categories.total,
+                            from: categories.from,
+                            to: categories.to,
                         }}
                     />
                 </div>
@@ -239,11 +215,11 @@ export default function Index({
                 <AlertDialog open={deleteModal.isOpen} onOpenChange={closeDeleteModal}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
+                            <AlertDialogTitle>Delete Category</AlertDialogTitle>
                             <AlertDialogDescription>
                                 Are you sure you want to delete{' '}
                                 <span className="font-semibold text-foreground">
-                                    {deleteModal.employee?.name}
+                                    {deleteModal.category?.name}
                                 </span>
                                 ? This action cannot be undone.
                             </AlertDialogDescription>
@@ -260,20 +236,16 @@ export default function Index({
                     </AlertDialogContent>
                 </AlertDialog>
 
-                {/* Create Employee Modal */}
-                <CreateEmployeeModal
+                {/* Modals */}
+                <CreateCategoryModal
                     open={createModal}
                     onClose={() => setCreateModal(false)}
                 />
-
-                {/* Edit Employee Modal */}
-                {editModal.employee && (
-                    <EditEmployeeModal
-                        open={editModal.isOpen}
-                        employee={editModal.employee}
-                        onClose={() => setEditModal({ isOpen: false, employee: null })}
-                    />
-                )}
+                <EditCategoryModal
+                    open={editModal.isOpen}
+                    category={editModal.category}
+                    onClose={closeEditModal}
+                />
             </div>
         </AppLayout>
     );

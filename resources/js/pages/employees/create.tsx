@@ -1,6 +1,15 @@
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { Lock, Mail, Save, Shield, User } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,22 +19,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { Separator } from '@/components/ui/separator';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Employees',
-        href: '/dashboard/employees',
-    },
-    {
-        title: 'Create Employee',
-        href: '/dashboard/employees/create',
-    },
-];
+interface CreateEmployeeModalProps {
+    open: boolean;
+    onClose: () => void;
+}
 
-export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
+export default function CreateEmployeeModal({ open, onClose }: CreateEmployeeModalProps) {
+    const form = useForm({
         name: '',
         email: '',
         password: '',
@@ -33,92 +35,193 @@ export default function Create() {
         role: 'user',
     });
 
-    const submit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/dashboard/employees');
+        form.post('/dashboard/employees', {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+                onClose();
+            },
+        });
+    };
+
+    const handleClose = () => {
+        form.reset();
+        form.clearErrors();
+        onClose();
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Employee" />
-            <div className="p-6 max-w-2xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-semibold">Create Employee</h1>
-                    <p className="text-muted-foreground text-sm">Add a new employee to the system.</p>
-                </div>
+        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+            <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
+                <form onSubmit={handleSubmit}>
+                    <DialogHeader>
+                        <div className="flex items-center gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <User className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                                <DialogTitle>Create Employee</DialogTitle>
+                                <DialogDescription>
+                                    Add a new employee to the system
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
 
-                <form onSubmit={submit} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.name} />
+                    <div className="space-y-6 py-4">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <User className="h-4 w-4" />
+                                <span>Basic Information</span>
+                            </div>
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-name">
+                                    Full Name <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="create-name"
+                                        value={form.data.name}
+                                        onChange={(e) => form.setData('name', e.target.value)}
+                                        placeholder="John Doe"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.name} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-email">
+                                    Email Address <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="create-email"
+                                        type="email"
+                                        value={form.data.email}
+                                        onChange={(e) => form.setData('email', e.target.value)}
+                                        placeholder="john.doe@example.com"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.email} />
+                            </div>
+                        </div>
+
+                        {/* Role */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Shield className="h-4 w-4" />
+                                <span>Role & Permissions</span>
+                            </div>
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-role">
+                                    Role <span className="text-destructive">*</span>
+                                </Label>
+                                <Select
+                                    value={form.data.role}
+                                    onValueChange={(value) => form.setData('role', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="h-4 w-4 text-orange-500" />
+                                                <span>Admin</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="user">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4 text-blue-500" />
+                                                <span>User</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.role} />
+                            </div>
+                        </div>
+
+                        {/* Security */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Lock className="h-4 w-4" />
+                                <span>Security</span>
+                            </div>
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-password">
+                                    Password <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="create-password"
+                                        type="password"
+                                        value={form.data.password}
+                                        onChange={(e) => form.setData('password', e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.password} />
+                                <p className="text-xs text-muted-foreground">
+                                    💡 Must be at least 8 characters long
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="create-password-confirmation">
+                                    Confirm Password <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="create-password-confirmation"
+                                        type="password"
+                                        value={form.data.password_confirmation}
+                                        onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.password_confirmation} />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.email} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select
-                            value={data.role}
-                            onValueChange={(value) => setData('role', value)}
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={form.processing}
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="user">User</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError message={errors.role} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.password} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Confirm Password</Label>
-                        <Input
-                            id="password_confirmation"
-                            type="password"
-                            value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.password_confirmation} />
-                    </div>
-
-                    <div className="flex justify-end">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Creating...' : 'Create Employee'}
+                            Cancel
                         </Button>
-                    </div>
+                        <Button type="submit" disabled={form.processing}>
+                            <Save className="mr-2 h-4 w-4" />
+                            {form.processing ? 'Creating...' : 'Create Employee'}
+                        </Button>
+                    </DialogFooter>
                 </form>
-            </div>
-        </AppLayout>
+            </DialogContent>
+        </Dialog>
     );
 }

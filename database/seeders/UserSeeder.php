@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -13,7 +12,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-         $roles = [
+        $roles = [
             'super-admin',
             'admin',
             'user',
@@ -21,7 +20,7 @@ class UserSeeder extends Seeder
 
         foreach ($roles as $role) {
             \Spatie\Permission\Models\Role::create(['name' => $role]);
-        };
+        }
 
         User::factory([
             'name' => env('USER_NAME'),

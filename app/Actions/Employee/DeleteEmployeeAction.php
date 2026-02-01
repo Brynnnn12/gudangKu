@@ -9,9 +9,6 @@ class DeleteEmployeeAction
 {
     /**
      * Delete the employee (user).
-     *
-     * @param  \App\Models\User  $user
-     * @return void
      */
     public function execute(User $user): void
     {

@@ -22,14 +22,12 @@ class EmployeeController extends Controller
 
         $employees = User::role(['admin', 'user'])
             ->with('roles')
-            // Filter Search: Hanya jalan jika 'search' ada isinya
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
             })
-            // Filter Role: Hanya jalan jika 'role' ada dan bukan 'all'
             ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
                 $query->role($request->role);
             })
@@ -50,7 +48,7 @@ class EmployeeController extends Controller
     {
         $this->authorize('create', User::class);
 
-        return Inertia::render('employees/create');
+        return redirect()->route('employees.index');
     }
 
     /**
@@ -84,9 +82,7 @@ class EmployeeController extends Controller
     {
         $this->authorize('update', $employee);
 
-        return Inertia::render('employees/edit', [
-            'employee' => $employee->load('roles'),
-        ]);
+        return redirect()->route('employees.index');
     }
 
     /**

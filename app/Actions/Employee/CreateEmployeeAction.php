@@ -5,7 +5,6 @@ namespace App\Actions\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class CreateEmployeeAction
 {
@@ -13,7 +12,6 @@ class CreateEmployeeAction
      * Create a new employee.
      *
      * @param  array<string, mixed>  $input
-     * @return \App\Models\User
      */
     public function execute(array $input): User
     {

@@ -4,16 +4,13 @@ namespace App\Actions\Employee;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class UpdateEmployeeAction
 {
     /**
      * Update the employee (user) information and role.
      *
-     * @param  \App\Models\User  $user
      * @param  array<string, mixed>  $input
-     * @return \App\Models\User
      */
     public function execute(User $user, array $input): User
     {

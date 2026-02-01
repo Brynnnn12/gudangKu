@@ -1,6 +1,16 @@
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { Mail, Save, Shield, User } from 'lucide-react';
+import { useEffect } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,91 +20,167 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import type { EditProps } from '@/types/models/employee';
+import { Separator } from '@/components/ui/separator';
+import type { User as EmployeeUser } from '@/types/models/employee';
 
-export default function Edit({ employee }: EditProps) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Employees',
-            href: '/dashboard/employees',
-        },
-        {
-            title: 'Edit Employee',
-            href: `/dashboard/employees/${employee.id}/edit`,
-        },
-    ];
-    const { data, setData, put, processing, errors } = useForm({
+interface EditEmployeeModalProps {
+    open: boolean;
+    employee: EmployeeUser;
+    onClose: () => void;
+}
+
+export default function EditEmployeeModal({ open, employee, onClose }: EditEmployeeModalProps) {
+    const form = useForm({
         name: employee.name,
         email: employee.email,
         role: employee.roles?.[0]?.name || 'user',
     });
 
-    const submit = (e: React.FormEvent) => {
+    useEffect(() => {
+        if (open && employee) {
+            form.setData({
+                name: employee.name,
+                email: employee.email,
+                role: employee.roles?.[0]?.name || 'user',
+            });
+        }
+    }, [employee, open]);
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/dashboard/employees/${employee.id}`);
+        form.put(`/dashboard/employees/${employee.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                onClose();
+            },
+        });
+    };
 
-
+    const handleClose = () => {
+        form.clearErrors();
+        onClose();
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Edit Employee" />
-            <div className="p-6 max-w-2xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-semibold">Edit Employee</h1>
-                    <p className="text-muted-foreground text-sm">Update employee information.</p>
-                </div>
+        <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+            <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
+                <form onSubmit={handleSubmit}>
+                    <DialogHeader>
+                        <div className="flex items-center gap-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <User className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                                <DialogTitle>Edit Employee</DialogTitle>
+                                <DialogDescription>
+                                    Update employee information
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
 
-                <form onSubmit={submit} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.name} />
+                    <div className="space-y-6 py-4">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <User className="h-4 w-4" />
+                                <span>Basic Information</span>
+                            </div>
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-name">
+                                    Full Name <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="edit-name"
+                                        value={form.data.name}
+                                        onChange={(e) => form.setData('name', e.target.value)}
+                                        placeholder="John Doe"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.name} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-email">
+                                    Email Address <span className="text-destructive">*</span>
+                                </Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="edit-email"
+                                        type="email"
+                                        value={form.data.email}
+                                        onChange={(e) => form.setData('email', e.target.value)}
+                                        placeholder="john.doe@example.com"
+                                        required
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <InputError message={form.errors.email} />
+                            </div>
+                        </div>
+
+                        {/* Role */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Shield className="h-4 w-4" />
+                                <span>Role & Permissions</span>
+                            </div>
+                            <Separator />
+
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-role">
+                                    Role <span className="text-destructive">*</span>
+                                </Label>
+                                <Select
+                                    value={form.data.role}
+                                    onValueChange={(value) => form.setData('role', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="h-4 w-4 text-orange-500" />
+                                                <span>Admin</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="user">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4 text-blue-500" />
+                                                <span>User</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={form.errors.role} />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.email} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select
-                            value={data.role}
-                            onValueChange={(value) => setData('role', value)}
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleClose}
+                            disabled={form.processing}
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="user">User</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError message={errors.role} />
-                    </div>
-
-                    <div className="flex justify-end">
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : 'Save Changes'}
+                            Cancel
                         </Button>
-                    </div>
+                        <Button type="submit" disabled={form.processing}>
+                            <Save className="mr-2 h-4 w-4" />
+                            {form.processing ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </DialogFooter>
                 </form>
-            </div>
-        </AppLayout>
+            </DialogContent>
+        </Dialog>
     );
 }
