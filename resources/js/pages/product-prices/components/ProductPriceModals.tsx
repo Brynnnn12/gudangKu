@@ -8,9 +8,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
 import CreateProductPriceModal from '@/pages/product-prices/create';
 import EditProductPriceModal from '@/pages/product-prices/edit';
-import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
+
 
 interface ModalState {
     create: boolean;
