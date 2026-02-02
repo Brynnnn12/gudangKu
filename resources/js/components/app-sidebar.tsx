@@ -44,6 +44,10 @@ export function AppSidebar() {
                      href: '/dashboard/products',
                  },
                  {
+                        title: 'Product Prices',
+                        href: '/dashboard/product-prices',
+                 },
+                 {
                         title: 'Warehouses',
                         href: '/dashboard/warehouses',
                  },
