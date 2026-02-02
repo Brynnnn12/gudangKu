@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Employee\BulkDeleteEmployeesAction;
 use App\Actions\Employee\CreateEmployeeAction;
 use App\Actions\Employee\DeleteEmployeeAction;
 use App\Actions\Employee\UpdateEmployeeAction;
@@ -17,30 +18,37 @@ class EmployeeController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
-        $this->authorize('viewAny', User::class);
+{
+    $this->authorize('viewAny', User::class);
 
-        $employees = User::role(['admin', 'user'])
-            ->with('roles')
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
-                $query->role($request->role);
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
-
-        return Inertia::render('employees/index', [
-            'employees' => $employees,
-            'filters' => $request->only(['search', 'role']),
+    $employees = User::role(['admin', 'user'])
+        ->with('roles')
+        ->when($request->search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        })
+        ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
+            $query->role($request->role);
+        })
+        ->latest()
+        ->paginate(10)
+        ->withQueryString()
+        // Tambahkan through untuk mapping data ke Frontend
+        ->through(fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->roles->pluck('name')->first(), // Mengambil string nama role saja
+            'created_at' => $user->created_at->format('d M Y'),
         ]);
-    }
 
+    return Inertia::render('employees/index', [
+        'employees' => $employees,
+        'filters' => $request->only(['search', 'role']),
+    ]);
+}
     /**
      * Show the form for creating a new resource.
      */
@@ -107,6 +115,25 @@ class EmployeeController extends Controller
         $action->execute($employee);
 
         session()->flash('success', 'Employee deleted successfully.');
+
+        return redirect()->route('employees.index');
+    }
+
+    /**
+     * Bulk delete employees.
+     */
+    public function bulkDestroy(Request $request, BulkDeleteEmployeesAction $action)
+    {
+        $this->authorize('bulkDelete', User::class);
+
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:users,id',
+        ]);
+
+        $count = $action->execute($request->ids);
+
+        session()->flash('success', "{$count} employees deleted successfully.");
 
         return redirect()->route('employees.index');
     }

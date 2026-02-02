@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Categories\BulkDeleteCategoriesAction;
 use App\Actions\Categories\CreateCategoryAction;
 use App\Actions\Categories\DeleteCategoryAction;
 use App\Actions\Categories\UpdateCategoryAction;
@@ -103,6 +104,25 @@ class CategoryController extends Controller
         $action->execute($category);
 
         session()->flash('success', 'Category deleted successfully.');
+
+        return redirect()->route('categories.index');
+    }
+
+    /**
+     * Bulk delete categories.
+     */
+    public function bulkDestroy(Request $request, BulkDeleteCategoriesAction $action)
+    {
+        $this->authorize('bulkDelete', Category::class);
+
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:categories,id',
+        ]);
+
+        $count = $action->execute($request->ids);
+
+        session()->flash('success', "{$count} categories deleted successfully.");
 
         return redirect()->route('categories.index');
     }

@@ -3,28 +3,28 @@ import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { Category, Filters, PageProps } from '@/types/models/categories';
-import { CategoryToolbar } from './components/CategoryToolbar';
-import { CategoryTable } from './components/CategoryTable';
-import { CategoryModals } from './components/CategoryModals';
+import type { Warehouse, Filters, PageProps } from '@/types/models/warehouses';
+import { WarehouseToolbar } from './components/WarehouseToolbar';
+import { WarehouseTable } from './components/WarehouseTable';
+import { WarehouseModals } from './components/WarehouseModals';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Categories', href: '/dashboard/categories' },
+    { title: 'Warehouses', href: '/dashboard/warehouses' },
 ];
 
 interface ModalState {
     create: boolean;
-    edit: { isOpen: boolean; category: Category | null };
-    delete: { isOpen: boolean; category: Category | null };
+    edit: { isOpen: boolean; warehouse: Warehouse | null };
+    delete: { isOpen: boolean; warehouse: Warehouse | null };
     bulkDelete: boolean;
 }
 
 export default function Index({
-    categories,
+    warehouses,
     filters = {},
 }: {
-    categories: PageProps;
+    warehouses: PageProps;
     filters?: Filters;
 }) {
     const searchForm = useForm({
@@ -33,8 +33,8 @@ export default function Index({
 
     const [modals, setModals] = useState<ModalState>({
         create: false,
-        edit: { isOpen: false, category: null },
-        delete: { isOpen: false, category: null },
+        edit: { isOpen: false, warehouse: null },
+        delete: { isOpen: false, warehouse: null },
         bulkDelete: false,
     });
 
@@ -46,7 +46,7 @@ export default function Index({
 
         const timer = setTimeout(() => {
             router.get(
-                '/dashboard/categories',
+                '/dashboard/warehouses',
                 {
                     search: searchForm.data.search,
                     page: undefined, // Reset to page 1 on search
@@ -55,7 +55,7 @@ export default function Index({
                     preserveState: true,
                     preserveScroll: true,
                     replace: true,
-                    only: ['categories'],
+                    only: ['warehouses'],
                 }
             );
         }, 300);
@@ -63,12 +63,11 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search]);
 
-    // Modal handlers
-    const openModal = (type: keyof ModalState, data?: Category) => {
+    const openModal = (type: keyof ModalState, data?: Warehouse) => {
         if (type === 'create' || type === 'bulkDelete') {
             setModals(prev => ({ ...prev, [type]: true }));
         } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, category: data || null } }));
+            setModals(prev => ({ ...prev, [type]: { isOpen: true, warehouse: data || null } }));
         }
     };
 
@@ -76,22 +75,21 @@ export default function Index({
         if (type === 'create' || type === 'bulkDelete') {
             setModals(prev => ({ ...prev, [type]: false }));
         } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, category: null } }));
+            setModals(prev => ({ ...prev, [type]: { isOpen: false, warehouse: null } }));
         }
     };
 
-    // Delete handlers
     const handleDelete = () => {
-        if (!modals.delete.category) return;
+        if (!modals.delete.warehouse) return;
 
-        router.delete(`/dashboard/categories/${modals.delete.category.id}`, {
+        router.delete(`/dashboard/warehouses/${modals.delete.warehouse.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });
     };
 
     const handleBulkDelete = () => {
-        router.delete('/dashboard/categories/bulk-destroy', {
+        router.delete('/dashboard/warehouses/bulk-destroy', {
             data: { ids: selectedIds },
             preserveScroll: true,
             onSuccess: () => {
@@ -101,9 +99,8 @@ export default function Index({
         });
     };
 
-    // Selection handlers
     const toggleSelectAll = (checked: boolean) => {
-        setSelectedIds(checked ? categories.data.map(cat => cat.id) : []);
+        setSelectedIds(checked ? warehouses.data.map(wh => wh.id) : []);
     };
 
     const toggleSelectOne = (id: number, checked: boolean) => {
@@ -112,25 +109,23 @@ export default function Index({
         );
     };
 
-    // Filter handlers
     const clearFilters = () => {
         searchForm.setData({ search: '' });
-        router.get('/dashboard/categories', {}, {
+        router.get('/dashboard/warehouses', {}, {
             replace: true,
             preserveState: false
         });
     };
 
-    // Computed values
     const hasActiveFilters = !!searchForm.data.search;
-    const allSelected = categories.data.length > 0 && selectedIds.length === categories.data.length;
-    const someSelected = selectedIds.length > 0 && selectedIds.length < categories.data.length;
+    const allSelected = warehouses.data.length > 0 && selectedIds.length === warehouses.data.length;
+    const someSelected = selectedIds.length > 0 && selectedIds.length < warehouses.data.length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Categories" />
+            <Head title="Warehouses" />
             <div className="p-6">
-                <CategoryToolbar
+                <WarehouseToolbar
                     searchValue={searchForm.data.search}
                     onSearchChange={(value) => searchForm.setData('search', value)}
                     onAddClick={() => openModal('create')}
@@ -141,35 +136,35 @@ export default function Index({
                     hasActiveFilters={hasActiveFilters}
                 />
 
-                <CategoryTable
-                    categories={categories.data}
+                <WarehouseTable
+                    warehouses={warehouses.data}
                     selectedIds={selectedIds}
                     onSelectAll={toggleSelectAll}
                     onSelectOne={toggleSelectOne}
-                    onEdit={(category) => openModal('edit', category)}
-                    onDelete={(category) => openModal('delete', category)}
+                    onEdit={(warehouse) => openModal('edit', warehouse)}
+                    onDelete={(warehouse) => openModal('delete', warehouse)}
                     allSelected={allSelected}
                     someSelected={someSelected}
                 />
 
                 {/* Pagination */}
-                {categories.data.length > 0 && (
+                {warehouses.data.length > 0 && (
                     <div className="mt-4">
                         <Pagination
-                            links={categories.links}
+                            links={warehouses.links}
                             meta={{
-                                current_page: categories.current_page,
-                                last_page: categories.last_page,
-                                per_page: categories.per_page,
-                                total: categories.total,
-                                from: categories.from,
-                                to: categories.to,
+                                current_page: warehouses.current_page,
+                                last_page: warehouses.last_page,
+                                per_page: warehouses.per_page,
+                                total: warehouses.total,
+                                from: warehouses.from,
+                                to: warehouses.to,
                             }}
                         />
                     </div>
                 )}
 
-                <CategoryModals
+                <WarehouseModals
                     modals={modals}
                     onCloseModal={closeModal}
                     onConfirmDelete={handleDelete}

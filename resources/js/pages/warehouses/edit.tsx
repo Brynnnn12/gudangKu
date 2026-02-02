@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { Save, Tag } from 'lucide-react';
+import { MapPin, Save, Warehouse } from 'lucide-react';
+import { useEffect } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,33 +13,48 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import type { Warehouse as WarehouseType } from '@/types/models/warehouses';
 
-interface CreateCategoryModalProps {
+interface EditWarehouseModalProps {
     open: boolean;
+    warehouse: WarehouseType | null;
     onClose: () => void;
 }
 
-export default function CreateCategoryModal({ open, onClose }: CreateCategoryModalProps) {
+export default function EditWarehouseModal({ open, warehouse, onClose }: EditWarehouseModalProps) {
     const form = useForm({
-        name: '',
+        name: warehouse?.name || '',
+        address: warehouse?.address || '',
     });
+
+    useEffect(() => {
+        if (warehouse) {
+            form.setData({
+                name: warehouse.name,
+                address: warehouse.address,
+            });
+        }
+    }, [warehouse]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post('/dashboard/categories', {
+        if (!warehouse) return;
+
+        form.put(`/dashboard/warehouses/${warehouse.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                form.reset();
                 onClose();
             },
         });
     };
 
     const handleClose = () => {
-        form.reset();
         form.clearErrors();
         onClose();
     };
+
+    if (!warehouse) return null;
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -47,33 +63,51 @@ export default function CreateCategoryModal({ open, onClose }: CreateCategoryMod
                     <DialogHeader>
                         <div className="flex items-center gap-2">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                <Tag className="h-5 w-5 text-primary" />
+                                <Warehouse className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <DialogTitle>Create Category</DialogTitle>
+                                <DialogTitle>Edit Warehouse</DialogTitle>
                                 <DialogDescription>
-                                    Add a new category to organize your products
+                                    Update warehouse information
                                 </DialogDescription>
                             </div>
                         </div>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="create-name">
-                                Category Name <span className="text-destructive">*</span>
+                            <Label htmlFor="edit-name">
+                                Warehouse Name <span className="text-destructive">*</span>
                             </Label>
                             <Input
-                                id="create-name"
+                                id="edit-name"
                                 value={form.data.name}
                                 onChange={(e) => form.setData('name', e.target.value)}
-                                placeholder="e.g., Electronics, Clothing"
+                                placeholder="e.g., Main Warehouse, Jakarta Branch"
                                 required
                                 autoFocus
+                                maxLength={50}
                             />
                             <InputError message={form.errors.name} />
-                            <p className="text-xs text-muted-foreground">
-                                💡 The URL-friendly slug will be automatically generated
-                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-address">
+                                Address <span className="text-destructive">*</span>
+                            </Label>
+                            <Textarea
+                                id="edit-address"
+                                value={form.data.address}
+                                onChange={(e) => form.setData('address', e.target.value)}
+                                placeholder="Enter complete warehouse address..."
+                                required
+                                rows={4}
+                                className="resize-none"
+                            />
+                            <InputError message={form.errors.address} />
+                            <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                <span>Include street name, city, postal code, and country</span>
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
@@ -87,7 +121,7 @@ export default function CreateCategoryModal({ open, onClose }: CreateCategoryMod
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? 'Creating...' : 'Create'}
+                            {form.processing ? 'Updating...' : 'Update'}
                         </Button>
                     </DialogFooter>
                 </form>

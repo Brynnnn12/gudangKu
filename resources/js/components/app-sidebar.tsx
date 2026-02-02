@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
 import { Folder, LayoutGrid, User2Icon } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -12,6 +11,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
@@ -43,6 +43,10 @@ export function AppSidebar() {
                      title: 'Products',
                      href: '#',
                  },
+                 {
+                        title: 'Warehouses',
+                        href: '/dashboard/warehouses',
+                 }
              ],
         }] : []),
     ];

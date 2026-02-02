@@ -1,39 +1,12 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Edit, Plus, Search, Trash2, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/pagination';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import CreateEmployeeModal from '@/pages/employees/create';
-import EditEmployeeModal from '@/pages/employees/edit';
 import { type BreadcrumbItem } from '@/types';
 import type { PageProps, User as EmployeeUser } from '@/types/models/employee';
+import { EmployeeToolbar } from './components/EmployeeToolbar';
+import { EmployeeTable } from './components/EmployeeTable';
+import { EmployeeModals } from './components/EmployeeModals';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -43,6 +16,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Filters {
     search?: string;
     role?: string;
+}
+
+interface ModalState {
+    create: boolean;
+    edit: { isOpen: boolean; employee: EmployeeUser | null };
+    delete: { isOpen: boolean; employee: EmployeeUser | null };
+    bulkDelete: boolean;
 }
 
 export default function Index({
@@ -57,223 +37,156 @@ export default function Index({
         role: filters.role || '',
     });
 
-    const [deleteModal, setDeleteModal] = useState<{
-        isOpen: boolean;
-        employee: EmployeeUser | null;
-    }>({
-        isOpen: false,
-        employee: null,
+    const [modals, setModals] = useState<ModalState>({
+        create: false,
+        edit: { isOpen: false, employee: null },
+        delete: { isOpen: false, employee: null },
+        bulkDelete: false,
     });
 
-    const [createModal, setCreateModal] = useState(false);
-    const [editModal, setEditModal] = useState<{
-        isOpen: boolean;
-        employee: EmployeeUser | null;
-    }>({
-        isOpen: false,
-        employee: null,
-    });
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    // Clean query params - remove empty values
-    const queryParams = useMemo(() => {
-        const params: Record<string, string> = {};
-        if (searchForm.data.search) params.search = searchForm.data.search;
-        if (searchForm.data.role && searchForm.data.role !== 'all') params.role = searchForm.data.role;
-        return params;
-    }, [searchForm.data.search, searchForm.data.role]);
-
-    // Debounced search with clean URL
+    // Search and filter with auto page reset
     useEffect(() => {
+        if (!searchForm.isDirty) return;
+
         const timer = setTimeout(() => {
+            const params: Record<string, string | undefined> = {
+                page: undefined, // Reset to page 1 on search/filter
+            };
+            if (searchForm.data.search) params.search = searchForm.data.search;
+            if (searchForm.data.role && searchForm.data.role !== 'all') params.role = searchForm.data.role;
+
             router.get(
                 '/dashboard/employees',
-                queryParams,
+                params,
                 {
                     preserveState: true,
                     preserveScroll: true,
                     replace: true,
+                    only: ['employees'],
                 }
             );
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [queryParams]);
+    }, [searchForm.data.search, searchForm.data.role]);
 
-    const openDeleteModal = (employee: EmployeeUser) => {
-        setDeleteModal({ isOpen: true, employee });
+    // Modal handlers
+    const openModal = (type: keyof ModalState, data?: EmployeeUser) => {
+        if (type === 'create' || type === 'bulkDelete') {
+            setModals(prev => ({ ...prev, [type]: true }));
+        } else {
+            setModals(prev => ({ ...prev, [type]: { isOpen: true, employee: data || null } }));
+        }
     };
 
-    const closeDeleteModal = () => {
-        setDeleteModal({ isOpen: false, employee: null });
+    const closeModal = (type: keyof ModalState) => {
+        if (type === 'create' || type === 'bulkDelete') {
+            setModals(prev => ({ ...prev, [type]: false }));
+        } else {
+            setModals(prev => ({ ...prev, [type]: { isOpen: false, employee: null } }));
+        }
     };
 
-    const confirmDelete = () => {
-        if (!deleteModal.employee) return;
+    // Delete handlers
+    const handleDelete = () => {
+        if (!modals.delete.employee) return;
 
-        router.delete(`/dashboard/employees/${deleteModal.employee.id}`, {
+        router.delete(`/dashboard/employees/${modals.delete.employee.id}`, {
             preserveScroll: true,
-            onSuccess: () => closeDeleteModal(),
+            onSuccess: () => closeModal('delete'),
         });
     };
 
-    const clearFilters = () => {
-        searchForm.setData({ search: '', role: '' });
+    const handleBulkDelete = () => {
+        router.delete('/dashboard/employees/bulk-destroy', {
+            data: { ids: selectedIds },
+            preserveScroll: true,
+            onSuccess: () => {
+                setSelectedIds([]);
+                closeModal('bulkDelete');
+            },
+        });
     };
 
-    const hasActiveFilters = searchForm.data.search || searchForm.data.role;
+    // Selection handlers
+    const toggleSelectAll = (checked: boolean) => {
+        setSelectedIds(checked ? employees.data.map(emp => emp.id) : []);
+    };
+
+    const toggleSelectOne = (id: number, checked: boolean) => {
+        setSelectedIds(prev =>
+            checked ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
+        );
+    };
+
+    // Filter handlers
+    const clearFilters = () => {
+        searchForm.setData({ search: '', role: '' });
+        router.get('/dashboard/employees', {}, {
+            replace: true,
+            preserveState: false
+        });
+    };
+
+    // Computed values
+    const hasActiveFilters = !!searchForm.data.search || !!searchForm.data.role;
+    const allSelected = employees.data.length > 0 && selectedIds.length === employees.data.length;
+    const someSelected = selectedIds.length > 0 && selectedIds.length < employees.data.length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Employees" />
             <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-semibold">Employees</h1>
-                    <Button onClick={() => setCreateModal(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Employee
-                    </Button>
-                </div>
-
-                {/* Search and Filter */}
-                <div className="mb-4 flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by name or email..."
-                            value={searchForm.data.search}
-                            onChange={(e) => searchForm.setData('search', e.target.value)}
-                            className="pl-9"
-                            disabled={searchForm.processing}
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <Select
-                            value={searchForm.data.role || undefined}
-                            onValueChange={(value) => searchForm.setData('role', value)}
-                            disabled={searchForm.processing}
-                        >
-                            <SelectTrigger className="w-45">
-                                <SelectValue placeholder="Filter by role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Roles</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="user">User</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {hasActiveFilters && (
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={clearFilters}
-                                disabled={searchForm.processing}
-                                title="Clear filters"
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                <div className="rounded-md border bg-card">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {employees.data.length > 0 ? (
-                                employees.data.map((employee) => (
-                                    <TableRow key={employee.id}>
-                                        <TableCell>{employee.name}</TableCell>
-                                        <TableCell>{employee.email}</TableCell>
-                                        <TableCell className="capitalize">
-                                            {employee.roles?.map((r) => r.name).join(', ') ?? '-'}
-                                        </TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => setEditModal({ isOpen: true, employee })}
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-destructive hover:text-destructive"
-                                                onClick={() => openDeleteModal(employee)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">
-                                        No employees found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                    <Pagination
-                        links={employees.links}
-                        meta={{
-                            current_page: employees.current_page,
-                            last_page: employees.last_page,
-                            per_page: employees.per_page,
-                            total: employees.total,
-                            from: employees.from,
-                            to: employees.to,
-                        }}
-                    />
-                </div>
-
-                {/* Delete Confirmation Modal */}
-                <AlertDialog open={deleteModal.isOpen} onOpenChange={closeDeleteModal}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Are you sure you want to delete{' '}
-                                <span className="font-semibold text-foreground">
-                                    {deleteModal.employee?.name}
-                                </span>
-                                ? This action cannot be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-
-                {/* Create Employee Modal */}
-                <CreateEmployeeModal
-                    open={createModal}
-                    onClose={() => setCreateModal(false)}
+                <EmployeeToolbar
+                    searchValue={searchForm.data.search}
+                    roleValue={searchForm.data.role}
+                    onSearchChange={(value) => searchForm.setData('search', value)}
+                    onRoleChange={(value) => searchForm.setData('role', value)}
+                    onAddClick={() => openModal('create')}
+                    onBulkDeleteClick={() => openModal('bulkDelete')}
+                    onClearFilters={clearFilters}
+                    selectedCount={selectedIds.length}
+                    isSearching={searchForm.processing}
+                    hasActiveFilters={hasActiveFilters}
                 />
 
-                {/* Edit Employee Modal */}
-                {editModal.employee && (
-                    <EditEmployeeModal
-                        open={editModal.isOpen}
-                        employee={editModal.employee}
-                        onClose={() => setEditModal({ isOpen: false, employee: null })}
-                    />
+                <EmployeeTable
+                    employees={employees.data}
+                    selectedIds={selectedIds}
+                    onSelectAll={toggleSelectAll}
+                    onSelectOne={toggleSelectOne}
+                    onEdit={(employee) => openModal('edit', employee)}
+                    onDelete={(employee) => openModal('delete', employee)}
+                    allSelected={allSelected}
+                    someSelected={someSelected}
+                />
+
+                {/* Pagination */}
+                {employees.data.length > 0 && (
+                    <div className="mt-4">
+                        <Pagination
+                            links={employees.links}
+                            meta={{
+                                current_page: employees.current_page,
+                                last_page: employees.last_page,
+                                per_page: employees.per_page,
+                                total: employees.total,
+                                from: employees.from,
+                                to: employees.to,
+                            }}
+                        />
+                    </div>
                 )}
+
+                <EmployeeModals
+                    modals={modals}
+                    onCloseModal={closeModal}
+                    onConfirmDelete={handleDelete}
+                    onConfirmBulkDelete={handleBulkDelete}
+                    selectedCount={selectedIds.length}
+                />
             </div>
         </AppLayout>
     );
