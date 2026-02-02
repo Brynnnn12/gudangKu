@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Edit, Eye, Package, Trash2, Warehouse } from 'lucide-react';
+import { Edit, Eye, MinusCircle, Package, Trash2, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +19,7 @@ interface WarehouseStockTableProps {
     onSelectAll: (checked: boolean) => void;
     onSelectOne: (id: number, checked: boolean) => void;
     onEdit?: (warehouseStock: WarehouseStock) => void; // Optional - hidden when undefined
+    onStockOut?: (warehouseStock: WarehouseStock) => void; // Stock out action
     onDelete: (warehouseStock: WarehouseStock) => void;
     allSelected: boolean;
     someSelected: boolean;
@@ -30,6 +31,7 @@ export function WarehouseStockTable({
     onSelectAll,
     onSelectOne,
     onEdit,
+    onStockOut,
     onDelete,
     allSelected,
     someSelected,
@@ -109,6 +111,17 @@ export function WarehouseStockTable({
                                             <Eye className="h-4 w-4" />
                                         </Button>
                                     </Link>
+                                    {onStockOut && warehouseStock.total_quantity > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-orange-600 hover:text-orange-700"
+                                            onClick={() => onStockOut(warehouseStock)}
+                                            title="Stock Out (FEFO)"
+                                        >
+                                            <MinusCircle className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                     {onEdit && (
                                         <Button
                                             variant="ghost"

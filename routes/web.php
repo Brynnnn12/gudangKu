@@ -56,6 +56,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
 
     Route::delete('warehouse-stocks/bulk-destroy', [\App\Http\Controllers\WarehouseStockController::class, 'bulkDestroy'])
         ->name('warehouse-stocks.bulk-destroy');
+    Route::post('warehouse-stocks/{warehouseStock}/stock-out', [\App\Http\Controllers\WarehouseStockController::class, 'stockOut'])
+        ->name('warehouse-stocks.stock-out');
     Route::resource('warehouse-stocks', \App\Http\Controllers\WarehouseStockController::class)
         ->parameters(['warehouse-stocks' => 'warehouseStock'])
         ->except(['create', 'edit']);

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\WarehouseStocks\BulkDeleteWarehouseStocksAction;
 use App\Actions\WarehouseStocks\CreateWarehouseStockAction;
 use App\Actions\WarehouseStocks\DeleteWarehouseStockAction;
+use App\Actions\WarehouseStocks\StockOutAction;
 use App\Actions\WarehouseStocks\UpdateWarehouseStockAction;
+use App\Http\Requests\StockOutRequest;
 use App\Http\Requests\WarehouseStocks\StoreWarehouseStockRequest;
 use App\Http\Requests\WarehouseStocks\UpdateWarehouseStockRequest;
 use App\Models\Product;
@@ -161,5 +163,31 @@ class WarehouseStockController extends Controller
         session()->flash('success', "{$count} warehouse stocks deleted successfully.");
 
         return redirect()->route('warehouse-stocks.index');
+    }
+
+    /**
+     * Stock out (reduce stock using FEFO method).
+     */
+    public function stockOut(StockOutRequest $request, WarehouseStock $warehouseStock, StockOutAction $action)
+    {
+        $this->authorize('update', $warehouseStock);
+
+        try {
+            $result = $action->execute(
+                warehouseStockId: $warehouseStock->id,
+                quantity: $request->validated('quantity'),
+                type: $request->validated('type'),
+                notes: $request->validated('notes')
+            );
+
+            $batchCount = count($result['affected_batches']);
+            session()->flash('success', "Successfully reduced {$result['total_reduced']} units using FEFO. {$batchCount} batches affected.");
+
+            return redirect()->route('warehouse-stocks.index');
+        } catch (\InvalidArgumentException $e) {
+            session()->flash('error', $e->getMessage());
+
+            return redirect()->back();
+        }
     }
 }
