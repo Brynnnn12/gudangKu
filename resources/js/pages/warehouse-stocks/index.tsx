@@ -1,6 +1,8 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { AlertCircle, Info } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { Product } from '@/types/models/products';
@@ -141,6 +143,23 @@ export default function Index({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Warehouse Stocks" />
             <div className="p-6">
+                {/* Info Banner */}
+                <Alert className="mb-6">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Read-Only View</AlertTitle>
+                    <AlertDescription>
+                        Warehouse stock totals are automatically calculated from stock batches. To
+                        add or adjust stock, please create or update{' '}
+                        <a
+                            href="/dashboard/stock-batches"
+                            className="font-medium underline underline-offset-4 hover:text-primary"
+                        >
+                            Stock Batches
+                        </a>
+                        . Total quantities shown here reflect the sum of all active batches (FEFO).
+                    </AlertDescription>
+                </Alert>
+
                 <WarehouseStockToolbar
                     searchValue={searchForm.data.search}
                     warehouseId={searchForm.data.warehouse_id}
@@ -150,7 +169,7 @@ export default function Index({
                     onSearchChange={(value: string) => searchForm.setData('search', value)}
                     onWarehouseChange={(value: string) => searchForm.setData('warehouse_id', value)}
                     onProductChange={(value: string) => searchForm.setData('product_id', value)}
-                    onAddClick={() => openModal('create')}
+                    onAddClick={undefined} // Disabled - stocks auto-created via batches
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedIds.length}
@@ -163,7 +182,7 @@ export default function Index({
                     selectedIds={selectedIds}
                     onSelectAll={toggleSelectAll}
                     onSelectOne={toggleSelectOne}
-                    onEdit={(warehouseStock: WarehouseStock) => openModal('edit', warehouseStock)}
+                    onEdit={undefined} // Disabled - totals auto-calculated from batches
                     onDelete={(warehouseStock: WarehouseStock) =>
                         openModal('delete', warehouseStock)
                     }

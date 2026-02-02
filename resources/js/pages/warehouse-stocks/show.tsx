@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Package, Warehouse } from 'lucide-react';
+import { ArrowLeft, Info, Package, Warehouse } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -19,13 +20,34 @@ export default function Show({ warehouseStock }: { warehouseStock: WarehouseStoc
             <div className="p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Warehouse Stock Details</h1>
-                    <Link href="/dashboard/warehouse-stocks">
-                        <Button variant="outline">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to List
-                        </Button>
-                    </Link>
+                    <div className="flex gap-2">
+                        <Link
+                            href={`/dashboard/stock-batches?warehouse_id=${warehouseStock.warehouse_id}&product_id=${warehouseStock.product_id}`}
+                        >
+                            <Button variant="outline">
+                                <Package className="mr-2 h-4 w-4" />
+                                View Batches
+                            </Button>
+                        </Link>
+                        <Link href="/dashboard/warehouse-stocks">
+                            <Button variant="outline">
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to List
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
+
+                {/* Info Banner */}
+                <Alert className="mb-6">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Auto-Calculated Total</AlertTitle>
+                    <AlertDescription>
+                        The total quantity shown below is automatically calculated from all stock
+                        batches. To view or manage individual batches (FEFO), click the "View
+                        Batches" button above.
+                    </AlertDescription>
+                </Alert>
 
                 <div className="grid gap-6 md:grid-cols-2">
                     <Card>

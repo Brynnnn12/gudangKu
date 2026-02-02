@@ -55,24 +55,27 @@ class WarehouseStockController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * ⚠️ WarehouseStock cannot be created manually - redirects to info page.
      */
     public function create()
     {
         $this->authorize('create', WarehouseStock::class);
+
+        session()->flash('info', 'Warehouse stocks are auto-created from stock batches. Create a batch instead.');
 
         return redirect()->route('warehouse-stocks.index');
     }
 
     /**
      * Store a newly created resource in storage.
+     * ⚠️ WarehouseStock cannot be created manually - use CreateStockBatchAction.
      */
     public function store(StoreWarehouseStockRequest $request, CreateWarehouseStockAction $action)
     {
         $this->authorize('create', WarehouseStock::class);
 
-        $action->execute($request->validated());
-
-        session()->flash('success', 'Warehouse stock created successfully.');
+        // Prevent manual creation - guide users to use batch creation
+        session()->flash('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
 
         return redirect()->route('warehouse-stocks.index');
     }
@@ -93,38 +96,48 @@ class WarehouseStockController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * ⚠️ WarehouseStock cannot be edited manually - redirects to info page.
      */
     public function edit(WarehouseStock $warehouseStock)
     {
         $this->authorize('update', $warehouseStock);
+
+        session()->flash('info', 'Warehouse stock totals are auto-calculated from batches. Edit batches instead.');
 
         return redirect()->route('warehouse-stocks.index');
     }
 
     /**
      * Update the specified resource in storage.
+     * ⚠️ WarehouseStock cannot be updated manually - use UpdateStockBatchAction.
      */
     public function update(UpdateWarehouseStockRequest $request, WarehouseStock $warehouseStock, UpdateWarehouseStockAction $action)
     {
         $this->authorize('update', $warehouseStock);
 
-        $action->execute($warehouseStock, $request->validated());
-
-        session()->flash('success', 'Warehouse stock updated successfully.');
+        // Prevent manual updates - guide users to use batch operations
+        session()->flash('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
 
         return redirect()->route('warehouse-stocks.index');
     }
 
     /**
      * Remove the specified resource from storage.
+     * ⚠️ This will also DELETE ALL related batches!
      */
     public function destroy(WarehouseStock $warehouseStock, DeleteWarehouseStockAction $action)
     {
         $this->authorize('delete', $warehouseStock);
 
+        $batchCount = $warehouseStock->batches()->count();
+
         $action->execute($warehouseStock);
 
-        session()->flash('success', 'Warehouse stock deleted successfully.');
+        if ($batchCount > 0) {
+            session()->flash('success', "Warehouse stock and {$batchCount} related batches deleted successfully.");
+        } else {
+            session()->flash('success', 'Warehouse stock deleted successfully.');
+        }
 
         return redirect()->route('warehouse-stocks.index');
     }

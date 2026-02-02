@@ -33,7 +33,7 @@ export default function EditEmployeeModal({ open, employee, onClose }: EditEmplo
     const form = useForm({
         name: employee.name,
         email: employee.email,
-        role: employee.roles?.[0]?.name || 'user',
+        role: employee.roles?.[0]?.name || 'viewer',
     });
 
     useEffect(() => {
@@ -41,7 +41,7 @@ export default function EditEmployeeModal({ open, employee, onClose }: EditEmplo
             form.setData({
                 name: employee.name,
                 email: employee.email,
-                role: employee.roles?.[0]?.name || 'user',
+                role: employee.roles?.[0]?.name || 'viewer',
             });
         }
     }, [employee, open]);

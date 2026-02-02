@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarehouseStock extends Model
 {
@@ -48,5 +49,34 @@ class WarehouseStock extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get all batches for this warehouse stock (FEFO).
+     */
+    public function batches(): HasMany
+    {
+        return $this->hasMany(StockBatch::class);
+    }
+
+    /**
+     * Get active batches ordered by expiry date (FEFO).
+     */
+    public function activeBatches(): HasMany
+    {
+        return $this->hasMany(StockBatch::class)
+            ->where('is_active', true)
+            ->where('current_qty', '>', 0)
+            ->orderBy('expired_at', 'asc');
+    }
+
+    /**
+     * Recalculate total_quantity from sum of all batches.
+     * WarehouseStock.total_quantity should always equal SUM(batches.current_qty).
+     */
+    public function recalculateTotal(): void
+    {
+        $this->total_quantity = $this->batches()->sum('current_qty');
+        $this->saveQuietly(); // Save without triggering events
     }
 }

@@ -23,7 +23,7 @@ class CreateEmployeeAction
                 'password' => Hash::make($input['password']),
             ]);
 
-            if (isset($input['role']) && in_array($input['role'], ['admin', 'user'])) {
+            if (isset($input['role']) && in_array($input['role'], ['admin', 'viewer'])) {
                 $user->assignRole($input['role']);
             }
 

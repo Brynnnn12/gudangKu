@@ -21,7 +21,7 @@ class UpdateEmployeeAction
             ])->save();
 
             // Check if role needs update
-            if (isset($input['role']) && in_array($input['role'], ['admin', 'user'])) {
+            if (isset($input['role']) && in_array($input['role'], ['admin', 'viewer'])) {
                 $user->syncRoles([$input['role']]);
             }
 

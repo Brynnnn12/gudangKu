@@ -52,13 +52,13 @@ class StoreWarehouseStockRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'warehouse_id.required' => 'Warehouse is required.',
-            'warehouse_id.exists' => 'The selected warehouse does not exist.',
-            'product_id.required' => 'Product is required.',
-            'product_id.exists' => 'The selected product does not exist.',
-            'product_id.unique' => 'This product already exists in the selected warehouse.',
-            'total_quantity.required' => 'Total quantity is required.',
-            'total_quantity.min' => 'Total quantity must be at least 0.',
+            'warehouse_id.required' => 'Gudang wajib diisi.',
+            'warehouse_id.exists' => 'Gudang yang dipilih tidak ada.',
+            'product_id.required' => 'Produk wajib diisi.',
+            'product_id.exists' => 'Produk yang dipilih tidak ada.',
+            'product_id.unique' => 'Produk ini sudah ada di gudang yang dipilih.',
+            'total_quantity.required' => 'Jumlah total wajib diisi.',
+            'total_quantity.min' => 'Jumlah total harus minimal 0.',
         ];
     }
 }

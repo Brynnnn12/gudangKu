@@ -32,7 +32,7 @@ export default function CreateEmployeeModal({ open, onClose }: CreateEmployeeMod
         email: '',
         password: '',
         password_confirmation: '',
-        role: 'user',
+        role: 'viewer',
     });
 
     const handleSubmit = (e: React.FormEvent) => {

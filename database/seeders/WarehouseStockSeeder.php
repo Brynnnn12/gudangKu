@@ -2,33 +2,22 @@
 
 namespace Database\Seeders;
 
-use App\Models\Product;
-use App\Models\Warehouse;
-use App\Models\WarehouseStock;
 use Illuminate\Database\Seeder;
 
 class WarehouseStockSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * ⚠️ DEPRECATED: WarehouseStock should NOT be created manually.
+     *
+     * WarehouseStock records are now auto-created by StockBatchSeeder.
+     * This seeder is kept for DatabaseSeeder call order compatibility.
+     *
+     * Logic: WarehouseStock.total_quantity = SUM(batches.current_qty)
+     * Source of truth: StockBatch, not WarehouseStock
      */
     public function run(): void
     {
-        $warehouses = Warehouse::all();
-        $products = Product::all();
-
-        // Create warehouse stocks for each warehouse with various products
-        foreach ($warehouses as $warehouse) {
-            // Each warehouse has 60-80% of all products
-            $productsForWarehouse = $products->random(rand((int) ($products->count() * 0.6), (int) ($products->count() * 0.8)));
-
-            foreach ($productsForWarehouse as $product) {
-                WarehouseStock::create([
-                    'warehouse_id' => $warehouse->id,
-                    'product_id' => $product->id,
-                    'total_quantity' => rand(50, 500),
-                ]);
-            }
-        }
+        // Do nothing - WarehouseStock will be auto-created by StockBatchSeeder
+        $this->command->info('WarehouseStock seeder skipped (auto-created via batches).');
     }
 }

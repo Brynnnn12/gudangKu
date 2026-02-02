@@ -1,5 +1,11 @@
 import { Link } from '@inertiajs/react';
-import { Folder, LayoutGrid, User2Icon } from 'lucide-react';
+import {
+    LayoutGrid,
+    Users,
+    Folder,
+    Warehouse,
+} from 'lucide-react';
+
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -11,6 +17,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+
 import { useAuth } from '@/hooks/use-auth';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
@@ -21,46 +28,70 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard Analytics',
+            title: 'Dashboard',
             href: dashboard.url(),
             icon: LayoutGrid,
         },
-        ...(isSuperAdmin ? [{
-            title: 'Employees',
-            href: '/dashboard/employees',
-            icon: User2Icon,
-        }] : []),
-        ...(isSuperAdmin ? [{
-            title: 'Master Data',
-            href: '#',
-            icon: Folder,
-            items: [
-                 {
-                     title: 'Categories',
-                     href: '/dashboard/categories',
-                 },
-                 {
-                     title: 'Products',
-                     href: '/dashboard/products',
-                 },
-                 {
-                        title: 'Product Prices',
+
+        ...(isSuperAdmin ? [
+            {
+                title: 'Manajemen Pengguna',
+                href: '#',
+                icon: Users,
+                items: [
+                    {
+                        title: 'Karyawan',
+                        href: '/dashboard/employees',
+                    },
+                ],
+            },
+            {
+                title: 'Master Data',
+                href: '#',
+                icon: Folder,
+                items: [
+                    {
+                        title: 'Kategori',
+                        href: '/dashboard/categories',
+                    },
+                    {
+                        title: 'Produk',
+                        href: '/dashboard/products',
+                    },
+                    {
+                        title: 'Harga Produk',
                         href: '/dashboard/product-prices',
-                 },
-                 {
-                        title: 'Warehouses',
+                    },
+                ],
+            },
+            {
+                title: 'Gudang & Stok',
+                href: '#',
+                icon: Warehouse,
+                items: [
+                    {
+                        title: 'Gudang',
                         href: '/dashboard/warehouses',
-                 },
-                 {
-                        title: 'Warehouse Users',
+                    },
+                    {
+                        title: 'Pengguna Gudang',
                         href: '/dashboard/warehouse-users',
-                 },
-                 {
-                        title: 'Warehouse Stocks',
+                    },
+                    {
+                        title: 'Stok Gudang',
                         href: '/dashboard/warehouse-stocks',
-                 }
-             ],
-        }] : []),
+                    },
+                    {
+                        title: 'Log Stok',
+                        href: '/dashboard/stock-logs',
+                    },
+                    {
+                        title: 'Batch Stok',
+                        href: '/dashboard/stock-batches',
+                    }
+                ],
+            },
+        ] : []),
     ];
 
     return (

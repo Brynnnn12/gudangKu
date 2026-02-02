@@ -21,7 +21,7 @@ class EmployeeController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $employees = User::role(['admin', 'user'])
+        $employees = User::role(['admin', 'viewer'])
             ->with('roles')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {

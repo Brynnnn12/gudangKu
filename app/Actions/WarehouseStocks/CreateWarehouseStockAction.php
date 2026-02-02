@@ -7,18 +7,20 @@ use App\Models\WarehouseStock;
 class CreateWarehouseStockAction
 {
     /**
-     * Create a new warehouse stock.
+     * ⚠️ DEPRECATED: WarehouseStock should NOT be created manually.
+     * Use CreateStockBatchAction instead - it will auto-create WarehouseStock.
      *
+     * WarehouseStock is an aggregate (total_quantity = SUM of all batches).
+     * Creating it manually causes double-counting issues.
+     *
+     * @deprecated Use CreateStockBatchAction::execute() instead
      * @param  array<string, mixed>  $input
      */
     public function execute(array $input): WarehouseStock
     {
-        $warehouseStock = WarehouseStock::create([
-            'warehouse_id' => $input['warehouse_id'],
-            'product_id' => $input['product_id'],
-            'total_quantity' => $input['total_quantity'],
-        ]);
-
-        return $warehouseStock;
+        throw new \LogicException(
+            'WarehouseStock cannot be created manually. '.
+            'Use CreateStockBatchAction to create batches - WarehouseStock will be auto-created.'
+        );
     }
 }

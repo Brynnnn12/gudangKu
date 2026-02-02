@@ -59,6 +59,16 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('warehouse-stocks', \App\Http\Controllers\WarehouseStockController::class)
         ->parameters(['warehouse-stocks' => 'warehouseStock'])
         ->except(['create', 'edit']);
+
+    // Stock Logs (Audit Trail - read-only)
+    Route::resource('stock-logs', \App\Http\Controllers\StockLogController::class)
+        ->parameters(['stock-logs' => 'stockLog'])
+        ->only(['index', 'show']);
+
+    // Stock Batches (FEFO Monitoring - read-only)
+    Route::resource('stock-batches', \App\Http\Controllers\StockBatchController::class)
+        ->parameters(['stock-batches' => 'stockBatch'])
+        ->only(['index', 'show']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');

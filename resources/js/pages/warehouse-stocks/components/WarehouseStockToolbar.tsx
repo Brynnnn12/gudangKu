@@ -20,7 +20,7 @@ interface WarehouseStockToolbarProps {
     onSearchChange: (value: string) => void;
     onWarehouseChange: (value: string) => void;
     onProductChange: (value: string) => void;
-    onAddClick: () => void;
+    onAddClick?: () => void; // Optional - hidden when undefined
     onBulkDeleteClick: () => void;
     onClearFilters: () => void;
     selectedCount: number;
@@ -62,10 +62,12 @@ export function WarehouseStockToolbar({
                             Delete Selected ({selectedCount})
                         </Button>
                     )}
-                    <Button onClick={onAddClick}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Stock
-                    </Button>
+                    {onAddClick && (
+                        <Button onClick={onAddClick}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Stock
+                        </Button>
+                    )}
                 </div>
             </div>
 

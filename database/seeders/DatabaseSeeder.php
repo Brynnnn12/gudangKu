@@ -12,9 +12,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
         $this->call([
-            UserSeeder::class,
+            UserSeeder::class,           // 1. Create users & roles first
+            CategorySeeder::class,       // 2. Create categories
+            WarehouseSeeder::class,      // 3. Create warehouses
+            ProductSeeder::class,        // 4. Create products (needs categories)
+            ProductPriceSeeder::class,   // 5. Create product prices (needs products)
+            WarehouseUserSeeder::class,  // 6. Assign users to warehouses
+            WarehouseStockSeeder::class, // 7. Create warehouse stocks (needs warehouses + products)
+            StockBatchSeeder::class,     // 8. Create stock batches (needs warehouse stocks)
+            StockLogSeeder::class,       // 9. Create stock logs (optional, needs everything)
         ]);
     }
 }

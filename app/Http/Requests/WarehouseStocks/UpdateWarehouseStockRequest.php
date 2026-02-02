@@ -38,8 +38,8 @@ class UpdateWarehouseStockRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'total_quantity.required' => 'Total quantity is required.',
-            'total_quantity.min' => 'Total quantity must be at least 0.',
+            'total_quantity.required' => 'Total kuantitas wajib diisi.',
+            'total_quantity.min' => 'Total kuantitas harus minimal 0.',
         ];
     }
 }

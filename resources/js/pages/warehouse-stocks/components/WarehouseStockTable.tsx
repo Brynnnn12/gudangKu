@@ -18,7 +18,7 @@ interface WarehouseStockTableProps {
     selectedIds: number[];
     onSelectAll: (checked: boolean) => void;
     onSelectOne: (id: number, checked: boolean) => void;
-    onEdit: (warehouseStock: WarehouseStock) => void;
+    onEdit?: (warehouseStock: WarehouseStock) => void; // Optional - hidden when undefined
     onDelete: (warehouseStock: WarehouseStock) => void;
     allSelected: boolean;
     someSelected: boolean;
@@ -109,13 +109,15 @@ export function WarehouseStockTable({
                                             <Eye className="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => onEdit(warehouseStock)}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
+                                    {onEdit && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => onEdit(warehouseStock)}
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
