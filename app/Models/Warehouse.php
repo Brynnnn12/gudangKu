@@ -44,13 +44,13 @@ class Warehouse extends Model
             ->withPivot('deleted_at');
     }
 
-    // /**
-    //  * Get the warehouse stocks for this warehouse.
-    //  */
-    // public function warehouseStocks(): HasMany
-    // {
-    //     return $this->hasMany(WarehouseStock::class);
-    // }
+    /**
+     * Get the warehouse stocks for this warehouse.
+     */
+    public function warehouseStocks(): HasMany
+    {
+        return $this->hasMany(WarehouseStock::class);
+    }
 
     // /**
     //  * Get the stock logs for this warehouse.

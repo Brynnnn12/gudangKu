@@ -62,7 +62,8 @@ class CategoryPolicy
     {
         return $user->hasRole('super-admin');
     }
-        public function bulkDelete(User $user): bool
+
+    public function bulkDelete(User $user): bool
     {
         return $user->hasRole('super-admin');
     }

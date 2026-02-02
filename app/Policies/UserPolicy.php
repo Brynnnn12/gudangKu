@@ -62,7 +62,8 @@ class UserPolicy
     {
         return false;
     }
-        public function bulkDelete(User $user): bool
+
+    public function bulkDelete(User $user): bool
     {
         return $user->hasRole('super-admin');
     }

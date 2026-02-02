@@ -53,6 +53,12 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('product-prices', \App\Http\Controllers\ProductPriceController::class)
         ->parameters(['product-prices' => 'productPrice'])
         ->except(['create', 'edit', 'show']);
+
+    Route::delete('warehouse-stocks/bulk-destroy', [\App\Http\Controllers\WarehouseStockController::class, 'bulkDestroy'])
+        ->name('warehouse-stocks.bulk-destroy');
+    Route::resource('warehouse-stocks', \App\Http\Controllers\WarehouseStockController::class)
+        ->parameters(['warehouse-stocks' => 'warehouseStock'])
+        ->except(['create', 'edit']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');

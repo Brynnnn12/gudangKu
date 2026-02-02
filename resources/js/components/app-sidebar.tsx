@@ -54,6 +54,10 @@ export function AppSidebar() {
                  {
                         title: 'Warehouse Users',
                         href: '/dashboard/warehouse-users',
+                 },
+                 {
+                        title: 'Warehouse Stocks',
+                        href: '/dashboard/warehouse-stocks',
                  }
              ],
         }] : []),

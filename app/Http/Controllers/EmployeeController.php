@@ -18,37 +18,38 @@ class EmployeeController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-{
-    $this->authorize('viewAny', User::class);
+    {
+        $this->authorize('viewAny', User::class);
 
-    $employees = User::role(['admin', 'user'])
-        ->with('roles')
-        ->when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            });
-        })
-        ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
-            $query->role($request->role);
-        })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString()
-        // Tambahkan through untuk mapping data ke Frontend
-        ->through(fn ($user) => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->roles->pluck('name')->first(), // Mengambil string nama role saja
-            'created_at' => $user->created_at->format('d M Y'),
+        $employees = User::role(['admin', 'user'])
+            ->with('roles')
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
+                $query->role($request->role);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            // Tambahkan through untuk mapping data ke Frontend
+            ->through(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->first(), // Mengambil string nama role saja
+                'created_at' => $user->created_at->format('d M Y'),
+            ]);
+
+        return Inertia::render('employees/index', [
+            'employees' => $employees,
+            'filters' => $request->only(['search', 'role']),
         ]);
+    }
 
-    return Inertia::render('employees/index', [
-        'employees' => $employees,
-        'filters' => $request->only(['search', 'role']),
-    ]);
-}
     /**
      * Show the form for creating a new resource.
      */

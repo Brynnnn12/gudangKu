@@ -63,7 +63,6 @@ class WarehousePolicy
         return $user->hasRole('super-admin');
     }
 
-
     /**
      * Determine whether the user can bulk delete models.
      */

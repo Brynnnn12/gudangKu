@@ -64,4 +64,12 @@ class Product extends Model
             ->orderBy('effective_from', 'desc')
             ->first();
     }
+
+    /**
+     * Get the warehouse stocks for this product.
+     */
+    public function warehouseStocks(): HasMany
+    {
+        return $this->hasMany(WarehouseStock::class);
+    }
 }
