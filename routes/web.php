@@ -22,7 +22,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         ->parameters(['employees' => 'employee'])
         ->except(['create', 'edit']); // <--- Tambahkan ini
 
-
     Route::delete('categories/bulk-destroy', [\App\Http\Controllers\CategoryController::class, 'bulkDestroy'])
         ->name('categories.bulk-destroy');
 
@@ -36,9 +35,15 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('warehouses', \App\Http\Controllers\WarehouseController::class)
         ->parameters(['warehouses' => 'warehouse'])
         ->except(['create', 'edit']);
+
+    Route::delete('warehouse-users/bulk-destroy', [\App\Http\Controllers\WarehouseUserController::class, 'bulkDestroy'])
+        ->name('warehouse-users.bulk-destroy');
+    Route::resource('warehouse-users', \App\Http\Controllers\WarehouseUserController::class)
+        ->parameters(['warehouse-users' => 'warehouseUser'])
+        ->except(['create', 'edit']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');
 Route::get('auth/google/callback', [ProfileController::class, 'google_callback'])->name('google.callback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

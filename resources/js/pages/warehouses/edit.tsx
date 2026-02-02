@@ -105,7 +105,7 @@ export default function EditWarehouseModal({ open, warehouse, onClose }: EditWar
                             />
                             <InputError message={form.errors.address} />
                             <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
                                 <span>Include street name, city, postal code, and country</span>
                             </div>
                         </div>

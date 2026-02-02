@@ -29,6 +29,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'token',
     ];
 
+    public function warehouses()
+    {
+        return $this->belongsToMany(Warehouse::class, 'warehouse_users')
+            ->using(WarehouseUser::class)
+            ->withTimestamps()
+            ->withPivot('deleted_at'); // Agar data soft delete bisa diakses jika perlu
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
