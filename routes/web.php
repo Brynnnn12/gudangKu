@@ -41,6 +41,12 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('warehouse-users', \App\Http\Controllers\WarehouseUserController::class)
         ->parameters(['warehouse-users' => 'warehouseUser'])
         ->except(['create', 'edit']);
+
+    Route::delete('products/bulk-destroy', [\App\Http\Controllers\ProductController::class, 'bulkDestroy'])
+        ->name('products.bulk-destroy');
+    Route::resource('products', \App\Http\Controllers\ProductController::class)
+        ->parameters(['products' => 'product'])
+        ->except(['create', 'edit']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');
