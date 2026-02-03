@@ -9,7 +9,8 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { WarehouseFormModal } from './WarehouseFormModal';
-import type { WarehouseModalState } from '@/hooks/useWarehouseModals';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import type { Warehouse } from '@/types/models/warehouses';
 
 const DeleteConfirmDialog = ({
     open,
@@ -44,8 +45,8 @@ const DeleteConfirmDialog = ({
 );
 
 interface WarehouseModalsProps {
-    modals: WarehouseModalState;
-    onCloseModal: (type: keyof WarehouseModalState) => void;
+    modals: ModalState<Warehouse>;
+    onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -67,7 +68,7 @@ export function WarehouseModals({
 
             <WarehouseFormModal
                 open={modals.edit.isOpen}
-                warehouse={modals.edit.warehouse}
+                warehouse={(modals.edit as ModalWithData<Warehouse>).data}
                 onClose={() => onCloseModal('edit')}
             />
 

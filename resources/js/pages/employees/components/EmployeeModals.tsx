@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { EmployeeFormModal } from '@/pages/employees/components/EmployeeFormModal';
 import type { User as EmployeeUser } from '@/types/models/employee';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 const DeleteConfirmDialog = ({
     open,
@@ -43,16 +44,9 @@ const DeleteConfirmDialog = ({
     </AlertDialog>
 );
 
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; employee: EmployeeUser | null };
-    delete: { isOpen: boolean; employee: EmployeeUser | null };
-    bulkDelete: boolean;
-}
-
 interface EmployeeModalsProps {
-    modals: ModalState;
-    onCloseModal: (type: keyof ModalState) => void;
+    modals: ModalState<EmployeeUser>;
+    onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -69,7 +63,7 @@ export function EmployeeModals({
         <>
             <EmployeeFormModal
                 open={modals.create || modals.edit.isOpen}
-                employee={modals.edit.employee}
+                employee={(modals.edit as ModalWithData<EmployeeUser>).data}
                 onClose={() => {
                     if (modals.create) {
                         onCloseModal('create');

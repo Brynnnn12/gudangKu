@@ -8,6 +8,7 @@ import { type BreadcrumbItem } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock, Filters, PageProps } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import StockOutModal from './components/StockOutModal';
 import { WarehouseStockModals } from './components/WarehouseStockModals';
 import { WarehouseStockTable } from './components/WarehouseStockTable';
@@ -17,14 +18,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Warehouse Stocks', href: '/dashboard/warehouse-stocks' },
 ];
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; warehouseStock: WarehouseStock | null };
-    delete: { isOpen: boolean; warehouseStock: WarehouseStock | null };
-    stockOut: { isOpen: boolean; warehouseStock: WarehouseStock | null };
-    bulkDelete: boolean;
-}
 
 export default function Index({
     warehouseStocks,
@@ -43,14 +36,10 @@ export default function Index({
         product_id: filters.product_id || '',
     });
 
-    const [modals, setModals] = useState<ModalState>({
-        create: false,
-        edit: { isOpen: false, warehouseStock: null },
-        delete: { isOpen: false, warehouseStock: null },
-        stockOut: { isOpen: false, warehouseStock: null },
-        bulkDelete: false,
+    const { modals, openModal, closeModal } = useGenericModals<WarehouseStock>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete', 'stockOut']
     });
-
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const previousFilters = useRef({
         search: filters.search || '',
@@ -109,26 +98,11 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search, searchForm.data.warehouse_id, searchForm.data.product_id]);
 
-    const openModal = (type: keyof ModalState, data?: WarehouseStock) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: true }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, warehouseStock: data || null } }));
-        }
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: false }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, warehouseStock: null } }));
-        }
-    };
-
     const handleDelete = () => {
-        if (!modals.delete.warehouseStock) return;
+        const deleteModal = modals.delete as ModalWithData<WarehouseStock>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/warehouse-stocks/${modals.delete.warehouseStock.id}`, {
+        router.delete(`/dashboard/warehouse-stocks/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });
@@ -254,10 +228,10 @@ export default function Index({
                     selectedCount={selectedIds.length}
                 />
 
-                {modals.stockOut.isOpen && modals.stockOut.warehouseStock && (
+                {modals.stockOut.isOpen && (modals.stockOut as ModalWithData<WarehouseStock>).data && (
                     <StockOutModal
                         open={modals.stockOut.isOpen}
-                        warehouseStock={modals.stockOut.warehouseStock}
+                        warehouseStock={(modals.stockOut as ModalWithData<WarehouseStock>).data!}
                         onClose={() => closeModal('stockOut')}
                     />
                 )}

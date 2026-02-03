@@ -1,11 +1,11 @@
 import { Head, router } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
-import { useCategoryModals } from '@/hooks/useCategoryModals';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import { useSearch } from '@/hooks/useSearch';
 import { useSelection } from '@/hooks/useSelection';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { Filters, PageProps } from '@/types/models/categories';
+import type { Category, Filters, PageProps } from '@/types/models/categories';
 import { CategoryModals } from './components/CategoryModals';
 import { CategoryTable } from './components/CategoryTable';
 import { CategoryToolbar } from './components/CategoryToolbar';
@@ -28,7 +28,10 @@ export default function Index({
         only: ['categories'],
     });
 
-    const { modals, openModal, closeModal } = useCategoryModals();
+    const { modals, openModal, closeModal } = useGenericModals<Category>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete']
+    });
     const {
         selectedIds,
         toggleSelectAll,
@@ -40,9 +43,10 @@ export default function Index({
     } = useSelection(categories.data);
 
     const handleDelete = () => {
-        if (!modals.delete.category) return;
+        const deleteModal = modals.delete as ModalWithData<Category>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/categories/${modals.delete.category.id}`, {
+        router.delete(`/dashboard/categories/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });

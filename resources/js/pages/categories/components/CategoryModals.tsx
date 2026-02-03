@@ -8,13 +8,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { CategoryModalState } from '@/hooks/useCategoryModals';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import type { Category } from '@/types/models/categories';
 
 import { CategoryFormModal } from './CategoryFormModal';
 
 interface CategoryModalsProps {
-    modals: CategoryModalState;
-    onCloseModal: (type: keyof CategoryModalState) => void;
+    modals: ModalState<Category>;
+    onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -68,7 +69,7 @@ export function CategoryModals({
 
             <CategoryFormModal
                 open={modals.edit.isOpen}
-                category={modals.edit.category}
+                category={(modals.edit as ModalWithData<Category>).data}
                 onClose={() => onCloseModal('edit')}
             />
 

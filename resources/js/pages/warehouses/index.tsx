@@ -2,10 +2,10 @@ import { Head, router } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
 import { useSearch } from '@/hooks/useSearch';
 import { useSelection } from '@/hooks/useSelection';
-import { useWarehouseModals } from '@/hooks/useWarehouseModals';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { Filters, PageProps } from '@/types/models/warehouses';
+import type { Warehouse, Filters, PageProps } from '@/types/models/warehouses';
 import { WarehouseModals } from './components/WarehouseModals';
 import { WarehouseTable } from './components/WarehouseTable';
 import { WarehouseToolbar } from './components/WarehouseToolbar';
@@ -28,7 +28,10 @@ export default function Index({
         only: ['warehouses'],
     });
 
-    const { modals, openModal, closeModal } = useWarehouseModals();
+    const { modals, openModal, closeModal } = useGenericModals<Warehouse>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete']
+    });
     const {
         selectedIds,
         toggleSelectAll,
@@ -40,9 +43,10 @@ export default function Index({
     } = useSelection(warehouses.data);
 
     const handleDelete = () => {
-        if (!modals.delete.warehouse) return;
+        const deleteModal = modals.delete as ModalWithData<Warehouse>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/warehouses/${modals.delete.warehouse.id}`, {
+        router.delete(`/dashboard/warehouses/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });

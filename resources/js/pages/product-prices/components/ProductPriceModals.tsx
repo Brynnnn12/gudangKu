@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
 import { ProductPriceFormModal } from '@/pages/product-prices/components/ProductPriceFormModal';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 const DeleteConfirmDialog = ({
     open,
@@ -93,7 +94,7 @@ export function ProductPriceModals({
         <>
             <ProductPriceFormModal
                 open={modals.create || modals.edit.isOpen}
-                productPrice={modals.edit.productPrice}
+                productPrice={(modals.edit as ModalWithData<ProductPrice>).data}
                 products={products}
                 onClose={() => {
                     if (modals.create) {

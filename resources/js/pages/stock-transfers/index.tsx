@@ -24,6 +24,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useSearch } from '@/hooks/useSearch';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type {
@@ -38,12 +39,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Stock Transfers', href: '/dashboard/stock-transfers' },
 ];
 
-interface ModalState {
-    approve: { isOpen: boolean; transfer: StockTransfer | null };
-    reject: { isOpen: boolean; transfer: StockTransfer | null };
-    delete: { isOpen: boolean; transfer: StockTransfer | null };
-}
-
 export default function Index({
     stockTransfers,
     warehouses,
@@ -56,10 +51,9 @@ export default function Index({
     });
 
     const [filtersState, setFiltersState] = useState(filters);
-    const [modals, setModals] = useState<ModalState>({
-        approve: { isOpen: false, transfer: null },
-        reject: { isOpen: false, transfer: null },
-        delete: { isOpen: false, transfer: null },
+    const { modals, openModal, closeModal } = useGenericModals<StockTransfer>({
+        simple: ['create'],
+        withData: ['approve', 'reject', 'delete']
     });
     const [rejectReason, setRejectReason] = useState('');
 
@@ -84,22 +78,21 @@ export default function Index({
 
     const hasActiveFilters = hasActiveSearch || Object.keys(filtersState).length > 0;
 
-    const openModal = (type: keyof ModalState, transfer: StockTransfer) => {
-        setModals(prev => ({ ...prev, [type]: { isOpen: true, transfer } }));
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        setModals(prev => ({ ...prev, [type]: { isOpen: false, transfer: null } }));
-        setRejectReason('');
+    const handleCloseModal = (type: 'approve' | 'reject' | 'delete') => {
+        closeModal(type);
+        if (type === 'reject') {
+            setRejectReason('');
+        }
     };
 
     const handleApprove = () => {
-        if (!modals.approve.transfer) return;
+        const approveModal = modals.approve as ModalWithData<StockTransfer>;
+        if (!approveModal.data) return;
 
-        router.post(`/dashboard/stock-transfers/${modals.approve.transfer.id}/approve`, {}, {
+        router.post(`/dashboard/stock-transfers/${approveModal.data.id}/approve`, {}, {
             preserveScroll: true,
             onSuccess: () => {
-                closeModal('approve');
+                handleCloseModal('approve');
             },
             onError: (errors) => {
                 toast.error(errors.error || 'Failed to approve transfer');
@@ -108,14 +101,15 @@ export default function Index({
     };
 
     const handleReject = () => {
-        if (!modals.reject.transfer) return;
+        const rejectModal = modals.reject as ModalWithData<StockTransfer>;
+        if (!rejectModal.data) return;
 
-        router.post(`/dashboard/stock-transfers/${modals.reject.transfer.id}/reject`, {
+        router.post(`/dashboard/stock-transfers/${rejectModal.data.id}/reject`, {
             reject_reason: rejectReason,
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                closeModal('reject');
+                handleCloseModal('reject');
             },
             onError: (errors) => {
                 toast.error(errors.error || 'Failed to reject transfer');
@@ -124,12 +118,13 @@ export default function Index({
     };
 
     const handleDelete = () => {
-        if (!modals.delete.transfer) return;
+        const deleteModal = modals.delete as ModalWithData<StockTransfer>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/stock-transfers/${modals.delete.transfer.id}`, {
+        router.delete(`/dashboard/stock-transfers/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                closeModal('delete');
+                handleCloseModal('delete');
                 toast.success('Transfer deleted successfully');
             },
         });
@@ -179,10 +174,10 @@ export default function Index({
                             <AlertDialogTitle>Setujui Transfer?</AlertDialogTitle>
                             <AlertDialogDescription>
                                 Ini akan mengeksekusi transfer stok dari{' '}
-                                <strong>{modals.approve.transfer?.from_warehouse.name}</strong> ke{' '}
-                                <strong>{modals.approve.transfer?.to_warehouse.name}</strong> untuk{' '}
-                                <strong>{modals.approve.transfer?.qty}</strong> unit{' '}
-                                <strong>{modals.approve.transfer?.product.name}</strong>.
+                                <strong>{(modals.approve as ModalWithData<StockTransfer>).data?.from_warehouse.name}</strong> ke{' '}
+                                <strong>{(modals.approve as ModalWithData<StockTransfer>).data?.to_warehouse.name}</strong> untuk{' '}
+                                <strong>{(modals.approve as ModalWithData<StockTransfer>).data?.qty}</strong> unit{' '}
+                                <strong>{(modals.approve as ModalWithData<StockTransfer>).data?.product.name}</strong>.
                                 <br /><br />
                                 Stok akan dikurangi dari gudang sumber menggunakan logika FEFO dan ditambahkan ke gudang tujuan.
                             </AlertDialogDescription>

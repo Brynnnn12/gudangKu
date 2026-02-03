@@ -4,17 +4,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Pagination } from '@/components/pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { StockBatch, StockBatchesIndexPageProps } from '@/types/models/stock-batches';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 
 import CreateStockBatchModal from './components/CreateStockBatchModal';
 import EditStockBatchModal from './components/EditStockBatchModal';
 import { StockBatchTable } from './components/StockBatchTable';
 import { StockBatchToolbar } from './components/StockBatchToolbar';
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; stockBatch: StockBatch | null };
-    delete: { isOpen: boolean; stockBatch: StockBatch | null };
-}
 
 export default function StockBatchesIndex({
   stockBatches,
@@ -22,32 +17,16 @@ export default function StockBatchesIndex({
   products,
   filters,
 }: StockBatchesIndexPageProps) {
-  const [modals, setModals] = useState<ModalState>({
-    create: false,
-    edit: { isOpen: false, stockBatch: null },
-    delete: { isOpen: false, stockBatch: null },
+  const { modals, openModal, closeModal } = useGenericModals<StockBatch>({
+    simple: ['create'],
+    withData: ['edit', 'delete']
   });
 
-  const openModal = (type: keyof ModalState, data?: StockBatch) => {
-    if (type === 'create') {
-      setModals(prev => ({ ...prev, create: true }));
-    } else {
-      setModals(prev => ({ ...prev, [type]: { isOpen: true, stockBatch: data || null } }));
-    }
-  };
-
-  const closeModal = (type: keyof ModalState) => {
-    if (type === 'create') {
-      setModals(prev => ({ ...prev, create: false }));
-    } else {
-      setModals(prev => ({ ...prev, [type]: { isOpen: false, stockBatch: null } }));
-    }
-  };
-
   const handleDelete = () => {
-    if (!modals.delete.stockBatch) return;
+    const deleteModal = modals.delete as ModalWithData<StockBatch>;
+    if (!deleteModal.data) return;
 
-    router.delete(`/dashboard/stock-batches/${modals.delete.stockBatch.id}`, {
+    router.delete(`/dashboard/stock-batches/${deleteModal.data.id}`, {
       preserveScroll: true,
       onSuccess: () => closeModal('delete'),
     });
@@ -127,10 +106,10 @@ export default function StockBatchesIndex({
                 onClose={() => closeModal('create')}
               />
 
-              {modals.edit.stockBatch && (
+              {modals.edit.isOpen && (modals.edit as ModalWithData<StockBatch>).data && (
                 <EditStockBatchModal
                   open={modals.edit.isOpen}
-                  stockBatch={modals.edit.stockBatch}
+                  stockBatch={(modals.edit as ModalWithData<StockBatch>).data!}
                   onClose={() => closeModal('edit')}
                 />
               )}
@@ -141,7 +120,7 @@ export default function StockBatchesIndex({
                     <AlertDialogTitle>Hapus Batch Stok?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Apakah Anda yakin ingin menghapus batch{' '}
-                      <strong>{modals.delete.stockBatch?.batch_number}</strong>?
+                      <strong>{(modals.delete as ModalWithData<StockBatch>).data?.batch_number}</strong>?
                       Ini akan mengurangi total stok gudang dan tidak dapat dibatalkan.
                     </AlertDialogDescription>
                   </AlertDialogHeader>

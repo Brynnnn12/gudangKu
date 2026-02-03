@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { useSearch } from '@/hooks/useSearch';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { Product, Filters, PageProps, Category } from '@/types/models/products';
@@ -13,13 +14,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Products', href: '/dashboard/products' },
 ];
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; product: Product | null };
-    delete: { isOpen: boolean; product: Product | null };
-    bulkDelete: boolean;
-}
 
 export default function Index({
     products,
@@ -36,35 +30,17 @@ export default function Index({
         only: ['products'],
     });
 
-    const [modals, setModals] = useState<ModalState>({
-        create: false,
-        edit: { isOpen: false, product: null },
-        delete: { isOpen: false, product: null },
-        bulkDelete: false,
+    const { modals, openModal, closeModal } = useGenericModals<Product>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete']
     });
-
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const openModal = (type: keyof ModalState, data?: Product) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: true }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, product: data || null } }));
-        }
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: false }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, product: null } }));
-        }
-    };
-
     const handleDelete = () => {
-        if (!modals.delete.product) return;
+        const deleteModal = modals.delete as ModalWithData<Product>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/products/${modals.delete.product.id}`, {
+        router.delete(`/dashboard/products/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });

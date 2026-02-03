@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { PageProps, User as EmployeeUser } from '@/types/models/employee';
@@ -18,13 +19,6 @@ interface Filters {
     role?: string;
 }
 
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; employee: EmployeeUser | null };
-    delete: { isOpen: boolean; employee: EmployeeUser | null };
-    bulkDelete: boolean;
-}
-
 export default function Index({
     employees,
     filters = {},
@@ -37,13 +31,10 @@ export default function Index({
         role: filters.role || '',
     });
 
-    const [modals, setModals] = useState<ModalState>({
-        create: false,
-        edit: { isOpen: false, employee: null },
-        delete: { isOpen: false, employee: null },
-        bulkDelete: false,
+    const { modals, openModal, closeModal } = useGenericModals<User>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete']
     });
-
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const previousFilters = useRef({ search: filters.search || '', role: filters.role || '' });
 
@@ -91,28 +82,12 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search, searchForm.data.role]);
 
-    // Modal handlers
-    const openModal = (type: keyof ModalState, data?: EmployeeUser) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: true }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, employee: data || null } }));
-        }
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: false }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, employee: null } }));
-        }
-    };
-
     // Delete handlers
     const handleDelete = () => {
-        if (!modals.delete.employee) return;
+        const deleteModal = modals.delete as ModalWithData<User>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/employees/${modals.delete.employee.id}`, {
+        router.delete(`/dashboard/employees/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });

@@ -12,6 +12,7 @@ import { WarehouseStockFormModal } from '@/pages/warehouse-stocks/components/War
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 const DeleteConfirmDialog = ({
     open,
@@ -45,18 +46,11 @@ const DeleteConfirmDialog = ({
     </AlertDialog>
 );
 
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; warehouseStock: WarehouseStock | null };
-    delete: { isOpen: boolean; warehouseStock: WarehouseStock | null };
-    bulkDelete: boolean;
-}
-
 interface WarehouseStockModalsProps {
-    modals: ModalState;
+    modals: ModalState<WarehouseStock>;
     warehouses: Warehouse[];
     products: Product[];
-    onCloseModal: (type: keyof ModalState) => void;
+    onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -75,7 +69,7 @@ export function WarehouseStockModals({
         <>
             <WarehouseStockFormModal
                 open={modals.create || modals.edit.isOpen}
-                warehouseStock={modals.edit.warehouseStock}
+                warehouseStock={(modals.edit as ModalWithData<WarehouseStock>).data}
                 warehouses={warehouses}
                 products={products}
                 onClose={() => {

@@ -9,6 +9,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Product, Category } from '@/types/models/products';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 import { ProductFormModal } from './ProductFormModal';
 
@@ -44,17 +45,10 @@ const DeleteConfirmDialog = ({
     </AlertDialog>
 );
 
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; product: Product | null };
-    delete: { isOpen: boolean; product: Product | null };
-    bulkDelete: boolean;
-}
-
 interface ProductModalsProps {
-    modals: ModalState;
+    modals: ModalState<Product>;
     categories: Category[];
-    onCloseModal: (type: keyof ModalState) => void;
+    onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -78,7 +72,7 @@ export function ProductModals({
 
             <ProductFormModal
                 open={modals.edit.isOpen}
-                product={modals.edit.product}
+                product={(modals.edit as ModalWithData<Product>).data}
                 categories={categories}
                 onClose={() => onCloseModal('edit')}
             />

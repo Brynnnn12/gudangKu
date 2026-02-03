@@ -7,18 +7,12 @@ import type { ProductPrice, Filters, PageProps, ProductForSelect } from '@/types
 import { ProductPriceModals } from './components/ProductPriceModals';
 import { ProductPriceTable } from './components/ProductPriceTable';
 import { ProductPriceToolbar } from './components/ProductPriceToolbar';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Product Prices', href: '/dashboard/product-prices' },
 ];
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; productPrice: ProductPrice | null };
-    delete: { isOpen: boolean; productPrice: ProductPrice | null };
-    bulkDelete: boolean;
-}
 
 export default function Index({
     productPrices,
@@ -34,13 +28,10 @@ export default function Index({
         product_id: filters.product_id || '',
     });
 
-    const [modals, setModals] = useState<ModalState>({
-        create: false,
-        edit: { isOpen: false, productPrice: null },
-        delete: { isOpen: false, productPrice: null },
-        bulkDelete: false,
+    const { modals, openModal, closeModal } = useGenericModals<ProductPrice>({
+        simple: ['create', 'bulkDelete'],
+        withData: ['edit', 'delete']
     });
-
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const previousFilters = useRef({ search: filters.search || '', product_id: filters.product_id || '' });
 
@@ -88,26 +79,11 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search, searchForm.data.product_id]);
 
-    const openModal = (type: keyof ModalState, data?: ProductPrice) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: true }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, productPrice: data || null } }));
-        }
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: false }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, productPrice: null } }));
-        }
-    };
-
     const handleDelete = () => {
-        if (!modals.delete.productPrice) return;
+        const deleteModal = modals.delete as ModalWithData<ProductPrice>;
+        if (!deleteModal.data) return;
 
-        router.delete(`/dashboard/product-prices/${modals.delete.productPrice.id}`, {
+        router.delete(`/dashboard/product-prices/${deleteModal.data.id}`, {
             preserveScroll: true,
             onSuccess: () => closeModal('delete'),
         });
