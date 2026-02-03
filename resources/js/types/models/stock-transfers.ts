@@ -68,6 +68,7 @@ export interface StockTransfersIndexPageProps {
     current_page: number;
     last_page: number;
     per_page: number;
+    per_page: number;
     total: number;
     links: {
       url: string | null;
@@ -78,18 +79,8 @@ export interface StockTransfersIndexPageProps {
   warehouses: Warehouse[];
   products: Product[];
   warehouseStocks: WarehouseStock[];
+  user: User;
   filters: StockTransferFilters;
-}
-
-/**
- * Page props for stock transfer show
- */
-export interface StockTransferShowPageProps {
-  stockTransfer: StockTransfer;
-  canUpdate: boolean;
-  canDelete: boolean;
-  canApprove: boolean;
-  canReject: boolean;
 }
 
 /**

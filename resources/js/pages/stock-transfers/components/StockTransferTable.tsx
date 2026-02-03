@@ -10,9 +10,11 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import type { StockTransfer } from '@/types/models/stock-transfers';
+import type { User } from '@/types/auth';
 
 interface StockTransferTableProps {
     stockTransfers: StockTransfer[];
+    user: User;
     onView: (transfer: StockTransfer) => void;
     onEdit: (transfer: StockTransfer) => void;
     onDelete: (transfer: StockTransfer) => void;
@@ -33,8 +35,19 @@ const getStatusBadge = (status: string) => {
     }
 };
 
+const canApproveOrReject = (transfer: StockTransfer, user: User): boolean => {
+    // Super admin can approve/reject all transfers
+    if (user.roles?.some(role => role.name === 'super-admin')) {
+        return true;
+    }
+
+    // Admin can only approve/reject transfers to their assigned warehouses
+    return user.warehouses?.some(warehouse => warehouse.id === transfer.to_warehouse_id) ?? false;
+};
+
 export function StockTransferTable({
     stockTransfers,
+    user,
     onView,
     onEdit,
     onDelete,
@@ -105,7 +118,7 @@ export function StockTransferTable({
                                             <Eye className="h-3.5 w-3.5" />
                                             <span className="sr-only sm:not-sr-only">Lihat</span>
                                         </Button>
-                                        {transfer.status === 'pending' && (
+                                        {transfer.status === 'pending' && canApproveOrReject(transfer, user) && (
                                             <>
                                                 <Button
                                                     variant="ghost"

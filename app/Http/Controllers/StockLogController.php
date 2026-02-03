@@ -19,8 +19,21 @@ class StockLogController extends Controller
     {
         $this->authorize('viewAny', StockLog::class);
 
+        $user = $request->user();
+        $isSuperAdmin = $user?->hasRole('super-admin') ?? false;
+        $isViewer = $user?->hasRole('viewer') ?? false;
+
+        // Get assigned warehouse IDs for admin users
+        $assignedWarehouseIds = ! $isSuperAdmin && ! $isViewer
+            ? $user?->warehouses()->pluck('warehouses.id')->toArray() ?? []
+            : [];
+
         $stockLogs = StockLog::query()
             ->with(['warehouse', 'product', 'user'])
+            // Filter by assigned warehouses for admin users
+            ->when(! $isSuperAdmin && ! $isViewer && ! empty($assignedWarehouseIds),
+                fn ($query) => $query->whereIn('warehouse_id', $assignedWarehouseIds)
+            )
             ->search($request->input('search'))
             ->when($request->input('warehouse'), fn ($query, $warehouseId) => $query->where('warehouse_id', $warehouseId))
             ->when($request->input('product'), fn ($query, $productId) => $query->where('product_id', $productId))
@@ -32,8 +45,10 @@ class StockLogController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Get filter options
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
+        // Get filter options - also filter warehouses for admin users
+        $warehouses = $isSuperAdmin || $isViewer
+            ? Warehouse::orderBy('name')->get(['id', 'name'])
+            : Warehouse::whereIn('id', $assignedWarehouseIds)->orderBy('name')->get(['id', 'name']);
         $products = Product::orderBy('name')->get(['id', 'name', 'sku']);
         $users = User::orderBy('name')->get(['id', 'name']);
 

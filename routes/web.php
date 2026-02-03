@@ -74,7 +74,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::post('stock-transfers/{stockTransfer}/reject', [\App\Http\Controllers\StockTransferController::class, 'reject'])
         ->name('stock-transfers.reject');
     Route::resource('stock-transfers', \App\Http\Controllers\StockTransferController::class)
-        ->parameters(['stock-transfers' => 'stockTransfer']);
+        ->parameters(['stock-transfers' => 'stockTransfer'])
+        ->except(['show']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');

@@ -14,6 +14,7 @@ use App\Models\StockTransfer;
 use App\Models\Warehouse;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +50,7 @@ class StockTransferController extends Controller
             'warehouses' => $warehouses,
             'products' => $products,
             'warehouseStocks' => $warehouseStocks,
+            'user' => Auth::user()->load('warehouses'),
             'filters' => $request->only([
                 'search',
                 'from_warehouse_id',
@@ -60,8 +62,6 @@ class StockTransferController extends Controller
         ]);
     }
 
-
-
     /**
      * Store a newly created stock transfer.
      */
@@ -71,27 +71,8 @@ class StockTransferController extends Controller
 
         $transfer = $action->execute($request->validated());
 
-        return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer request created successfully. Awaiting approval.');
+        return redirect()->route('stock-transfers.index')->with('success', 'Stock berhasil dikirim.');
     }
-
-    /**
-     * Display the specified stock transfer.
-     */
-    public function show(Request $request, StockTransfer $stockTransfer): Response
-    {
-        $this->authorize('view', $stockTransfer);
-
-        $stockTransfer->load(['fromWarehouse', 'toWarehouse', 'product', 'user']);
-
-        return Inertia::render('stock-transfers/show', [
-            'stockTransfer' => $stockTransfer,
-            'canUpdate' => $request->user()?->can('update', $stockTransfer) ?? false,
-            'canDelete' => $request->user()?->can('delete', $stockTransfer) ?? false,
-            'canApprove' => $request->user()?->can('approve', $stockTransfer) ?? false,
-            'canReject' => $request->user()?->can('reject', $stockTransfer) ?? false,
-        ]);
-    }
-
 
     /**
      * Update the specified stock transfer.
@@ -103,7 +84,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->validated());
 
-            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer updated successfully.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer updated successfully.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -135,7 +116,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer);
 
-            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer approved and completed successfully. Stock has been moved between warehouses.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer approved and completed successfully. Stock has been moved between warehouses.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -155,7 +136,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->input('reject_reason'));
 
-            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer rejected.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer rejected.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

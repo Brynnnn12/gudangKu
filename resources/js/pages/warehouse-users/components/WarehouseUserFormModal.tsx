@@ -79,7 +79,6 @@ export function WarehouseUserFormModal({
             form.put(`/dashboard/warehouse-users/${warehouseUser.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    // Add small delay to ensure flash message is set before closing modal
                     setTimeout(() => {
                         onClose();
                     }, 100);

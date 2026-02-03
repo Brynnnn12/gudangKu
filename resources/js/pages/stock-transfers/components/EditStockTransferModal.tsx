@@ -1,6 +1,8 @@
-import { useForm } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
 import { ArrowRightLeft, Check, ChevronsUpDown, Save } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import type { SharedData } from '@/types';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
@@ -20,7 +22,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/types/models/products';
@@ -48,6 +50,14 @@ export function EditStockTransferModal({
     const [fromWarehouseSearchOpen, setFromWarehouseSearchOpen] = useState(false);
     const [toWarehouseSearchOpen, setToWarehouseSearchOpen] = useState(false);
     const [productSearchOpen, setProductSearchOpen] = useState(false);
+    const { isSuperAdmin } = useAuth();
+    const { auth } = usePage<SharedData>().props;
+    const assignedWarehouses = auth.assignedWarehouses || [];
+
+    // Filter warehouses based on role for "from" warehouse
+    const availableFromWarehouses = isSuperAdmin
+        ? warehouses
+        : warehouses.filter(w => assignedWarehouses.some(aw => aw.id === w.id));
 
     const form = useForm<StockTransferFormData>({
         from_warehouse_id: stockTransfer.from_warehouse_id.toString(),
@@ -70,7 +80,7 @@ export function EditStockTransferModal({
     }, [form.data.from_warehouse_id, warehouseStocks, products]);
 
     // Find selected items
-    const selectedFromWarehouse = warehouses.find(w => w.id.toString() === form.data.from_warehouse_id);
+    const selectedFromWarehouse = availableFromWarehouses.find(w => w.id.toString() === form.data.from_warehouse_id);
     const selectedToWarehouse = warehouses.find(w => w.id.toString() === form.data.to_warehouse_id);
     const selectedProduct = availableProducts.find(p => p.id.toString() === form.data.product_id);
 
@@ -126,7 +136,7 @@ export function EditStockTransferModal({
                                             variant="outline"
                                             role="combobox"
                                             aria-expanded={fromWarehouseSearchOpen}
-                                            disabled={form.processing}
+                                            disabled={form.processing || !isSuperAdmin}
                                             className={cn(
                                                 'w-full justify-between',
                                                 !form.data.from_warehouse_id && 'text-muted-foreground'
@@ -142,7 +152,7 @@ export function EditStockTransferModal({
                                             <CommandList>
                                                 <CommandEmpty>Gudang tidak ditemukan.</CommandEmpty>
                                                 <CommandGroup>
-                                                    {warehouses.map((warehouse) => (
+                                                    {availableFromWarehouses.map((warehouse) => (
                                                         <CommandItem
                                                             key={warehouse.id}
                                                             value={warehouse.name}
@@ -169,6 +179,11 @@ export function EditStockTransferModal({
                                     </PopoverContent>
                                 </Popover>
                                 <InputError message={form.errors.from_warehouse_id} />
+                                {!isSuperAdmin && assignedWarehouses.length === 1 && (
+                                    <p className="text-sm text-muted-foreground">
+                                        Anda hanya dapat transfer dari gudang yang ditugaskan
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-2">

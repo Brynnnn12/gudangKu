@@ -47,6 +47,7 @@ export default function Index({
     warehouses,
     products,
     warehouseStocks,
+    user,
     filters = {},
 }: StockTransfersIndexPageProps) {
     const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
@@ -153,6 +154,7 @@ export default function Index({
 
                 <StockTransferTable
                     stockTransfers={stockTransfers.data}
+                    user={user}
                     onView={(transfer) => openModal('show', transfer)}
                     onEdit={(transfer) => openModal('edit', transfer)}
                     onDelete={(transfer) => openModal('delete', transfer)}

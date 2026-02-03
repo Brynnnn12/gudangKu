@@ -37,6 +37,7 @@ class StoreStockTransferRequest extends FormRequest
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'qty' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
         ];
     }
 
@@ -66,8 +67,7 @@ class StoreStockTransferRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'user_id' => auth()->id(),
-            'status' => 'pending',
+            'user_id' => $this->user()->id,
         ]);
     }
 }

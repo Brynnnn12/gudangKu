@@ -1,17 +1,9 @@
 import { useForm, usePage } from '@inertiajs/react';
+import { Calendar, DollarSign, Hash, Package, Save } from 'lucide-react';
 import { useState } from 'react';
-import { Calendar, Check, ChevronsUpDown, DollarSign, Hash, Package, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from '@/components/ui/command';
 import {
     Dialog,
     DialogContent,
@@ -19,23 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
-import { cn } from '@/lib/utils';
+import { generateBatchNumber } from '@/lib/utils';
 import type { SharedData } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { Warehouse } from '@/types/models/warehouses';
+import ProductCombobox from './ProductCombobox';
+import WarehouseCombobox from './WarehouseCombobox';
 
 interface CreateStockBatchModalProps {
     open: boolean;
@@ -60,12 +42,10 @@ export default function CreateStockBatchModal({
     const { auth } = usePage<SharedData>().props;
     const assignedWarehouses = auth.assignedWarehouses || [];
 
-    // Filter warehouses based on role
     const availableWarehouses = isSuperAdmin
         ? warehouses
         : warehouses.filter(w => assignedWarehouses.some(aw => aw.id === w.id));
 
-    // Auto-select warehouse: prefer preselected, then single-assignment auto-select
     const defaultWarehouseId = preselectedWarehouseId
         ? String(preselectedWarehouseId)
         : (!isSuperAdmin && assignedWarehouses.length === 1
@@ -80,10 +60,6 @@ export default function CreateStockBatchModal({
         current_qty: '',
         cost_price: '',
     });
-
-    // Find selected warehouse and product for display
-    const selectedWarehouse = availableWarehouses.find(w => w.id.toString() === form.data.warehouse_id);
-    const selectedProduct = products.find(p => p.id.toString() === form.data.product_id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,12 +80,6 @@ export default function CreateStockBatchModal({
         onClose();
     };
 
-    // Generate batch number suggestion
-    const generateBatchNumber = () => {
-        const timestamp = Date.now().toString().slice(-8);
-        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-        form.setData('batch_number', `BATCH-${timestamp}-${random}`);
-    };
 
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
@@ -121,128 +91,33 @@ export default function CreateStockBatchModal({
                 />
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
-                        {/* Warehouse - Combobox with Search */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="warehouse_id">Gudang *</Label>
-                            <Popover open={warehouseSearchOpen} onOpenChange={setWarehouseSearchOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        id="warehouse_id"
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={warehouseSearchOpen}
-                                        disabled={(!isSuperAdmin && assignedWarehouses.length === 1) || form.processing}
-                                        className={cn(
-                                            'w-full justify-between',
-                                            !form.data.warehouse_id && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        {selectedWarehouse ? selectedWarehouse.name : 'Cari gudang...'}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Ketik nama gudang..." />
-                                        <CommandList>
-                                            <CommandEmpty>Gudang tidak ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                {availableWarehouses.map((warehouse) => (
-                                                    <CommandItem
-                                                        key={warehouse.id}
-                                                        value={warehouse.name}
-                                                        onSelect={() => {
-                                                            form.setData('warehouse_id', String(warehouse.id));
-                                                            setWarehouseSearchOpen(false);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                'mr-2 h-4 w-4',
-                                                                form.data.warehouse_id === String(warehouse.id)
-                                                                    ? 'opacity-100'
-                                                                    : 'opacity-0'
-                                                            )}
-                                                        />
-                                                        {warehouse.name}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            <InputError message={form.errors.warehouse_id} />
-                            {!isSuperAdmin && assignedWarehouses.length === 1 && (
-                                <p className="text-sm text-muted-foreground">
-                                    Anda hanya dapat mengelola gudang yang ditugaskan
-                                </p>
-                            )}
-                        </div>
+                        <WarehouseCombobox
+                            value={form.data.warehouse_id}
+                            warehouses={availableWarehouses}
+                            disabled={(!isSuperAdmin && assignedWarehouses.length === 1) || form.processing}
+                            error={form.errors.warehouse_id}
+                            helperText={
+                                !isSuperAdmin && assignedWarehouses.length === 1
+                                    ? 'Anda hanya dapat mengelola gudang yang ditugaskan'
+                                    : undefined
+                            }
+                            open={warehouseSearchOpen}
+                            onOpenChange={setWarehouseSearchOpen}
+                            onChange={(id) => form.setData('warehouse_id', id)}
+                        />
 
-                        {/* Product - Combobox with Search */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="product_id">
-                                <Package className="mr-2 inline h-4 w-4" />
-                                Produk *
-                            </Label>
-                            <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        id="product_id"
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={productSearchOpen}
-                                        disabled={form.processing}
-                                        className={cn(
-                                            'w-full justify-between',
-                                            !form.data.product_id && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        {selectedProduct
-                                            ? `${selectedProduct.name} - ${selectedProduct.brand} (${selectedProduct.sku})`
-                                            : 'Cari produk...'}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Ketik nama produk, brand, atau SKU..." />
-                                        <CommandList>
-                                            <CommandEmpty>Produk tidak ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                {products.map((product) => (
-                                                    <CommandItem
-                                                        key={product.id}
-                                                        value={`${product.name} ${product.brand} ${product.sku}`}
-                                                        onSelect={() => {
-                                                            form.setData('product_id', String(product.id));
-                                                            setProductSearchOpen(false);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                'mr-2 h-4 w-4',
-                                                                form.data.product_id === String(product.id)
-                                                                    ? 'opacity-100'
-                                                                    : 'opacity-0'
-                                                            )}
-                                                        />
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium">{product.name}</span>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                {product.brand} | SKU: {product.sku}
-                                                            </span>
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            <InputError message={form.errors.product_id} />
-                        </div>
+                        <ProductCombobox
+                            value={form.data.product_id}
+                            products={products}
+                            disabled={form.processing}
+                            error={form.errors.product_id}
+                            labelIcon={<Package className="mr-2 inline h-4 w-4" />}
+                            displayFormat="detailed"
+                            searchPlaceholder="Ketik nama produk, brand, atau SKU..."
+                            open={productSearchOpen}
+                            onOpenChange={setProductSearchOpen}
+                            onChange={(id) => form.setData('product_id', id)}
+                        />
 
                         {/* Batch Number */}
                         <div className="grid gap-2">

@@ -18,11 +18,23 @@ class StockLogPolicy
 
     /**
      * Determine whether the user can view the model.
-     * Stock logs are read-only audit trails - all authenticated users can view.
+     * Super-admin and viewer can view all logs.
+     * Admin can only view logs from their assigned warehouses.
      */
     public function view(User $user, StockLog $stockLog): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
+        if ($user->hasRole('super-admin') || $user->hasRole('viewer')) {
+            return true;
+        }
+
+        // Admin can only view logs from their assigned warehouses
+        if ($user->hasRole('admin')) {
+            $assignedWarehouseIds = $user->warehouses()->pluck('warehouses.id')->toArray();
+
+            return in_array($stockLog->warehouse_id, $assignedWarehouseIds);
+        }
+
+        return false;
     }
 
     /**

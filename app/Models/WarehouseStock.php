@@ -92,6 +92,6 @@ class WarehouseStock extends Model
     public function recalculateTotal(): void
     {
         $this->total_quantity = $this->batches()->sum('current_qty');
-        $this->saveQuietly(); // Save without triggering events
+        $this->saveQuietly();
     }
 }
