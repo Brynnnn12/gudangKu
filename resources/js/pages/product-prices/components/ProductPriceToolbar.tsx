@@ -1,4 +1,4 @@
-import { Filter, Plus, Search, Trash2, X } from 'lucide-react';
+import { Filter, Search, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,7 +16,6 @@ interface ProductPriceToolbarProps {
     products: ProductForSelect[];
     onSearchChange: (value: string) => void;
     onProductIdChange: (value: string) => void;
-    onAddClick: () => void;
     onBulkDeleteClick: () => void;
     onClearFilters: () => void;
     selectedCount: number;
@@ -30,7 +29,6 @@ export function ProductPriceToolbar({
     products,
     onSearchChange,
     onProductIdChange,
-    onAddClick,
     onBulkDeleteClick,
     onClearFilters,
     selectedCount,
@@ -62,10 +60,6 @@ export function ProductPriceToolbar({
                             Hapus
                         </Button>
                     )}
-                    <Button onClick={onAddClick}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Tambah Harga
-                    </Button>
                 </div>
             </div>
 

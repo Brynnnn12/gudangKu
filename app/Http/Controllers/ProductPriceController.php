@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Products\BulkDeleteProductPricesAction;
-use App\Actions\Products\CreateProductPriceAction;
 use App\Actions\Products\DeleteProductPriceAction;
 use App\Actions\Products\UpdateProductPriceAction;
-use App\Http\Requests\Products\StoreProductPriceRequest;
 use App\Http\Requests\Products\UpdateProductPriceRequest;
 use App\Models\Product;
 use App\Models\ProductPrice;
@@ -47,16 +45,6 @@ class ProductPriceController extends Controller
             'products' => $products,
             'filters' => $request->only(['search', 'product_id']),
         ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProductPriceRequest $request, CreateProductPriceAction $action): RedirectResponse
-    {
-        $action->execute($request->validated());
-
-        return redirect()->back()->with('success', 'Harga produk berhasil ditambahkan.');
     }
 
     /**

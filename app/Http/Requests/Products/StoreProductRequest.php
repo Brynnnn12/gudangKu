@@ -43,6 +43,17 @@ class StoreProductRequest extends FormRequest
                 'string',
                 Rule::in(['Karton', 'Box', 'Pcs', 'Liter', 'Kg', 'Meter', 'Buah', 'Lusin', 'Pack']),
             ],
+            'selling_price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+            'cost_price' => [
+                'required',
+                'numeric',
+                'min:0',
+                'lt:selling_price',
+            ],
         ];
     }
 
@@ -57,6 +68,13 @@ class StoreProductRequest extends FormRequest
             'brand.max' => 'Merek tidak boleh lebih dari 100 karakter.',
             'unit.required' => 'Satuan wajib dipilih.',
             'unit.in' => 'Satuan harus salah satu dari: Karton, Box, Pcs, Liter, Kg, Meter, Buah, Lusin, Pack.',
+            'selling_price.required' => 'Harga jual wajib diisi.',
+            'selling_price.numeric' => 'Harga jual harus berupa angka.',
+            'selling_price.min' => 'Harga jual tidak boleh kurang dari 0.',
+            'cost_price.required' => 'Harga modal wajib diisi.',
+            'cost_price.numeric' => 'Harga modal harus berupa angka.',
+            'cost_price.min' => 'Harga modal tidak boleh kurang dari 0.',
+            'cost_price.lt' => 'Harga modal harus lebih kecil dari harga jual.',
         ];
     }
 }

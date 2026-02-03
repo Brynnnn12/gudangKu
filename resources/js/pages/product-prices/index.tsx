@@ -40,7 +40,7 @@ export default function Index({
     });
 
     const { modals, openModal, closeModal } = useGenericModals<ProductPrice>({
-        simple: ['create', 'bulkDelete'],
+        simple: ['bulkDelete'],
         withData: ['edit', 'delete']
     });
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -89,7 +89,6 @@ export default function Index({
                     products={products}
                     onSearchChange={(value: string) => setFilter('search', value)}
                     onProductIdChange={(value: string) => setFilter('product_id', value)}
-                    onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedIds.length}

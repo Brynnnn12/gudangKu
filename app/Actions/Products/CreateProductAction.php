@@ -3,6 +3,8 @@
 namespace App\Actions\Products;
 
 use App\Models\Product;
+use App\Models\ProductPrice;
+use Illuminate\Support\Facades\DB;
 
 class CreateProductAction
 {
@@ -13,19 +15,29 @@ class CreateProductAction
      */
     public function execute(array $input): Product
     {
-        // Generate SKU otomatis
-        $sku = $this->generateSku();
+        return DB::transaction(function () use ($input) {
+            // Generate SKU otomatis
+            $sku = $this->generateSku();
 
-        // Jika tidak ada, buat baru
-        $product = Product::create([
-            'category_id' => $input['category_id'],
-            'name' => $input['name'],
-            'brand' => $input['brand'],
-            'unit' => $input['unit'],
-            'sku' => $sku,
-        ]);
+            // Create product
+            $product = Product::create([
+                'category_id' => $input['category_id'],
+                'name' => $input['name'],
+                'brand' => $input['brand'],
+                'unit' => $input['unit'],
+                'sku' => $sku,
+            ]);
 
-        return $product;
+            // Create initial price
+            ProductPrice::create([
+                'product_id' => $product->id,
+                'selling_price' => $input['selling_price'],
+                'cost_price' => $input['cost_price'],
+                'effective_from' => now(),
+            ]);
+
+            return $product;
+        });
     }
 
     /**

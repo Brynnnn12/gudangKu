@@ -37,6 +37,8 @@ export function ProductFormModal({ open, product, categories, onClose }: Product
         name: product?.name || '',
         brand: product?.brand || '',
         unit: product?.unit || '',
+        selling_price: '',
+        cost_price: '',
     });
 
     useEffect(() => {
@@ -46,6 +48,8 @@ export function ProductFormModal({ open, product, categories, onClose }: Product
                 name: product.name,
                 brand: product.brand,
                 unit: product.unit,
+                selling_price: '',
+                cost_price: '',
             });
             form.clearErrors();
         } else {
@@ -166,6 +170,54 @@ export function ProductFormModal({ open, product, categories, onClose }: Product
                                 <InputError message={form.errors.unit} />
                             </div>
                         </div>
+
+                        {!isEditing && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="product-cost-price">
+                                        Harga Modal <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                            Rp
+                                        </span>
+                                        <Input
+                                            id="product-cost-price"
+                                            type="number"
+                                            value={form.data.cost_price}
+                                            onChange={(e) => form.setData('cost_price', e.target.value)}
+                                            placeholder="0"
+                                            required
+                                            min="0"
+                                            className="pl-10 text-right"
+                                        />
+                                    </div>
+                                    <InputError message={form.errors.cost_price} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="product-selling-price">
+                                        Harga Jual <span className="text-destructive">*</span>
+                                    </Label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                            Rp
+                                        </span>
+                                        <Input
+                                            id="product-selling-price"
+                                            type="number"
+                                            value={form.data.selling_price}
+                                            onChange={(e) => form.setData('selling_price', e.target.value)}
+                                            placeholder="0"
+                                            required
+                                            min="0"
+                                            className="pl-10 text-right"
+                                        />
+                                    </div>
+                                    <InputError message={form.errors.selling_price} />
+                                </div>
+                            </div>
+                        )}
 
                         {isEditing ? (
                             <div className="space-y-2">

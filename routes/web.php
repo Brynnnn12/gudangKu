@@ -49,7 +49,7 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         ->name('product-prices.bulk-destroy');
     Route::resource('product-prices', \App\Http\Controllers\ProductPriceController::class)
         ->parameters(['product-prices' => 'productPrice'])
-        ->except(['create', 'edit', 'show']);
+        ->except(['create', 'edit', 'show', 'store']);
 
     Route::delete('warehouse-stocks/bulk-destroy', [\App\Http\Controllers\WarehouseStockController::class, 'bulkDestroy'])
         ->name('warehouse-stocks.bulk-destroy');

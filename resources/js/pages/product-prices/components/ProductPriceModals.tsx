@@ -86,16 +86,10 @@ export function ProductPriceModals({
     return (
         <>
             <ProductPriceFormModal
-                open={(modals.create as boolean) || (modals.edit as ModalWithData<ProductPrice>).isOpen}
+                open={(modals.edit as ModalWithData<ProductPrice>).isOpen}
                 productPrice={(modals.edit as ModalWithData<ProductPrice>).data}
                 products={products}
-                onClose={() => {
-                    if (modals.create) {
-                        onCloseModal('create');
-                    } else {
-                        onCloseModal('edit');
-                    }
-                }}
+                onClose={() => onCloseModal('edit')}
             />
 
             <DeleteConfirmDialog
