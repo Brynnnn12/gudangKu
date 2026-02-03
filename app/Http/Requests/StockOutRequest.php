@@ -22,6 +22,8 @@ class StockOutRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'type' => ['required', 'string', 'in:exit,damage'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -36,6 +38,10 @@ class StockOutRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'warehouse_id.required' => 'Gudang wajib dipilih.',
+            'warehouse_id.exists' => 'Gudang tidak ditemukan.',
+            'product_id.required' => 'Produk wajib dipilih.',
+            'product_id.exists' => 'Produk tidak ditemukan.',
             'quantity.required' => 'Jumlah barang wajib diisi.',
             'quantity.integer' => 'Jumlah barang harus berupa angka.',
             'quantity.min' => 'Jumlah barang minimal 1.',

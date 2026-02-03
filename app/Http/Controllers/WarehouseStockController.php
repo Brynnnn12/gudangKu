@@ -131,8 +131,12 @@ class WarehouseStockController extends Controller
     /**
      * Stock out (reduce stock using FEFO method).
      */
-    public function stockOut(StockOutRequest $request, WarehouseStock $warehouseStock, StockOutAction $action)
+    public function stockOut(StockOutRequest $request, StockOutAction $action)
     {
+        $warehouseStock = WarehouseStock::where('warehouse_id', $request->validated('warehouse_id'))
+            ->where('product_id', $request->validated('product_id'))
+            ->firstOrFail();
+
         $this->authorize('update', $warehouseStock);
 
         try {

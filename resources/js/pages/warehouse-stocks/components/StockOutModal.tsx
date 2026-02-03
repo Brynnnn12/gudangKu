@@ -1,8 +1,17 @@
-import { useForm } from '@inertiajs/react';
-import { AlertCircle } from 'lucide-react';
+import { useForm, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { AlertCircle, Check, ChevronsUpDown } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
 import {
     Dialog,
     DialogContent,
@@ -14,6 +23,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -21,16 +35,27 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import type { Product } from '@/types/models/products';
 import type { WarehouseStock } from '@/types/models/warehouse-stocks';
+import type { Warehouse } from '@/types/models/warehouses';
 
 interface StockOutModalProps {
     open: boolean;
-    warehouseStock: WarehouseStock;
+    warehouseStock?: WarehouseStock;
+    warehouseStocks?: WarehouseStock[];
+    warehouses: Warehouse[];
+    products: Product[];
     onClose: () => void;
 }
 
-export default function StockOutModal({ open, warehouseStock, onClose }: StockOutModalProps) {
+export default function StockOutModal({ open, warehouseStock, warehouseStocks = [], warehouses, products, onClose }: StockOutModalProps) {
+    const [warehouseSearchOpen, setWarehouseSearchOpen] = useState(false);
+    const [productSearchOpen, setProductSearchOpen] = useState(false);
+
     const form = useForm({
+        warehouse_id: warehouseStock?.warehouse_id?.toString() || '',
+        product_id: warehouseStock?.product_id?.toString() || '',
         quantity: '',
         type: 'exit',
         notes: '',
@@ -39,15 +64,31 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        form.post(`/dashboard/warehouse-stocks/${warehouseStock.id}/stock-out`, {
+        form.post('/dashboard/warehouse-stocks/stock-out', {
             onSuccess: () => {
                 onClose();
                 form.reset();
+                setWarehouseSearchOpen(false);
+                setProductSearchOpen(false);
             },
         });
     };
 
-    const maxQuantity = warehouseStock.total_quantity;
+    // Find selected warehouse and product for display
+    const selectedWarehouse = warehouses.find(w => w.id.toString() === form.data.warehouse_id);
+    const selectedProduct = products.find(p => p.id.toString() === form.data.product_id);
+
+    // Find selected warehouse stock for available quantity
+    const selectedStock = warehouseStock || (
+        form.data.warehouse_id && form.data.product_id
+            ? warehouseStocks.find(
+                ws => ws.warehouse_id.toString() === form.data.warehouse_id &&
+                      ws.product_id.toString() === form.data.product_id
+              )
+            : undefined
+    );
+
+    const maxQuantity = selectedStock?.total_quantity || 0;
     const quantityNum = parseInt(form.data.quantity) || 0;
     const isOverStock = quantityNum > maxQuantity;
 
@@ -64,22 +105,158 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
-                        {/* Info Box */}
-                        <Alert>
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertDescription>
-                                <div className="space-y-1 text-sm">
-                                    <div>
-                                        <strong>{warehouseStock.warehouse?.name}</strong> -{' '}
-                                        {warehouseStock.product?.name}
+                        {/* Warehouse Selection - Combobox with Search */}
+                        <div className="space-y-2">
+                            <Label htmlFor="warehouse">
+                                Gudang <span className="text-destructive">*</span>
+                            </Label>
+                            <Popover open={warehouseSearchOpen} onOpenChange={setWarehouseSearchOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="warehouse"
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={warehouseSearchOpen}
+                                        disabled={!!warehouseStock || form.processing}
+                                        className={cn(
+                                            'w-full justify-between',
+                                            !form.data.warehouse_id && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        {selectedWarehouse ? selectedWarehouse.name : 'Cari gudang...'}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Ketik nama gudang..." />
+                                        <CommandList>
+                                            <CommandEmpty>Gudang tidak ditemukan.</CommandEmpty>
+                                            <CommandGroup>
+                                                {warehouses.map((warehouse) => (
+                                                    <CommandItem
+                                                        key={warehouse.id}
+                                                        value={warehouse.name}
+                                                        onSelect={() => {
+                                                            form.setData('warehouse_id', warehouse.id.toString());
+                                                            setWarehouseSearchOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                'mr-2 h-4 w-4',
+                                                                form.data.warehouse_id === warehouse.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )}
+                                                        />
+                                                        {warehouse.name}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <InputError message={form.errors.warehouse_id} />
+                        </div>
+
+                        {/* Product Selection - Combobox with Search */}
+                        <div className="space-y-2">
+                            <Label htmlFor="product">
+                                Produk <span className="text-destructive">*</span>
+                            </Label>
+                            <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="product"
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={productSearchOpen}
+                                        disabled={!!warehouseStock || form.processing}
+                                        className={cn(
+                                            'w-full justify-between',
+                                            !form.data.product_id && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        {selectedProduct
+                                            ? `${selectedProduct.name} - ${selectedProduct.sku}`
+                                            : 'Cari produk...'}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Ketik nama produk atau SKU..." />
+                                        <CommandList>
+                                            <CommandEmpty>Produk tidak ditemukan.</CommandEmpty>
+                                            <CommandGroup>
+                                                {products.map((product) => (
+                                                    <CommandItem
+                                                        key={product.id}
+                                                        value={`${product.name} ${product.sku}`}
+                                                        onSelect={() => {
+                                                            form.setData('product_id', product.id.toString());
+                                                            setProductSearchOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                'mr-2 h-4 w-4',
+                                                                form.data.product_id === product.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )}
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">{product.name}</span>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                SKU: {product.sku}
+                                                            </span>
+                                                        </div>
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <InputError message={form.errors.product_id} />
+                        </div>
+
+                        {/* Info Box - Show when stock is selected */}
+                        {selectedStock && (
+                            <Alert>
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    <div className="space-y-1 text-sm">
+                                        <div>
+                                            <strong>
+                                                {selectedWarehouse?.name || selectedStock.warehouse?.name}
+                                            </strong>{' '}
+                                            -{' '}
+                                            {selectedProduct?.name || selectedStock.product?.name}
+                                        </div>
+                                        <div>
+                                            SKU: {selectedProduct?.sku || selectedStock.product?.sku} | Tersedia:{' '}
+                                            <strong>
+                                                {maxQuantity} {selectedProduct?.unit || selectedStock.product?.unit}
+                                            </strong>
+                                        </div>
                                     </div>
-                                    <div>
-                                        SKU: {warehouseStock.product?.sku} | Tersedia:{' '}
-                                        <strong>{maxQuantity} {warehouseStock.product?.unit}</strong>
-                                    </div>
-                                </div>
-                            </AlertDescription>
-                        </Alert>
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        {/* Warning if no stock found */}
+                        {form.data.warehouse_id && form.data.product_id && !selectedStock && (
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                    Tidak ada stok untuk kombinasi gudang dan produk ini.
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         {/* Quantity */}
                         <div className="space-y-2">
@@ -151,7 +328,7 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                         </Button>
                         <Button
                             type="submit"
-                            disabled={form.processing || !form.data.quantity || isOverStock}
+                            disabled={form.processing || !form.data.warehouse_id || !form.data.product_id || !form.data.quantity || isOverStock}
                         >
                             {form.processing ? 'Memproses...' : 'Konfirmasi Stok Keluar'}
                         </Button>

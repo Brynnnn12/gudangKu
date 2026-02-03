@@ -1,9 +1,17 @@
 import { useForm } from '@inertiajs/react';
-import { Save, UserPlus, Warehouse as WarehouseIcon } from 'lucide-react';
-import { useEffect } from 'react';
+import { Check, ChevronsUpDown, Save, UserPlus, Warehouse as WarehouseIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
 import {
     Dialog,
     DialogContent,
@@ -11,12 +19,11 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import type { WarehouseUser, User, Warehouse } from '@/types/models/warehouse-users';
 
 interface WarehouseUserFormModalProps {
@@ -35,17 +42,31 @@ export function WarehouseUserFormModal({
     onClose
 }: WarehouseUserFormModalProps) {
     const isEditing = !!warehouseUser;
+    const [warehouseSearchOpen, setWarehouseSearchOpen] = useState(false);
+    const [userSearchOpen, setUserSearchOpen] = useState(false);
 
     const form = useForm({
         warehouse_id: warehouseUser?.warehouse_id?.toString() || '',
         user_id: warehouseUser?.user_id?.toString() || '',
+        start_date: warehouseUser?.start_date || new Date().toISOString().split('T')[0],
     });
+
+    const selectedWarehouse = useMemo(
+        () => warehouses.find((w) => w.id.toString() === form.data.warehouse_id),
+        [form.data.warehouse_id, warehouses]
+    );
+
+    const selectedUser = useMemo(
+        () => users.find((u) => u.id.toString() === form.data.user_id),
+        [form.data.user_id, users]
+    );
 
     useEffect(() => {
         if (warehouseUser) {
             form.setData({
                 warehouse_id: warehouseUser.warehouse_id?.toString() || '',
                 user_id: warehouseUser.user_id?.toString() || '',
+                start_date: warehouseUser.start_date || new Date().toISOString().split('T')[0],
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +79,10 @@ export function WarehouseUserFormModal({
             form.put(`/dashboard/warehouse-users/${warehouseUser.id}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    onClose();
+                    // Add small delay to ensure flash message is set before closing modal
+                    setTimeout(() => {
+                        onClose();
+                    }, 100);
                 },
             });
         } else {
@@ -84,32 +108,65 @@ export function WarehouseUserFormModal({
                 <form onSubmit={handleSubmit}>
                     <ModalHeader
                         icon={UserPlus}
-                        title={isEditing ? 'Edit Pengguna Gudang' : 'Tetapkan Pengguna ke Gudang'}
-                        description={isEditing ? 'Perbarui penugasan pengguna gudang' : 'Hubungkan pengguna dengan lokasi gudang'}
+                        title={isEditing ? 'Pindah Gudang Pengguna' : 'Tetapkan Pengguna ke Gudang'}
+                        description={isEditing ? 'Pindahkan penugasan pengguna ke gudang lain' : 'Hubungkan pengguna dengan lokasi gudang'}
                     />
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor={`${isEditing ? 'edit' : 'create'}-warehouse`}>
                                 Gudang <span className="text-destructive">*</span>
                             </Label>
-                            <Select
-                                value={form.data.warehouse_id}
-                                onValueChange={(value) => form.setData('warehouse_id', value)}
-                            >
-                                <SelectTrigger id={`${isEditing ? 'edit' : 'create'}-warehouse`}>
-                                    <SelectValue placeholder="Pilih gudang" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {warehouses.map((warehouse) => (
-                                        <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
+                            <Popover open={warehouseSearchOpen} onOpenChange={setWarehouseSearchOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={warehouseSearchOpen}
+                                        className="w-full justify-between"
+                                    >
+                                        {selectedWarehouse ? (
                                             <div className="flex items-center gap-2">
                                                 <WarehouseIcon className="h-4 w-4" />
-                                                {warehouse.name}
+                                                {selectedWarehouse.name}
                                             </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                        ) : (
+                                            "Pilih gudang"
+                                        )}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Cari gudang..." />
+                                        <CommandList>
+                                            <CommandEmpty>Gudang tidak ditemukan</CommandEmpty>
+                                            <CommandGroup>
+                                                {warehouses.map((warehouse) => (
+                                                    <CommandItem
+                                                        key={warehouse.id}
+                                                        value={warehouse.name}
+                                                        onSelect={() => {
+                                                            form.setData('warehouse_id', warehouse.id.toString());
+                                                            setWarehouseSearchOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                form.data.warehouse_id === warehouse.id.toString()
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        <WarehouseIcon className="mr-2 h-4 w-4" />
+                                                        {warehouse.name}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             <InputError message={form.errors.warehouse_id} />
                         </div>
 
@@ -117,25 +174,84 @@ export function WarehouseUserFormModal({
                             <Label htmlFor={`${isEditing ? 'edit' : 'create'}-user`}>
                                 Pengguna <span className="text-destructive">*</span>
                             </Label>
-                            <Select
-                                value={form.data.user_id}
-                                onValueChange={(value) => form.setData('user_id', value)}
-                            >
-                                <SelectTrigger id={`${isEditing ? 'edit' : 'create'}-user`}>
-                                    <SelectValue placeholder="Pilih pengguna" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users.map((user) => (
-                                        <SelectItem key={user.id} value={user.id.toString()}>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">{user.name}</span>
-                                                <span className="text-xs text-muted-foreground">{user.email}</span>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {isEditing ? (
+                                <div className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2.5">
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-slate-900">{selectedUser?.name}</span>
+                                        <span className="text-xs text-muted-foreground">{selectedUser?.email}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Popover open={userSearchOpen} onOpenChange={setUserSearchOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={userSearchOpen}
+                                            className="w-full justify-between"
+                                        >
+                                            {selectedUser ? (
+                                                <div className="flex flex-col items-start">
+                                                    <span className="font-medium">{selectedUser.name}</span>
+                                                    <span className="text-xs text-muted-foreground">{selectedUser.email}</span>
+                                                </div>
+                                            ) : (
+                                                "Pilih pengguna"
+                                            )}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Cari pengguna..." />
+                                            <CommandList>
+                                                <CommandEmpty>Pengguna tidak ditemukan</CommandEmpty>
+                                                <CommandGroup>
+                                                    {users.map((user) => (
+                                                        <CommandItem
+                                                            key={user.id}
+                                                            value={`${user.name} ${user.email}`}
+                                                            onSelect={() => {
+                                                                form.setData('user_id', user.id.toString());
+                                                                setUserSearchOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    form.data.user_id === user.id.toString()
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium">{user.name}</span>
+                                                                <span className="text-xs text-muted-foreground">{user.email}</span>
+                                                            </div>
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
                             <InputError message={form.errors.user_id} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor={`${isEditing ? 'edit' : 'create'}-start-date`}>
+                                Tanggal Mulai <span className="text-destructive">*</span>
+                            </Label>
+                            <input
+                                id={`${isEditing ? 'edit' : 'create'}-start-date`}
+                                type="date"
+                                name="start_date"
+                                value={form.data.start_date}
+                                onChange={(e) => form.setData('start_date', e.target.value)}
+                                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none"
+                            />
+                            <InputError message={form.errors.start_date} />
                         </div>
                     </div>
                     <DialogFooter>

@@ -75,7 +75,7 @@ export function ProductPriceToolbar({
                     />
                 </div>
                 <div className="flex gap-2">
-                    <div className="w-[200px]">
+                    <div className="w-50">
                         <Select
                             value={productIdValue?.toString()}
                             onValueChange={(value) => onProductIdChange(value)}

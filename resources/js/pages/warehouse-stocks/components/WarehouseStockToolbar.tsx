@@ -1,4 +1,4 @@
-import { Plus, Search, Trash2, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +21,8 @@ interface WarehouseStockToolbarProps {
     onWarehouseChange: (value: string) => void;
     onProductChange: (value: string) => void;
     onAddClick?: () => void; // Optional - hidden when undefined
+    onStockInClick: () => void;
+    onStockOutClick: () => void;
     onBulkDeleteClick: () => void;
     onClearFilters: () => void;
     selectedCount: number;
@@ -38,6 +40,8 @@ export function WarehouseStockToolbar({
     onWarehouseChange,
     onProductChange,
     onAddClick,
+    onStockInClick,
+    onStockOutClick,
     onBulkDeleteClick,
     onClearFilters,
     selectedCount,
@@ -66,6 +70,14 @@ export function WarehouseStockToolbar({
                             Hapus
                         </Button>
                     )}
+                    <Button onClick={onStockInClick} variant="default">
+                        <ArrowDownToLine className="mr-2 h-4 w-4" />
+                        Stok Masuk
+                    </Button>
+                    <Button onClick={onStockOutClick} variant="outline">
+                        <ArrowUpFromLine className="mr-2 h-4 w-4" />
+                        Stok Keluar
+                    </Button>
                     {onAddClick && (
                         <Button onClick={onAddClick}>
                             <Plus className="mr-2 h-4 w-4" />

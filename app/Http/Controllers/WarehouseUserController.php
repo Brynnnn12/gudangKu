@@ -25,6 +25,7 @@ class WarehouseUserController extends Controller
 
         $warehouseUsers = WarehouseUser::query()
             ->with(['warehouse:id,name', 'user:id,name,email'])
+            ->whereNull('end_date') // Only active assignments
             ->search($request->search)
             ->latest()
             ->paginate(10)

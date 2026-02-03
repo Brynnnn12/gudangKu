@@ -34,7 +34,11 @@ class EmployeeController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->roles->pluck('name')->first(), // Mengambil string nama role saja
+                'roles' => $user->roles->map(fn ($role) => [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'guard_name' => $role->guard_name,
+                ]),
                 'created_at' => $user->created_at->format('d M Y'),
             ]);
 

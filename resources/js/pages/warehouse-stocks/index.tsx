@@ -4,12 +4,13 @@ import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import { useSearch } from '@/hooks/useSearch';
 import { useSelection } from '@/hooks/useSelection';
 import AppLayout from '@/layouts/app-layout';
-import CreateStockBatchModal from '@/pages/stock-batches/components/CreateStockBatchModal';
 import { type BreadcrumbItem } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock, Filters, PageProps } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
+import CreateStockBatchModal from './components/CreateStockBatchModal';
 import StockOutModal from './components/StockOutModal';
+import { WarehouseStockDetailModal } from './components/WarehouseStockDetailModal';
 import { WarehouseStockModals } from './components/WarehouseStockModals';
 import { WarehouseStockTable } from './components/WarehouseStockTable';
 import { WarehouseStockToolbar } from './components/WarehouseStockToolbar';
@@ -37,8 +38,8 @@ export default function Index({
     });
 
     const { modals, openModal, closeModal } = useGenericModals<WarehouseStock>({
-        simple: ['create', 'bulkDelete'],
-        withData: ['edit', 'delete', 'stockIn', 'stockOut']
+        simple: ['create', 'bulkDelete', 'stockIn', 'stockOut'],
+        withData: ['edit', 'delete', 'detail']
     });
 
     const {
@@ -107,6 +108,8 @@ export default function Index({
                         });
                     }}
                     onAddClick={undefined} // Disabled - stocks auto-created via batches
+                    onStockInClick={() => openModal('stockIn')}
+                    onStockOutClick={() => openModal('stockOut')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={() => {
                         clearSearch();
@@ -126,15 +129,13 @@ export default function Index({
                     onSelectAll={toggleSelectAll}
                     onSelectOne={toggleSelectOne}
                     onEdit={undefined} // Disabled - totals auto-calculated from batches
-                    onStockIn={(warehouseStock: WarehouseStock) =>
-                        openModal('stockIn', warehouseStock)
-                    }
-                    onStockOut={(warehouseStock: WarehouseStock) =>
-                        openModal('stockOut', warehouseStock)
-                    }
                     onDelete={(warehouseStock: WarehouseStock) =>
                         openModal('delete', warehouseStock)
                     }
+                    onDetail={(warehouseStock: WarehouseStock) => {
+                        console.log('Opening detail modal for:', warehouseStock);
+                        openModal('detail', warehouseStock);
+                    }}
                     allSelected={allSelected}
                     someSelected={someSelected}
                 />
@@ -166,25 +167,32 @@ export default function Index({
                 />
 
                 {/* Stock In Modal */}
-                {(modals.stockIn as ModalWithData<WarehouseStock>).isOpen && (modals.stockIn as ModalWithData<WarehouseStock>).data && (
+                {modals.stockIn && (
                     <CreateStockBatchModal
-                        open={(modals.stockIn as ModalWithData<WarehouseStock>).isOpen}
+                        open={modals.stockIn as boolean}
                         warehouses={warehouses}
                         products={products}
-                        preselectedWarehouseId={(modals.stockIn as ModalWithData<WarehouseStock>).data!.warehouse_id}
-                        preselectedProductId={(modals.stockIn as ModalWithData<WarehouseStock>).data!.product_id}
                         onClose={() => closeModal('stockIn')}
                     />
                 )}
 
                 {/* Stock Out Modal */}
-                {(modals.stockOut as ModalWithData<WarehouseStock>).isOpen && (modals.stockOut as ModalWithData<WarehouseStock>).data && (
+                {modals.stockOut && (
                     <StockOutModal
-                        open={(modals.stockOut as ModalWithData<WarehouseStock>).isOpen}
-                        warehouseStock={(modals.stockOut as ModalWithData<WarehouseStock>).data!}
+                        open={modals.stockOut as boolean}
+                        warehouseStocks={warehouseStocks.data}
+                        warehouses={warehouses}
+                        products={products}
                         onClose={() => closeModal('stockOut')}
                     />
                 )}
+
+                {/* Detail Modal */}
+                <WarehouseStockDetailModal
+                    open={!!(modals.detail as ModalWithData<WarehouseStock>)?.data}
+                    warehouseStock={(modals.detail as ModalWithData<WarehouseStock>)?.data || null}
+                    onClose={() => closeModal('detail')}
+                />
             </div>
         </AppLayout>
     );

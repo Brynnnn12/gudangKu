@@ -98,4 +98,6 @@ export function useGenericModals<T = unknown>(config: ModalConfig) {
  * const editModal = modals.edit as ModalWithData<Product>;
  * const createModal = modals.create as boolean;
  */
-export type ModalWithData<T> = { isOpen: boolean; data: T | null };
+export type ModalWithData<T> = {
+    open: any; isOpen: boolean; data: T | null
+};

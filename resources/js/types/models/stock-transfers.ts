@@ -1,5 +1,6 @@
 import type { User } from '../auth';
 import type { Product } from './products';
+import type { WarehouseStock } from './warehouse-stocks';
 import type { Warehouse } from './warehouses';
 
 /**
@@ -76,6 +77,7 @@ export interface StockTransfersIndexPageProps {
   };
   warehouses: Warehouse[];
   products: Product[];
+  warehouseStocks: WarehouseStock[];
   filters: StockTransferFilters;
 }
 

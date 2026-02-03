@@ -46,6 +46,7 @@ export default function Index({
     stockTransfers,
     warehouses,
     products,
+    warehouseStocks,
     filters = {},
 }: StockTransfersIndexPageProps) {
     const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
@@ -165,6 +166,7 @@ export default function Index({
                         open={modals.create as boolean}
                         warehouses={warehouses}
                         products={products}
+                        warehouseStocks={warehouseStocks}
                         onClose={() => closeModal('create')}
                     />
                 )}
@@ -176,6 +178,7 @@ export default function Index({
                         stockTransfer={(modals.edit as ModalWithData<StockTransfer>).data!}
                         warehouses={warehouses}
                         products={products}
+                        warehouseStocks={warehouseStocks}
                         onClose={() => closeModal('edit')}
                     />
                 )}

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property \Carbon\Carbon|null $expired_at
+ */
 class StockBatch extends Model
 {
     /** @use HasFactory<\Database\Factories\StockBatchFactory> */
@@ -74,7 +77,7 @@ class StockBatch extends Model
      */
     public function isExpired(): bool
     {
-        return $this->expired_at && $this->expired_at->isPast();
+        return $this->expired_at !== null && $this->expired_at->isPast();
     }
 
     /**
@@ -82,7 +85,7 @@ class StockBatch extends Model
      */
     public function isNearExpiry(int $days = 30): bool
     {
-        return $this->expired_at && $this->expired_at->diffInDays(now()) <= $days && ! $this->isExpired();
+        return $this->expired_at !== null && $this->expired_at->diffInDays(now()) <= $days && ! $this->isExpired();
     }
 
     /**

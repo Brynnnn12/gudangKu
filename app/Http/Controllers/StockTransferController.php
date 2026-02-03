@@ -12,6 +12,7 @@ use App\Http\Requests\StockTransfers\UpdateStockTransferRequest;
 use App\Models\Product;
 use App\Models\StockTransfer;
 use App\Models\Warehouse;
+use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,12 +39,16 @@ class StockTransferController extends Controller
             ->withQueryString();
 
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
-        $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand']);
+        $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand', 'unit']);
+        $warehouseStocks = WarehouseStock::with(['warehouse', 'product'])
+            ->where('total_quantity', '>', 0)
+            ->get();
 
         return Inertia::render('stock-transfers/index', [
             'stockTransfers' => $stockTransfers,
             'warehouses' => $warehouses,
             'products' => $products,
+            'warehouseStocks' => $warehouseStocks,
             'filters' => $request->only([
                 'search',
                 'from_warehouse_id',
@@ -72,7 +77,7 @@ class StockTransferController extends Controller
     /**
      * Display the specified stock transfer.
      */
-    public function show(StockTransfer $stockTransfer): Response
+    public function show(Request $request, StockTransfer $stockTransfer): Response
     {
         $this->authorize('view', $stockTransfer);
 
@@ -80,10 +85,10 @@ class StockTransferController extends Controller
 
         return Inertia::render('stock-transfers/show', [
             'stockTransfer' => $stockTransfer,
-            'canUpdate' => auth()->user()->can('update', $stockTransfer),
-            'canDelete' => auth()->user()->can('delete', $stockTransfer),
-            'canApprove' => auth()->user()->can('approve', $stockTransfer),
-            'canReject' => auth()->user()->can('reject', $stockTransfer),
+            'canUpdate' => $request->user()?->can('update', $stockTransfer) ?? false,
+            'canDelete' => $request->user()?->can('delete', $stockTransfer) ?? false,
+            'canApprove' => $request->user()?->can('approve', $stockTransfer) ?? false,
+            'canReject' => $request->user()?->can('reject', $stockTransfer) ?? false,
         ]);
     }
 

@@ -13,6 +13,8 @@ export interface WarehouseUser {
     id: number;
     warehouse_id: number;
     user_id: number;
+    start_date: string;
+    end_date?: string | null;
     warehouse?: Warehouse;
     user?: User;
     created_at: string;

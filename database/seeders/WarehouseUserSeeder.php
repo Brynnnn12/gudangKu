@@ -20,19 +20,18 @@ class WarehouseUserSeeder extends Seeder
 
         $warehouses = Warehouse::all();
 
-        // Assign each non-super-admin user to 1-3 random warehouses
+        // Assign each user to only ONE random warehouse (one user = one warehouse)
         foreach ($users as $user) {
-            $warehouseCount = rand(1, 3);
-            $assignedWarehouses = $warehouses->random(min($warehouseCount, $warehouses->count()));
+            $warehouse = $warehouses->random();
 
-            foreach ($assignedWarehouses as $warehouse) {
-                WarehouseUser::factory()->create([
-                    'user_id' => $user->id,
-                    'warehouse_id' => $warehouse->id,
-                ]);
-            }
+            WarehouseUser::factory()->create([
+                'user_id' => $user->id,
+                'warehouse_id' => $warehouse->id,
+                'start_date' => now()->subDays(rand(30, 180)),
+                'end_date' => null, // Active assignment
+            ]);
         }
 
-        $this->command->info('Warehouse users seeded successfully!');
+        $this->command->info('Warehouse users seeded successfully! Each user assigned to one warehouse only.');
     }
 }

@@ -44,7 +44,6 @@ export function AppSidebar() {
             icon: Boxes,
             items: [
                 { title: 'Stok Gudang', href: '/dashboard/warehouse-stocks' },
-                { title: 'Batch Stok (FEFO)', href: '/dashboard/stock-batches' },
                 { title: 'Transfer Barang', href: '/dashboard/stock-transfers' },
                 { title: 'Riwayat Mutasi', href: '/dashboard/stock-logs' },
             ],

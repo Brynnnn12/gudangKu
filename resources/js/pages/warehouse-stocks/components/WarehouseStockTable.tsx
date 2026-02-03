@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Edit, Eye, MinusCircle, Package, PlusCircle, Trash2, Warehouse } from 'lucide-react';
+import { Edit, Eye, Package, Trash2, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,9 +19,8 @@ interface WarehouseStockTableProps {
     onSelectAll: (checked: boolean) => void;
     onSelectOne: (id: number, checked: boolean) => void;
     onEdit?: (warehouseStock: WarehouseStock) => void; // Optional - hidden when undefined
-    onStockIn: (warehouseStock: WarehouseStock) => void; // Stock in with auto-select
-    onStockOut: (warehouseStock: WarehouseStock) => void; // Stock out action
     onDelete: (warehouseStock: WarehouseStock) => void;
+    onDetail?: (warehouseStock: WarehouseStock) => void; // Optional - for detail modal
     allSelected: boolean;
     someSelected: boolean;
 }
@@ -32,9 +31,8 @@ export function WarehouseStockTable({
     onSelectAll,
     onSelectOne,
     onEdit,
-    onStockIn,
-    onStockOut,
     onDelete,
+    onDetail,
     allSelected,
     someSelected,
 }: WarehouseStockTableProps) {
@@ -124,33 +122,26 @@ export function WarehouseStockTable({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-2">
-                                        <Link href={`/dashboard/warehouse-stocks/${warehouseStock.id}`}>
-                                            <Button variant="ghost" size="sm" className="h-8 gap-1.5">
-                                                <Eye className="h-3.5 w-3.5" />
-                                                <span className="sr-only sm:not-sr-only">Lihat</span>
-                                            </Button>
-                                        </Link>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 gap-1.5 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                            onClick={() => onStockIn(warehouseStock)}
-                                            title="Stok Masuk - Auto pilih produk"
-                                        >
-                                            <PlusCircle className="h-3.5 w-3.5" />
-                                            <span className="sr-only sm:not-sr-only">Masuk</span>
-                                        </Button>
-                                        {warehouseStock.total_quantity > 0 && (
+                                        {onDetail ? (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 gap-1.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                                                onClick={() => onStockOut(warehouseStock)}
-                                                title="Stok Keluar (FEFO)"
+                                                className="h-8 gap-1.5"
+                                                onClick={() => {
+                                                    console.log('Detail button clicked', warehouseStock);
+                                                    onDetail(warehouseStock);
+                                                }}
                                             >
-                                                <MinusCircle className="h-3.5 w-3.5" />
-                                                <span className="sr-only sm:not-sr-only">Keluar</span>
+                                                <Eye className="h-3.5 w-3.5" />
+                                                <span className="sr-only sm:not-sr-only">Lihat</span>
                                             </Button>
+                                        ) : (
+                                            <Link href={`/dashboard/warehouse-stocks/${warehouseStock.id}`}>
+                                                <Button variant="ghost" size="sm" className="h-8 gap-1.5">
+                                                    <Eye className="h-3.5 w-3.5" />
+                                                    <span className="sr-only sm:not-sr-only">Lihat</span>
+                                                </Button>
+                                            </Link>
                                         )}
                                         {onEdit && (
                                             <Button

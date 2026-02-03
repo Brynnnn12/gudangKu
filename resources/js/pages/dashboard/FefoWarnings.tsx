@@ -47,7 +47,7 @@ export function FefoWarnings({ data }: FefoWarningsProps) {
                         <CardDescription>Batch yang akan/sudah expired</CardDescription>
                     </div>
                     <Link
-                        href="/dashboard/stock-batches"
+                        href="/dashboard/stock-logs"
                         className="text-sm text-primary hover:underline"
                     >
                         Lihat Semua

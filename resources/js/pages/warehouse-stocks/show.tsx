@@ -22,7 +22,7 @@ export default function Show({ warehouseStock }: { warehouseStock: WarehouseStoc
                     <h1 className="text-2xl font-bold">Warehouse Stock Details</h1>
                     <div className="flex gap-2">
                         <Link
-                            href={`/dashboard/stock-batches?warehouse_id=${warehouseStock.warehouse_id}&product_id=${warehouseStock.product_id}`}
+                            href={`/dashboard/stock-logs?warehouse_id=${warehouseStock.warehouse_id}&product_id=${warehouseStock.product_id}`}
                         >
                             <Button variant="outline">
                                 <Package className="mr-2 h-4 w-4" />

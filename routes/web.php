@@ -53,7 +53,7 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
 
     Route::delete('warehouse-stocks/bulk-destroy', [\App\Http\Controllers\WarehouseStockController::class, 'bulkDestroy'])
         ->name('warehouse-stocks.bulk-destroy');
-    Route::post('warehouse-stocks/{warehouseStock}/stock-out', [\App\Http\Controllers\WarehouseStockController::class, 'stockOut'])
+    Route::post('warehouse-stocks/stock-out', [\App\Http\Controllers\WarehouseStockController::class, 'stockOut'])
         ->name('warehouse-stocks.stock-out');
     Route::resource('warehouse-stocks', \App\Http\Controllers\WarehouseStockController::class)
         ->parameters(['warehouse-stocks' => 'warehouseStock'])
@@ -64,9 +64,9 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         ->parameters(['stock-logs' => 'stockLog'])
         ->only(['index', 'show']);
 
-    // Stock Batches (FEFO Monitoring)
-    Route::resource('stock-batches', \App\Http\Controllers\StockBatchController::class)
-        ->parameters(['stock-batches' => 'stockBatch']);
+    // Stock Batches (Create only - for stock entry)
+    Route::post('stock-batches', [\App\Http\Controllers\StockBatchController::class, 'store'])
+        ->name('stock-batches.store');
 
     // Stock Transfers (Inter-warehouse transfers with approval)
     Route::post('stock-transfers/{stockTransfer}/approve', [\App\Http\Controllers\StockTransferController::class, 'approve'])

@@ -1,21 +1,38 @@
 import { useForm } from '@inertiajs/react';
-import { ArrowRightLeft, Save } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRightLeft, Check, ChevronsUpDown, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import type { Product } from '@/types/models/products';
 import type { StockTransferFormData } from '@/types/models/stock-transfers';
+import type { WarehouseStock } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
 
 interface CreateStockTransferModalProps {
     open: boolean;
     warehouses: Warehouse[];
     products: Product[];
+    warehouseStocks: WarehouseStock[];
     onClose: () => void;
 }
 
@@ -23,8 +40,13 @@ export function CreateStockTransferModal({
     open,
     warehouses,
     products,
+    warehouseStocks,
     onClose,
 }: CreateStockTransferModalProps) {
+    const [fromWarehouseSearchOpen, setFromWarehouseSearchOpen] = useState(false);
+    const [toWarehouseSearchOpen, setToWarehouseSearchOpen] = useState(false);
+    const [productSearchOpen, setProductSearchOpen] = useState(false);
+
     const form = useForm<StockTransferFormData>({
         from_warehouse_id: '',
         to_warehouse_id: '',
@@ -33,12 +55,41 @@ export function CreateStockTransferModal({
         notes: '',
     });
 
+    // Filter products based on selected from_warehouse_id
+    const availableProducts = useMemo(() => {
+        if (!form.data.from_warehouse_id) return [];
+
+        const warehouseStocksInWarehouse = warehouseStocks.filter(
+            ws => ws.warehouse_id.toString() === form.data.from_warehouse_id && ws.total_quantity > 0
+        );
+
+        const productIds = warehouseStocksInWarehouse.map(ws => ws.product_id);
+        return products.filter(p => productIds.includes(p.id));
+    }, [form.data.from_warehouse_id, warehouseStocks, products]);
+
+    // Find selected items
+    const selectedFromWarehouse = warehouses.find(w => w.id.toString() === form.data.from_warehouse_id);
+    const selectedToWarehouse = warehouses.find(w => w.id.toString() === form.data.to_warehouse_id);
+    const selectedProduct = availableProducts.find(p => p.id.toString() === form.data.product_id);
+
+    // Find available stock for selected product
+    const availableStock = useMemo(() => {
+        if (!form.data.from_warehouse_id || !form.data.product_id) return null;
+        return warehouseStocks.find(
+            ws => ws.warehouse_id.toString() === form.data.from_warehouse_id &&
+                  ws.product_id.toString() === form.data.product_id
+        );
+    }, [form.data.from_warehouse_id, form.data.product_id, warehouseStocks]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         form.post('/dashboard/stock-transfers', {
             preserveScroll: true,
             onSuccess: () => {
                 form.reset();
+                setFromWarehouseSearchOpen(false);
+                setToWarehouseSearchOpen(false);
+                setProductSearchOpen(false);
                 onClose();
             },
         });
@@ -47,6 +98,9 @@ export function CreateStockTransferModal({
     const handleClose = () => {
         form.reset();
         form.clearErrors();
+        setFromWarehouseSearchOpen(false);
+        setToWarehouseSearchOpen(false);
+        setProductSearchOpen(false);
         onClose();
     };
 
@@ -65,21 +119,56 @@ export function CreateStockTransferModal({
                                 <Label htmlFor="from_warehouse_id">
                                     Dari Gudang <span className="text-destructive">*</span>
                                 </Label>
-                                <Select
-                                    value={form.data.from_warehouse_id.toString()}
-                                    onValueChange={(value) => form.setData('from_warehouse_id', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih gudang asal" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {warehouses.map((warehouse) => (
-                                            <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                                                {warehouse.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Popover open={fromWarehouseSearchOpen} onOpenChange={setFromWarehouseSearchOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id="from_warehouse_id"
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={fromWarehouseSearchOpen}
+                                            disabled={form.processing}
+                                            className={cn(
+                                                'w-full justify-between',
+                                                !form.data.from_warehouse_id && 'text-muted-foreground'
+                                            )}
+                                        >
+                                            {selectedFromWarehouse ? selectedFromWarehouse.name : 'Cari gudang asal...'}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Ketik nama gudang..." />
+                                            <CommandList>
+                                                <CommandEmpty>Gudang tidak ditemukan.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {warehouses.map((warehouse) => (
+                                                        <CommandItem
+                                                            key={warehouse.id}
+                                                            value={warehouse.name}
+                                                            onSelect={() => {
+                                                                form.setData('from_warehouse_id', warehouse.id.toString());
+                                                                // Reset product when warehouse changes
+                                                                form.setData('product_id', '');
+                                                                setFromWarehouseSearchOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    form.data.from_warehouse_id === warehouse.id.toString()
+                                                                        ? 'opacity-100'
+                                                                        : 'opacity-0'
+                                                                )}
+                                                            />
+                                                            {warehouse.name}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                                 <InputError message={form.errors.from_warehouse_id} />
                             </div>
 
@@ -87,21 +176,54 @@ export function CreateStockTransferModal({
                                 <Label htmlFor="to_warehouse_id">
                                     Ke Gudang <span className="text-destructive">*</span>
                                 </Label>
-                                <Select
-                                    value={form.data.to_warehouse_id.toString()}
-                                    onValueChange={(value) => form.setData('to_warehouse_id', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih gudang tujuan" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {warehouses.map((warehouse) => (
-                                            <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                                                {warehouse.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Popover open={toWarehouseSearchOpen} onOpenChange={setToWarehouseSearchOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id="to_warehouse_id"
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={toWarehouseSearchOpen}
+                                            disabled={form.processing}
+                                            className={cn(
+                                                'w-full justify-between',
+                                                !form.data.to_warehouse_id && 'text-muted-foreground'
+                                            )}
+                                        >
+                                            {selectedToWarehouse ? selectedToWarehouse.name : 'Cari gudang tujuan...'}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Ketik nama gudang..." />
+                                            <CommandList>
+                                                <CommandEmpty>Gudang tidak ditemukan.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {warehouses.map((warehouse) => (
+                                                        <CommandItem
+                                                            key={warehouse.id}
+                                                            value={warehouse.name}
+                                                            onSelect={() => {
+                                                                form.setData('to_warehouse_id', warehouse.id.toString());
+                                                                setToWarehouseSearchOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    form.data.to_warehouse_id === warehouse.id.toString()
+                                                                        ? 'opacity-100'
+                                                                        : 'opacity-0'
+                                                                )}
+                                                            />
+                                                            {warehouse.name}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                                 <InputError message={form.errors.to_warehouse_id} />
                             </div>
                         </div>
@@ -110,22 +232,79 @@ export function CreateStockTransferModal({
                             <Label htmlFor="product_id">
                                 Produk <span className="text-destructive">*</span>
                             </Label>
-                            <Select
-                                value={form.data.product_id.toString()}
-                                onValueChange={(value) => form.setData('product_id', value)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih produk" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {products.map((product) => (
-                                        <SelectItem key={product.id} value={product.id.toString()}>
-                                            {product.sku} - {product.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="product_id"
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={productSearchOpen}
+                                        disabled={!form.data.from_warehouse_id || form.processing}
+                                        className={cn(
+                                            'w-full justify-between',
+                                            !form.data.product_id && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        {selectedProduct
+                                            ? `${selectedProduct.sku} - ${selectedProduct.name}`
+                                            : form.data.from_warehouse_id
+                                            ? 'Cari produk...'
+                                            : 'Pilih gudang asal terlebih dahulu'}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Ketik nama produk atau SKU..." />
+                                        <CommandList>
+                                            <CommandEmpty>
+                                                {availableProducts.length === 0
+                                                    ? 'Tidak ada stok tersedia di gudang ini.'
+                                                    : 'Produk tidak ditemukan.'}
+                                            </CommandEmpty>
+                                            <CommandGroup>
+                                                {availableProducts.map((product) => {
+                                                    const stock = warehouseStocks.find(
+                                                        ws => ws.warehouse_id.toString() === form.data.from_warehouse_id &&
+                                                              ws.product_id === product.id
+                                                    );
+                                                    return (
+                                                        <CommandItem
+                                                            key={product.id}
+                                                            value={`${product.name} ${product.sku} ${product.brand}`}
+                                                            onSelect={() => {
+                                                                form.setData('product_id', product.id.toString());
+                                                                setProductSearchOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    form.data.product_id === product.id.toString()
+                                                                        ? 'opacity-100'
+                                                                        : 'opacity-0'
+                                                                )}
+                                                            />
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium">{product.name}</span>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    SKU: {product.sku} | Stok: {stock?.total_quantity || 0} {product.unit}
+                                                                </span>
+                                                            </div>
+                                                        </CommandItem>
+                                                    );
+                                                })}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             <InputError message={form.errors.product_id} />
+                            {availableStock && (
+                                <p className="text-sm text-muted-foreground">
+                                    Stok tersedia: <strong>{availableStock.total_quantity} {selectedProduct?.unit}</strong>
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
