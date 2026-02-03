@@ -25,7 +25,7 @@ class DashboardController extends Controller
         // Get warehouse IDs for non-super-admin users
         $warehouseIds = $isSuperAdmin
             ? null
-            : $user->warehouseUsers()->pluck('warehouse_id')->toArray();
+            : $user->warehouses()->pluck('warehouses.id')->toArray();
 
         // 1. Summary Cards with Financial Metrics
         $summaryCards = $this->getSummaryCards($warehouseIds);

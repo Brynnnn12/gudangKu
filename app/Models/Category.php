@@ -15,6 +15,16 @@ class Category extends Model
         'slug',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);

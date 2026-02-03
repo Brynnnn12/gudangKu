@@ -28,13 +28,7 @@ class ProductPriceController extends Controller
     public function index(Request $request): Response
     {
         $productPrices = ProductPrice::with('product.category')
-            ->when($request->search, function ($query, $search) {
-                $query->whereHas('product', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->search)
             ->when(
                 $request->product_id,
                 fn ($query, $productId) => $query->where('product_id', $productId)

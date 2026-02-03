@@ -53,7 +53,7 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Stok Keluar</DialogTitle>
@@ -70,12 +70,12 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                             <AlertDescription>
                                 <div className="space-y-1 text-sm">
                                     <div>
-                                        <strong>{warehouseStock.warehouse.name}</strong> -{' '}
-                                        {warehouseStock.product.name}
+                                        <strong>{warehouseStock.warehouse?.name}</strong> -{' '}
+                                        {warehouseStock.product?.name}
                                     </div>
                                     <div>
-                                        SKU: {warehouseStock.product.sku} | Tersedia:{' '}
-                                        <strong>{maxQuantity} {warehouseStock.product.unit}</strong>
+                                        SKU: {warehouseStock.product?.sku} | Tersedia:{' '}
+                                        <strong>{maxQuantity} {warehouseStock.product?.unit}</strong>
                                     </div>
                                 </div>
                             </AlertDescription>

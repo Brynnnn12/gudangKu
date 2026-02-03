@@ -26,6 +26,20 @@ class Product extends Model
         'sku',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($category) use ($search) {
+                        $category->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+    }
+
     /**
      * Get the attributes that should be cast.
      *

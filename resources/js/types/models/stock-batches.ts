@@ -34,8 +34,8 @@ export interface StockBatch {
  */
 export interface StockBatchFilters {
   search?: string;
-  warehouse?: string;
-  product?: string;
+  warehouse_id?: string;
+  product_id?: string;
   status?: StockBatchStatus;
   near_expiry?: boolean;
   is_active?: boolean;

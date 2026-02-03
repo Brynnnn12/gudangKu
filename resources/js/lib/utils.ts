@@ -9,3 +9,27 @@ export function cn(...inputs: ClassValue[]) {
 export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+export function formatCurrency(value: string | number): string {
+    const formatted = new Intl.NumberFormat('id-ID', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(Number(value));
+    return `Rp ${formatted}`;
+}
+
+export function formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+export function calculateMargin(costPrice: string | number, sellingPrice: string | number): string {
+    const cost = Number(costPrice);
+    const selling = Number(sellingPrice);
+    const margin = ((selling - cost) / cost) * 100;
+    return margin.toFixed(1) + '%';
+}

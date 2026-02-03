@@ -68,7 +68,7 @@ export function WarehouseStockModals({
     return (
         <>
             <WarehouseStockFormModal
-                open={modals.create || modals.edit.isOpen}
+                open={(modals.create as boolean) || (modals.edit as ModalWithData<WarehouseStock>).isOpen}
                 warehouseStock={(modals.edit as ModalWithData<WarehouseStock>).data}
                 warehouses={warehouses}
                 products={products}
@@ -82,7 +82,7 @@ export function WarehouseStockModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.bulkDelete}
+                open={modals.bulkDelete as boolean}
                 title="Hapus Beberapa Stok Gudang"
                 description={`Apakah Anda yakin ingin menghapus ${selectedCount} stok gudang? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmBulkDelete}
@@ -90,9 +90,9 @@ export function WarehouseStockModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.delete.isOpen}
+                open={(modals.delete as ModalWithData<WarehouseStock>).isOpen}
                 title="Hapus Stok Gudang"
-                description={`Apakah Anda yakin ingin menghapus stok untuk "${modals.delete.warehouseStock?.product?.name}" di "${modals.delete.warehouseStock?.warehouse?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                description={`Apakah Anda yakin ingin menghapus stok untuk "${(modals.delete as ModalWithData<WarehouseStock>).data?.product?.name}" di "${(modals.delete as ModalWithData<WarehouseStock>).data?.warehouse?.name}"? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmDelete}
                 onClose={() => onCloseModal('delete')}
             />

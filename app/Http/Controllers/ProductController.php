@@ -24,16 +24,7 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->with(['category:id,name'])
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%")
-                        ->orWhereHas('category', function ($category) use ($search) {
-                            $category->where('name', 'like', "%{$search}%");
-                        });
-                });
-            })
+            ->search($request->search)
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -47,15 +38,7 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $this->authorize('create', Product::class);
 
-        return redirect()->route('products.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -85,15 +68,7 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        $this->authorize('update', $product);
 
-        return redirect()->route('products.index');
-    }
 
     /**
      * Update the specified resource in storage.

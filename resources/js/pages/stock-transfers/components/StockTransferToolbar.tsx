@@ -85,7 +85,7 @@ export function StockTransferToolbar({
                         value={filters.from_warehouse_id || "all"}
                         onValueChange={(val) => handleSelectChange('from_warehouse_id', val)}
                     >
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-50">
                             <SelectValue placeholder="Dari Gudang" />
                         </SelectTrigger>
                         <SelectContent>
@@ -103,7 +103,7 @@ export function StockTransferToolbar({
                         value={filters.to_warehouse_id || "all"}
                         onValueChange={(val) => handleSelectChange('to_warehouse_id', val)}
                     >
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-50">
                             <SelectValue placeholder="Ke Gudang" />
                         </SelectTrigger>
                         <SelectContent>
@@ -121,7 +121,7 @@ export function StockTransferToolbar({
                         value={filters.product_id || "all"}
                         onValueChange={(val) => handleSelectChange('product_id', val)}
                     >
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-50">
                             <SelectValue placeholder="Produk" />
                         </SelectTrigger>
                         <SelectContent>
@@ -139,7 +139,7 @@ export function StockTransferToolbar({
                         value={filters.status || "all"}
                         onValueChange={(val) => handleSelectChange('status', val)}
                     >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-45">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>

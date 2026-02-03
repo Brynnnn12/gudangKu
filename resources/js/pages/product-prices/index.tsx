@@ -1,6 +1,7 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Pagination } from '@/components/pagination';
+import { useFilters } from '@/hooks/useFilters';
 import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -23,9 +24,19 @@ export default function Index({
     products: ProductForSelect[];
     filters?: Filters;
 }) {
-    const searchForm = useForm({
-        search: filters.search || '',
-        product_id: filters.product_id || '',
+    const {
+        filters: activeFilters,
+        setFilter,
+        clearFilters,
+        isFiltering,
+        hasActiveFilters,
+    } = useFilters({
+        route: '/dashboard/product-prices',
+        initialFilters: {
+            search: filters.search || '',
+            product_id: filters.product_id || '',
+        },
+        only: ['productPrices'],
     });
 
     const { modals, openModal, closeModal } = useGenericModals<ProductPrice>({
@@ -33,51 +44,6 @@ export default function Index({
         withData: ['edit', 'delete']
     });
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const previousFilters = useRef({ search: filters.search || '', product_id: filters.product_id || '' });
-
-    // Real-time search and filter
-    useEffect(() => {
-        // Only trigger if filters actually changed
-        if (previousFilters.current.search === searchForm.data.search &&
-            previousFilters.current.product_id === searchForm.data.product_id) {
-            return;
-        }
-
-        previousFilters.current = { search: searchForm.data.search, product_id: searchForm.data.product_id };
-
-        const timer = setTimeout(() => {
-            // Get current URL params to preserve pagination
-            const currentParams = new URLSearchParams(window.location.search);
-            const params: Record<string, string> = {};
-
-            // Copy all existing params except page (reset to 1 when filters change)
-            currentParams.forEach((value, key) => {
-                if (key !== 'page') {
-                    params[key] = value;
-                }
-            });
-
-            // Update filter params
-            if (searchForm.data.search) params.search = searchForm.data.search;
-            else delete params.search;
-
-            if (searchForm.data.product_id) params.product_id = searchForm.data.product_id;
-            else delete params.product_id;
-
-            router.get(
-                '/dashboard/product-prices',
-                params,
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                    only: ['productPrices'],
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search, searchForm.data.product_id]);
 
     const handleDelete = () => {
         const deleteModal = modals.delete as ModalWithData<ProductPrice>;
@@ -110,16 +76,6 @@ export default function Index({
         );
     };
 
-    const clearFilters = () => {
-        searchForm.setData({ search: '', product_id: '' });
-        router.get('/dashboard/product-prices', {}, {
-            replace: true,
-            preserveState: false,
-            only: ['productPrices']
-        });
-    };
-
-    const hasActiveFilters = !!searchForm.data.search || !!searchForm.data.product_id;
     const allSelected = productPrices.data.length > 0 && selectedIds.length === productPrices.data.length;
     const someSelected = selectedIds.length > 0 && selectedIds.length < productPrices.data.length;
 
@@ -128,16 +84,16 @@ export default function Index({
             <Head title="Product Prices" />
             <div className="p-6">
                 <ProductPriceToolbar
-                    searchValue={searchForm.data.search}
-                    productIdValue={searchForm.data.product_id}
+                    searchValue={activeFilters.search}
+                    productIdValue={activeFilters.product_id}
                     products={products}
-                    onSearchChange={(value: string) => searchForm.setData('search', value)}
-                    onProductIdChange={(value: string) => searchForm.setData('product_id', value)}
+                    onSearchChange={(value: string) => setFilter('search', value)}
+                    onProductIdChange={(value: string) => setFilter('product_id', value)}
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedIds.length}
-                    isSearching={searchForm.processing}
+                    isSearching={isFiltering}
                     hasActiveFilters={hasActiveFilters}
                 />
 

@@ -54,7 +54,7 @@ export function EmployeeTable({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[50px]">
+                        <TableHead className="w-12.5">
                             <Checkbox
                                 checked={allSelected}
                                 onCheckedChange={onSelectAll}
@@ -69,8 +69,13 @@ export function EmployeeTable({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {employees.map((employee) => (
-                        <TableRow key={employee.id} className="group">
+                    {employees.map((employee) => {
+                        const roleNames = employee.roles?.map((role) => role.name) ?? [];
+                        const roleLabel = roleNames.length > 0 ? roleNames.join(', ') : 'Tanpa peran';
+                        const isAdmin = roleNames.some((name) => name.toLowerCase() === 'admin');
+
+                        return (
+                            <TableRow key={employee.id} className="group">
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedIds.includes(employee.id)}
@@ -82,10 +87,10 @@ export function EmployeeTable({
                                 <TableCell className="text-muted-foreground">{employee.email}</TableCell>
                                 <TableCell>
                                     <Badge
-                                        variant={employee.role === 'admin' ? 'default' : 'secondary'}
+                                        variant={isAdmin ? 'default' : 'secondary'}
                                         className="capitalize"
                                     >
-                                        {employee.role}
+                                        {roleLabel}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -111,7 +116,8 @@ export function EmployeeTable({
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        );
+                    })}
                 </TableBody>
             </Table>
         </div>

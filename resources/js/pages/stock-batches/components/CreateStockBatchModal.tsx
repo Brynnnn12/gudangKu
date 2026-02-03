@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Calendar, DollarSign, Hash, Package, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
@@ -17,6 +17,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/hooks/use-auth';
+import type { SharedData } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { Warehouse } from '@/types/models/warehouses';
 
@@ -25,6 +27,8 @@ interface CreateStockBatchModalProps {
     warehouses: Warehouse[];
     products: Product[];
     onClose: () => void;
+    preselectedWarehouseId?: number;
+    preselectedProductId?: number;
 }
 
 export default function CreateStockBatchModal({
@@ -32,10 +36,28 @@ export default function CreateStockBatchModal({
     warehouses,
     products,
     onClose,
+    preselectedWarehouseId,
+    preselectedProductId,
 }: CreateStockBatchModalProps) {
+    const { isSuperAdmin } = useAuth();
+    const { auth } = usePage<SharedData>().props;
+    const assignedWarehouses = auth.assignedWarehouses || [];
+
+    // Filter warehouses based on role
+    const availableWarehouses = isSuperAdmin
+        ? warehouses
+        : warehouses.filter(w => assignedWarehouses.some(aw => aw.id === w.id));
+
+    // Auto-select warehouse: prefer preselected, then single-assignment auto-select
+    const defaultWarehouseId = preselectedWarehouseId
+        ? String(preselectedWarehouseId)
+        : (!isSuperAdmin && assignedWarehouses.length === 1
+            ? String(assignedWarehouses[0].id)
+            : '');
+
     const form = useForm({
-        warehouse_id: '',
-        product_id: '',
+        warehouse_id: defaultWarehouseId,
+        product_id: preselectedProductId ? String(preselectedProductId) : '',
         batch_number: '',
         expired_at: '',
         current_qty: '',
@@ -82,12 +104,13 @@ export default function CreateStockBatchModal({
                             <Select
                                 value={form.data.warehouse_id}
                                 onValueChange={value => form.setData('warehouse_id', value)}
+                                disabled={!isSuperAdmin && assignedWarehouses.length === 1}
                             >
                                 <SelectTrigger id="warehouse_id">
                                     <SelectValue placeholder="Pilih gudang" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {warehouses.map(warehouse => (
+                                    {availableWarehouses.map(warehouse => (
                                         <SelectItem key={warehouse.id} value={String(warehouse.id)}>
                                             {warehouse.name}
                                         </SelectItem>
@@ -95,6 +118,11 @@ export default function CreateStockBatchModal({
                                 </SelectContent>
                             </Select>
                             <InputError message={form.errors.warehouse_id} />
+                            {!isSuperAdmin && assignedWarehouses.length === 1 && (
+                                <p className="text-sm text-muted-foreground">
+                                    Anda hanya dapat mengelola gudang yang ditugaskan
+                                </p>
+                            )}
                         </div>
 
                         {/* Product */}

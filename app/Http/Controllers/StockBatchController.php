@@ -23,15 +23,21 @@ class StockBatchController extends Controller
     {
         $this->authorize('viewAny', StockBatch::class);
 
+        $user = $request->user();
+        $isSuperAdmin = $user->hasRole('super-admin');
+
+        // Filter warehouses based on role
+        $assignedWarehouseIds = $isSuperAdmin
+            ? null
+            : $user->warehouses()->pluck('warehouses.id')->toArray();
+
         $stockBatches = StockBatch::query()
             ->with(['warehouseStock.warehouse', 'warehouseStock.product'])
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('batch_number', 'like', "%{$search}%")
-                        ->orWhereHas('warehouseStock.warehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('warehouseStock.product', fn ($q) => $q->where('name', 'like', "%{$search}%"));
-                });
+            // Filter by assigned warehouses for non-super-admin
+            ->when(!$isSuperAdmin && $assignedWarehouseIds, function ($query) use ($assignedWarehouseIds) {
+                $query->whereHas('warehouseStock', fn ($q) => $q->whereIn('warehouse_id', $assignedWarehouseIds));
             })
+            ->search($request->input('search'))
             ->when($request->input('warehouse_id'), fn ($query, $warehouseId) => $query->whereHas('warehouseStock', fn ($q) => $q->where('warehouse_id', $warehouseId)))
             ->when($request->input('product_id'), fn ($query, $productId) => $query->whereHas('warehouseStock', fn ($q) => $q->where('product_id', $productId)))
             ->when($request->input('status'), fn ($query, $status) => $query->where('status', $status))
@@ -42,7 +48,11 @@ class StockBatchController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
+        // Filter warehouses list for non-super-admin
+        $warehouses = $isSuperAdmin
+            ? Warehouse::orderBy('name')->get(['id', 'name'])
+            : $user->warehouses()->orderBy('name')->get(['id', 'name']);
+
         $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand']);
 
         return Inertia::render('stock-batches/index', [

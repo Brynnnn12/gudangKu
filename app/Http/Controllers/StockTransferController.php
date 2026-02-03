@@ -27,14 +27,7 @@ class StockTransferController extends Controller
 
         $stockTransfers = StockTransfer::query()
             ->with(['fromWarehouse', 'toWarehouse', 'product', 'user'])
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('fromWarehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('toWarehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('product', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhere('notes', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->input('search'))
             ->when($request->input('from_warehouse_id'), fn ($query, $warehouseId) => $query->where('from_warehouse_id', $warehouseId))
             ->when($request->input('to_warehouse_id'), fn ($query, $warehouseId) => $query->where('to_warehouse_id', $warehouseId))
             ->when($request->input('product_id'), fn ($query, $productId) => $query->where('product_id', $productId))
@@ -62,21 +55,7 @@ class StockTransferController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new stock transfer.
-     */
-    public function create(): Response
-    {
-        $this->authorize('create', StockTransfer::class);
 
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
-        $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand']);
-
-        return Inertia::render('stock-transfers/create', [
-            'warehouses' => $warehouses,
-            'products' => $products,
-        ]);
-    }
 
     /**
      * Store a newly created stock transfer.
@@ -110,24 +89,6 @@ class StockTransferController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified stock transfer.
-     */
-    public function edit(StockTransfer $stockTransfer): Response
-    {
-        $this->authorize('update', $stockTransfer);
-
-        $stockTransfer->load(['fromWarehouse', 'toWarehouse', 'product', 'user']);
-
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
-        $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand']);
-
-        return Inertia::render('stock-transfers/edit', [
-            'stockTransfer' => $stockTransfer,
-            'warehouses' => $warehouses,
-            'products' => $products,
-        ]);
-    }
 
     /**
      * Update the specified stock transfer.

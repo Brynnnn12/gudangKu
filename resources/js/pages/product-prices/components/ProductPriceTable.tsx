@@ -10,6 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { calculateMargin, formatCurrency, formatDate } from '@/lib/utils';
 import type { ProductPrice } from '@/types/models/product-prices';
 
 interface ProductPriceTableProps {
@@ -33,30 +34,6 @@ export function ProductPriceTable({
     allSelected,
     someSelected,
 }: ProductPriceTableProps) {
-    const formatCurrency = (value: string | number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(Number(value));
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    };
-
-    const calculateMargin = (costPrice: string, sellingPrice: string) => {
-        const cost = Number(costPrice);
-        const selling = Number(sellingPrice);
-        const margin = ((selling - cost) / cost) * 100;
-        return margin.toFixed(1) + '%';
-    };
-
     if (productPrices.length === 0) {
         return (
             <div className="rounded-lg border border-dashed bg-card">

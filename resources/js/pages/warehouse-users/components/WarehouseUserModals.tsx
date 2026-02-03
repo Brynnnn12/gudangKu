@@ -8,7 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import type { ModalState as GenericModalState, ModalWithData } from '@/hooks/useGenericModals';
 import { WarehouseUserFormModal } from '@/pages/warehouse-users/components/WarehouseUserFormModal';
 import type { WarehouseUser, Warehouse, User } from '@/types/models/warehouse-users';
 
@@ -45,7 +45,7 @@ const DeleteConfirmDialog = ({
 );
 
 interface WarehouseUserModalsProps {
-    modals: ModalState<WarehouseUser>;
+    modals: GenericModalState<WarehouseUser>;
     warehouses: Warehouse[];
     users: User[];
     onCloseModal: (type: string) => void;
@@ -66,7 +66,7 @@ export function WarehouseUserModals({
     return (
         <>
             <WarehouseUserFormModal
-                open={modals.create || modals.edit.isOpen}
+                open={(modals.create as boolean) || (modals.edit as ModalWithData<WarehouseUser>).isOpen}
                 warehouseUser={(modals.edit as ModalWithData<WarehouseUser>).data}
                 warehouses={warehouses}
                 users={users}
@@ -80,7 +80,7 @@ export function WarehouseUserModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.bulkDelete}
+                open={modals.bulkDelete as boolean}
                 title="Hapus Beberapa Penugasan"
                 description={`Apakah Anda yakin ingin menghapus ${selectedCount} penugasan pengguna gudang? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmBulkDelete}
@@ -88,9 +88,9 @@ export function WarehouseUserModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.delete.isOpen}
+                open={(modals.delete as ModalWithData<WarehouseUser>).isOpen}
                 title="Hapus Penugasan"
-                description={`Apakah Anda yakin ingin menghapus penugasan "${modals.delete.warehouseUser?.warehouse?.name}" untuk "${modals.delete.warehouseUser?.user?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                description={`Apakah Anda yakin ingin menghapus penugasan "${(modals.delete as ModalWithData<WarehouseUser>).data?.warehouse?.name}" untuk "${(modals.delete as ModalWithData<WarehouseUser>).data?.user?.name}"? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmDelete}
                 onClose={() => onCloseModal('delete')}
             />

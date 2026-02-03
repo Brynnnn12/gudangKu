@@ -32,17 +32,7 @@ class WarehouseStockController extends Controller
                 $query->whereIn('warehouse_id', $request->user()->warehouses()->pluck('warehouse_id'));
             })
             // Filter Search (Clean Logic)
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('warehouse', fn ($w) => $w->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas(
-                            'product',
-                            fn ($p) => $p->where('name', 'like', "%{$search}%")
-                                ->orWhere('sku', 'like', "%{$search}%")
-                                ->orWhere('brand', 'like', "%{$search}%")
-                        );
-                });
-            })
+            ->search($request->search)
             // Filter by warehouse
             ->when($request->warehouse_id, fn ($query, $warehouseId) => $query->where('warehouse_id', $warehouseId))
             // Filter by product
@@ -59,18 +49,7 @@ class WarehouseStockController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * ⚠️ WarehouseStock cannot be created manually - redirects to info page.
-     */
-    public function create()
-    {
-        $this->authorize('create', WarehouseStock::class);
 
-        session()->flash('info', 'Warehouse stocks are auto-created from stock batches. Create a batch instead.');
-
-        return redirect()->route('warehouse-stocks.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -100,18 +79,6 @@ class WarehouseStockController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     * ⚠️ WarehouseStock cannot be edited manually - redirects to info page.
-     */
-    public function edit(WarehouseStock $warehouseStock)
-    {
-        $this->authorize('update', $warehouseStock);
-
-        session()->flash('info', 'Warehouse stock totals are auto-calculated from batches. Edit batches instead.');
-
-        return redirect()->route('warehouse-stocks.index');
-    }
 
     /**
      * Update the specified resource in storage.

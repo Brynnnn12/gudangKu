@@ -26,7 +26,7 @@ export interface ProductForSelect {
 
 export interface Filters {
     search?: string;
-    product_id?: number;
+    product_id?: string;
 }
 
 export interface PageProps {

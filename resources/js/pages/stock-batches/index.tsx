@@ -99,21 +99,21 @@ export default function StockBatchesIndex({
 
               {/* Modals */}
               <CreateStockBatchModal
-                open={modals.create}
+                open={modals.create as boolean}
                 warehouses={warehouses}
                 products={products}
                 onClose={() => closeModal('create')}
               />
 
-              {modals.edit.isOpen && (modals.edit as ModalWithData<StockBatch>).data && (
+              {(modals.edit as ModalWithData<StockBatch>).isOpen && (modals.edit as ModalWithData<StockBatch>).data && (
                 <EditStockBatchModal
-                  open={modals.edit.isOpen}
+                  open={(modals.edit as ModalWithData<StockBatch>).isOpen}
                   stockBatch={(modals.edit as ModalWithData<StockBatch>).data!}
                   onClose={() => closeModal('edit')}
                 />
               )}
 
-              <AlertDialog open={modals.delete.isOpen} onOpenChange={(open) => !open && closeModal('delete')}>
+              <AlertDialog open={(modals.delete as ModalWithData<StockBatch>).isOpen} onOpenChange={(open) => !open && closeModal('delete')}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Hapus Batch Stok?</AlertDialogTitle>

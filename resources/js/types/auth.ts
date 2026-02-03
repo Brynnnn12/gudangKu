@@ -19,6 +19,7 @@ export type User = {
 
 export type Auth = {
     user: User;
+    assignedWarehouses: Array<{ id: number; name: string }>;
 };
 
 export type TwoFactorSetupData = {

@@ -25,17 +25,7 @@ class WarehouseUserController extends Controller
 
         $warehouseUsers = WarehouseUser::query()
             ->with(['warehouse:id,name', 'user:id,name,email'])
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('warehouse', function ($warehouse) use ($search) {
-                        $warehouse->where('name', 'like', "%{$search}%");
-                    })
-                        ->orWhereHas('user', function ($user) use ($search) {
-                            $user->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        });
-                });
-            })
+            ->search($request->search)
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -51,15 +41,7 @@ class WarehouseUserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $this->authorize('create', WarehouseUser::class);
 
-        return redirect()->route('warehouse-users.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -89,15 +71,6 @@ class WarehouseUserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(WarehouseUser $warehouseUser)
-    {
-        $this->authorize('update', $warehouseUser);
-
-        return redirect()->route('warehouse-users.index');
-    }
 
     /**
      * Update the specified resource in storage.

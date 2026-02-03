@@ -22,12 +22,7 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         $categories = Category::query()
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('slug', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->search)
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -38,9 +33,6 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
 
     /**
      * Store a newly created resource in storage.

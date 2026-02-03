@@ -27,6 +27,17 @@ class StockBatch extends Model
         'status',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('batch_number', 'like', "%{$search}%")
+                    ->orWhereHas('warehouseStock.warehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('warehouseStock.product', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+            });
+        }
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -21,6 +21,21 @@ class WarehouseUser extends Pivot
 
     public $incrementing = true;
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('warehouse', function ($warehouse) use ($search) {
+                    $warehouse->where('name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('user', function ($user) use ($search) {
+                        $user->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+    }
+
     /**
      * Get the warehouse that owns the warehouse user.
      */

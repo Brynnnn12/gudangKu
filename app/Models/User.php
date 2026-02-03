@@ -29,6 +29,16 @@ class User extends Authenticatable implements MustVerifyEmail
         'token',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+    }
+
     public function warehouses()
     {
         return $this->belongsToMany(Warehouse::class, 'warehouse_users')

@@ -66,7 +66,7 @@ export function WarehouseFormModal({ open, warehouse, onClose }: WarehouseFormMo
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
                 <form onSubmit={handleSubmit}>
                     <ModalHeader
                         icon={WarehouseIcon}

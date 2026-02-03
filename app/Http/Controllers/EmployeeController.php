@@ -23,19 +23,13 @@ class EmployeeController extends Controller
 
         $employees = User::role(['admin', 'viewer'])
             ->with('roles')
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->search)
             ->when($request->role && $request->role !== 'all', function ($query) use ($request) {
                 $query->role($request->role);
             })
             ->latest()
             ->paginate(10)
             ->withQueryString()
-            // Tambahkan through untuk mapping data ke Frontend
             ->through(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -50,15 +44,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $this->authorize('create', User::class);
 
-        return redirect()->route('employees.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -84,15 +70,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $employee)
-    {
-        $this->authorize('update', $employee);
 
-        return redirect()->route('employees.index');
-    }
 
     /**
      * Update the specified resource in storage.

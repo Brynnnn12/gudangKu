@@ -21,14 +21,7 @@ class StockLogController extends Controller
 
         $stockLogs = StockLog::query()
             ->with(['warehouse', 'product', 'user'])
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('warehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('product', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhere('notes', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->input('search'))
             ->when($request->input('warehouse'), fn ($query, $warehouseId) => $query->where('warehouse_id', $warehouseId))
             ->when($request->input('product'), fn ($query, $productId) => $query->where('product_id', $productId))
             ->when($request->input('user'), fn ($query, $userId) => $query->where('user_id', $userId))

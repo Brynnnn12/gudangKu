@@ -1,9 +1,10 @@
 import { Link } from '@inertiajs/react';
 import {
     LayoutGrid,
-    Users,
-    Folder,
-    Warehouse,
+    Package,
+
+    Boxes,
+    Settings2
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -26,77 +27,53 @@ import AppLogo from './app-logo';
 export function AppSidebar() {
     const { isSuperAdmin } = useAuth();
 
-    const mainNavItems: NavItem[] = [
+    // 1. Menu Utama (Tanpa Dropdown)
+    const topNavItems: NavItem[] = [
         {
             title: 'Dashboard',
             href: dashboard.url(),
             icon: LayoutGrid,
         },
-
-        ...(isSuperAdmin ? [
-            {
-                title: 'Manajemen Pengguna',
-                href: '#',
-                icon: Users,
-                items: [
-                    {
-                        title: 'Karyawan',
-                        href: '/dashboard/employees',
-                    },
-                ],
-            },
-            {
-                title: 'Master Data',
-                href: '#',
-                icon: Folder,
-                items: [
-                    {
-                        title: 'Kategori',
-                        href: '/dashboard/categories',
-                    },
-                    {
-                        title: 'Produk',
-                        href: '/dashboard/products',
-                    },
-                    {
-                        title: 'Harga Produk',
-                        href: '/dashboard/product-prices',
-                    },
-                ],
-            },
-            {
-                title: 'Gudang & Stok',
-                href: '#',
-                icon: Warehouse,
-                items: [
-                    {
-                        title: 'Gudang',
-                        href: '/dashboard/warehouses',
-                    },
-                    {
-                        title: 'Pengguna Gudang',
-                        href: '/dashboard/warehouse-users',
-                    },
-                    {
-                        title: 'Stok Gudang',
-                        href: '/dashboard/warehouse-stocks',
-                    },
-                    {
-                        title: 'Transfer Stok',
-                        href: '/dashboard/stock-transfers',
-                    },
-                    {
-                        title: 'Log Stok',
-                        href: '/dashboard/stock-logs',
-                    },
-                    {
-                        title: 'Batch Stok',
-                        href: '/dashboard/stock-batches',
-                    }
-                ],
-            },
-        ] : []),
     ];
+
+    // 2. Kelompok Operasional (Dropdown)
+    const inventoryNavItems: NavItem[] = [
+        {
+            title: 'Manajemen Stok',
+            href: '#',
+            icon: Boxes,
+            items: [
+                { title: 'Stok Gudang', href: '/dashboard/warehouse-stocks' },
+                { title: 'Batch Stok (FEFO)', href: '/dashboard/stock-batches' },
+                { title: 'Transfer Barang', href: '/dashboard/stock-transfers' },
+                { title: 'Riwayat Mutasi', href: '/dashboard/stock-logs' },
+            ],
+        },
+    ];
+
+    // 3. Kelompok Admin (Dropdown - Super Admin Only)
+    const adminNavItems: NavItem[] = isSuperAdmin ? [
+        {
+            title: 'Katalog Produk',
+            href: '#',
+            icon: Package,
+            items: [
+                { title: 'Daftar Produk', href: '/dashboard/products' },
+                { title: 'Kategori Produk', href: '/dashboard/categories' },
+                { title: 'Riwayat Harga', href: '/dashboard/product-prices' },
+            ],
+        },
+        {
+            title: 'Konfigurasi Sistem',
+            href: '#',
+            icon: Settings2,
+            items: [
+                { title: 'Daftar Gudang', href: '/dashboard/warehouses' },
+                { title: 'Data Karyawan', href: '/dashboard/employees' },
+                { title: 'Penugasan Staf', href: '/dashboard/warehouse-users' },
+            ],
+        },
+    ] : [];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -112,8 +89,17 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
+            <SidebarContent className="gap-0">
+                {/* Bagian Dashboard */}
+                <NavMain items={topNavItems} />
+
+                {/* Bagian Operasional (Dropdown) */}
+                <NavMain title="Operasional" items={inventoryNavItems} />
+
+                {/* Bagian Master Data (Dropdown - Admin Only) */}
+                {isSuperAdmin && (
+                    <NavMain title="Administrator" items={adminNavItems} />
+                )}
             </SidebarContent>
 
             <SidebarFooter>

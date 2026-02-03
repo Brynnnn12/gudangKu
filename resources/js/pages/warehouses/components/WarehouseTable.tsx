@@ -53,7 +53,7 @@ export function WarehouseTable({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[50px]">
+                        <TableHead className="w-12.5">
                             <Checkbox
                                 checked={allSelected}
                                 onCheckedChange={onSelectAll}
@@ -79,7 +79,7 @@ export function WarehouseTable({
                                 <TableCell className="font-medium">{warehouse.name}</TableCell>
                                 <TableCell className="text-muted-foreground">
                                     <div className="flex items-start gap-2 max-w-md">
-                                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                        <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                                         <span className="line-clamp-2">{warehouse.address}</span>
                                     </div>
                                 </TableCell>

@@ -23,6 +23,21 @@ class WarehouseStock extends Model
         'total_quantity',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('warehouse', fn ($w) => $w->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas(
+                        'product',
+                        fn ($p) => $p->where('name', 'like', "%{$search}%")
+                            ->orWhere('sku', 'like', "%{$search}%")
+                            ->orWhere('brand', 'like', "%{$search}%")
+                    );
+            });
+        }
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -22,12 +22,7 @@ class WarehouseController extends Controller
         $this->authorize('viewAny', Warehouse::class);
 
         $warehouses = Warehouse::query()
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('address', 'like', "%{$search}%");
-                });
-            })
+            ->search($request->search)
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -38,15 +33,7 @@ class WarehouseController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $this->authorize('create', Warehouse::class);
 
-        return redirect()->route('warehouses.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -74,15 +61,7 @@ class WarehouseController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Warehouse $warehouse)
-    {
-        $this->authorize('update', $warehouse);
 
-        return redirect()->route('warehouses.index');
-    }
 
     /**
      * Update the specified resource in storage.

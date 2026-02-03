@@ -84,7 +84,7 @@ export function EmployeeToolbar({
                     onValueChange={onRoleChange}
                     disabled={isSearching}
                 >
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectTrigger className="w-full sm:w-45">
                         <SelectValue placeholder="Filter berdasarkan peran" />
                     </SelectTrigger>
                     <SelectContent>

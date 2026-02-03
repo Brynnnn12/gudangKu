@@ -26,6 +26,18 @@ class StockTransfer extends Model
         'notes',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('fromWarehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('toWarehouse', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('product', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+    }
+
     /**
      * Get the attributes that should be cast.
      *

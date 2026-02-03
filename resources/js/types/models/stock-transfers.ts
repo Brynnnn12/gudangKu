@@ -21,12 +21,18 @@ export interface StockTransfer {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  approved_at: string | null;
+  rejected_at: string | null;
+  reject_reason: string | null;
 
   // Relationships
   from_warehouse: Warehouse;
   to_warehouse: Warehouse;
   product: Product;
   user: User;
+  created_by?: User;
+  approved_by?: User;
+  rejected_by?: User;
 }
 
 /**

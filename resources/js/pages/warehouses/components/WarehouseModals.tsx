@@ -8,7 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import type { ModalState as GenericModalState, ModalWithData } from '@/hooks/useGenericModals';
 import type { Warehouse } from '@/types/models/warehouses';
 import { WarehouseFormModal } from './WarehouseFormModal';
 
@@ -45,7 +45,7 @@ const DeleteConfirmDialog = ({
 );
 
 interface WarehouseModalsProps {
-    modals: ModalState<Warehouse>;
+    modals: GenericModalState<Warehouse>;
     onCloseModal: (type: string) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
@@ -62,18 +62,18 @@ export function WarehouseModals({
     return (
         <>
             <WarehouseFormModal
-                open={modals.create}
+                open={modals.create as boolean}
                 onClose={() => onCloseModal('create')}
             />
 
             <WarehouseFormModal
-                open={modals.edit.isOpen}
+                open={(modals.edit as ModalWithData<Warehouse>).isOpen}
                 warehouse={(modals.edit as ModalWithData<Warehouse>).data}
                 onClose={() => onCloseModal('edit')}
             />
 
             <DeleteConfirmDialog
-                open={modals.bulkDelete}
+                open={modals.bulkDelete as boolean}
                 title="Hapus Beberapa Gudang"
                 description={`Apakah Anda yakin ingin menghapus ${selectedCount} gudang? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmBulkDelete}
@@ -81,9 +81,9 @@ export function WarehouseModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.delete.isOpen}
+                open={(modals.delete as ModalWithData<Warehouse>).isOpen}
                 title="Hapus Gudang"
-                description={`Apakah Anda yakin ingin menghapus gudang "${modals.delete.warehouse?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                description={`Apakah Anda yakin ingin menghapus gudang "${(modals.delete as ModalWithData<Warehouse>).data?.name}"? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmDelete}
                 onClose={() => onCloseModal('delete')}
             />

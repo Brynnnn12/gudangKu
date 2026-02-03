@@ -31,6 +31,9 @@ import type {
     StockTransfer,
     StockTransfersIndexPageProps,
 } from '@/types/models/stock-transfers';
+import { CreateStockTransferModal } from './components/CreateStockTransferModal';
+import { EditStockTransferModal } from './components/EditStockTransferModal';
+import { ShowStockTransferModal } from './components/ShowStockTransferModal';
 import { StockTransferTable } from './components/StockTransferTable';
 import { StockTransferToolbar } from './components/StockTransferToolbar';
 
@@ -53,7 +56,7 @@ export default function Index({
     const [filtersState, setFiltersState] = useState(filters);
     const { modals, openModal, closeModal } = useGenericModals<StockTransfer>({
         simple: ['create'],
-        withData: ['approve', 'reject', 'delete']
+        withData: ['edit', 'show', 'approve', 'reject', 'delete']
     });
     const [rejectReason, setRejectReason] = useState('');
 
@@ -137,7 +140,7 @@ export default function Index({
                 <StockTransferToolbar
                     searchValue={searchValue}
                     onSearchChange={setSearchValue}
-                    onAddClick={() => router.visit('/dashboard/stock-transfers/create')}
+                    onAddClick={() => openModal('create')}
                     onClearFilters={clearFilters}
                     isSearching={isSearching}
                     hasActiveFilters={hasActiveFilters}
@@ -149,11 +152,42 @@ export default function Index({
 
                 <StockTransferTable
                     stockTransfers={stockTransfers.data}
-                    onEdit={(transfer) => router.visit(`/dashboard/stock-transfers/${transfer.id}/edit`)}
+                    onView={(transfer) => openModal('show', transfer)}
+                    onEdit={(transfer) => openModal('edit', transfer)}
                     onDelete={(transfer) => openModal('delete', transfer)}
                     onApprove={(transfer) => openModal('approve', transfer)}
                     onReject={(transfer) => openModal('reject', transfer)}
                 />
+
+                {/* Create Modal */}
+                {modals.create && (
+                    <CreateStockTransferModal
+                        open={modals.create as boolean}
+                        warehouses={warehouses}
+                        products={products}
+                        onClose={() => closeModal('create')}
+                    />
+                )}
+
+                {/* Edit Modal */}
+                {(modals.edit as ModalWithData<StockTransfer>).isOpen && (modals.edit as ModalWithData<StockTransfer>).data && (
+                    <EditStockTransferModal
+                        open={(modals.edit as ModalWithData<StockTransfer>).isOpen}
+                        stockTransfer={(modals.edit as ModalWithData<StockTransfer>).data!}
+                        warehouses={warehouses}
+                        products={products}
+                        onClose={() => closeModal('edit')}
+                    />
+                )}
+
+                {/* Show Modal */}
+                {modals.show && (modals.show as ModalWithData<StockTransfer>).data && (
+                    <ShowStockTransferModal
+                        open={true}
+                        stockTransfer={(modals.show as ModalWithData<StockTransfer>).data!}
+                        onClose={() => closeModal('show')}
+                    />
+                )}
 
                 {/* Pagination */}
                 <div className="mt-4">
@@ -168,7 +202,7 @@ export default function Index({
                 </div>
 
                 {/* Approve Dialog */}
-                <AlertDialog open={modals.approve.isOpen} onOpenChange={() => closeModal('approve')}>
+                <AlertDialog open={(modals.approve as ModalWithData<StockTransfer>).isOpen} onOpenChange={() => closeModal('approve')}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Setujui Transfer?</AlertDialogTitle>
@@ -192,7 +226,7 @@ export default function Index({
                 </AlertDialog>
 
                 {/* Reject Dialog */}
-                <Dialog open={modals.reject.isOpen} onOpenChange={() => closeModal('reject')}>
+                <Dialog open={(modals.reject as ModalWithData<StockTransfer>).isOpen} onOpenChange={() => closeModal('reject')}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Tolak Transfer</DialogTitle>
@@ -222,7 +256,7 @@ export default function Index({
                 </Dialog>
 
                 {/* Delete Dialog */}
-                <AlertDialog open={modals.delete.isOpen} onOpenChange={() => closeModal('delete')}>
+                <AlertDialog open={(modals.delete as ModalWithData<StockTransfer>).isOpen} onOpenChange={() => closeModal('delete')}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Hapus Transfer?</AlertDialogTitle>

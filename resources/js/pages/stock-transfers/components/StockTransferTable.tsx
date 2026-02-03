@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { Eye, Edit, Trash2, CheckCircle, XCircle, ArrowRightLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import type { StockTransfer } from '@/types/models/stock-transfers';
 
 interface StockTransferTableProps {
     stockTransfers: StockTransfer[];
+    onView: (transfer: StockTransfer) => void;
     onEdit: (transfer: StockTransfer) => void;
     onDelete: (transfer: StockTransfer) => void;
     onApprove: (transfer: StockTransfer) => void;
@@ -35,6 +35,7 @@ const getStatusBadge = (status: string) => {
 
 export function StockTransferTable({
     stockTransfers,
+    onView,
     onEdit,
     onDelete,
     onApprove,
@@ -98,13 +99,11 @@ export function StockTransferTable({
                                             variant="ghost"
                                             size="sm"
                                             className="h-8 gap-1.5"
-                                            asChild
+                                            onClick={() => onView(transfer)}
                                             title="Lihat detail"
                                         >
-                                            <Link href={`/dashboard/stock-transfers/${transfer.id}`}>
-                                                <Eye className="h-3.5 w-3.5" />
-                                                <span className="sr-only sm:not-sr-only">Lihat</span>
-                                            </Link>
+                                            <Eye className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Lihat</span>
                                         </Button>
                                         {transfer.status === 'pending' && (
                                             <>

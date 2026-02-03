@@ -19,8 +19,8 @@ interface WarehouseStockTableProps {
     onSelectAll: (checked: boolean) => void;
     onSelectOne: (id: number, checked: boolean) => void;
     onEdit?: (warehouseStock: WarehouseStock) => void; // Optional - hidden when undefined
-    onStockIn?: () => void; // Stock in action - opens general modal
-    onStockOut?: (warehouseStock: WarehouseStock) => void; // Stock out action
+    onStockIn: (warehouseStock: WarehouseStock) => void; // Stock in with auto-select
+    onStockOut: (warehouseStock: WarehouseStock) => void; // Stock out action
     onDelete: (warehouseStock: WarehouseStock) => void;
     allSelected: boolean;
     someSelected: boolean;
@@ -130,19 +130,17 @@ export function WarehouseStockTable({
                                                 <span className="sr-only sm:not-sr-only">Lihat</span>
                                             </Button>
                                         </Link>
-                                        {onStockIn && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 gap-1.5 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                onClick={onStockIn}
-                                                title="Stok Masuk (Stock In)"
-                                            >
-                                                <PlusCircle className="h-3.5 w-3.5" />
-                                                <span className="sr-only sm:not-sr-only">Masuk</span>
-                                            </Button>
-                                        )}
-                                        {onStockOut && warehouseStock.total_quantity > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                            onClick={() => onStockIn(warehouseStock)}
+                                            title="Stok Masuk - Auto pilih produk"
+                                        >
+                                            <PlusCircle className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Masuk</span>
+                                        </Button>
+                                        {warehouseStock.total_quantity > 0 && (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

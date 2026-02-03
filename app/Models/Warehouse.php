@@ -21,6 +21,16 @@ class Warehouse extends Model
         'address',
     ];
 
+    public function scopeSearch($query, ?string $search): void
+    {
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+    }
+
     /**
      * Get the attributes that should be cast.
      *
