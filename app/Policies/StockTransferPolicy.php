@@ -17,14 +17,28 @@ class StockTransferPolicy
 
     /**
      * Determine whether the user can view the model.
+     * Super-admin and viewer can view all, admin only transfers involving their warehouses.
      */
     public function view(User $user, StockTransfer $stockTransfer): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
+        if ($user->hasAnyRole(['super-admin', 'viewer'])) {
+            return true;
+        }
+
+        // Admin hanya bisa melihat transfer dari/ke gudang yang dia ditugaskan
+        if ($user->hasRole('admin')) {
+            return $user->warehouses()->whereIn('warehouse_id', [
+                $stockTransfer->from_warehouse_id,
+                $stockTransfer->to_warehouse_id
+            ])->exists();
+        }
+
+        return false;
     }
 
     /**
      * Determine whether the user can create models.
+     * Only super-admin and admin can create. Viewer cannot.
      */
     public function create(User $user): bool
     {
@@ -33,11 +47,15 @@ class StockTransferPolicy
 
     /**
      * Determine whether the user can update the model.
-     * Only pending transfers can be updated.
+     * Only super-admin and admin can update pending transfers. Viewer cannot.
      */
     public function update(User $user, StockTransfer $stockTransfer): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin']) && $stockTransfer->isPending();
+        if (!$stockTransfer->isPending()) {
+            return false;
+        }
+
+        return $user->hasAnyRole(['super-admin', 'admin']);
     }
 
     /**
@@ -52,26 +70,28 @@ class StockTransferPolicy
 
     /**
      * Determine whether the user can approve/complete the transfer.
-     * Only pending transfers can be approved.
+     * Only super-admin and admin can approve pending transfers. Viewer cannot.
      */
     public function approve(User $user, StockTransfer $stockTransfer): bool
     {
-        $hasRole = $user->hasAnyRole(['super-admin', 'admin']);
-        $isPending = $stockTransfer->isPending();
+        if (!$stockTransfer->isPending()) {
+            return false;
+        }
 
-        return $hasRole && $isPending;
+        return $user->hasAnyRole(['super-admin', 'admin']);
     }
 
     /**
      * Determine whether the user can reject the transfer.
-     * Only pending transfers can be rejected.
+     * Only super-admin and admin can reject pending transfers. Viewer cannot.
      */
     public function reject(User $user, StockTransfer $stockTransfer): bool
     {
-        $hasRole = $user->hasAnyRole(['super-admin', 'admin']);
-        $isPending = $stockTransfer->isPending();
+        if (!$stockTransfer->isPending()) {
+            return false;
+        }
 
-        return $hasRole && $isPending;
+        return $user->hasAnyRole(['super-admin', 'admin']);
     }
 
     /**

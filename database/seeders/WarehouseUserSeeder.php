@@ -26,7 +26,7 @@ class WarehouseUserSeeder extends Seeder
             $assignedWarehouses = $warehouses->random(min($warehouseCount, $warehouses->count()));
 
             foreach ($assignedWarehouses as $warehouse) {
-                WarehouseUser::firstOrCreate([
+                WarehouseUser::factory()->create([
                     'user_id' => $user->id,
                     'warehouse_id' => $warehouse->id,
                 ]);

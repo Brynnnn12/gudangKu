@@ -19,7 +19,7 @@ class WarehouseStockFactory extends Factory
         return [
             'warehouse_id' => \App\Models\Warehouse::factory(),
             'product_id' => \App\Models\Product::factory(),
-            'total_quantity' => fake()->numberBetween(0, 500),
+            'total_quantity' => fake()->numberBetween(50, 2000), // Lebih realistis untuk gudang
         ];
     }
 }

@@ -17,7 +17,6 @@ class StockBatchSeeder extends Seeder
      */
     public function run(): void
     {
-        // Login as super-admin for seeding
         $superAdmin = User::role('super-admin')->first();
         Auth::login($superAdmin);
 
@@ -59,10 +58,10 @@ class StockBatchSeeder extends Seeder
                     $action->execute([
                         'warehouse_id' => $warehouse->id,
                         'product_id' => $product->id,
-                        'batch_number' => 'BATCH-'.strtoupper(substr(md5(uniqid()), 0, 8)),
+                        'batch_number' => 'BATCH-'.strtoupper(fake()->bothify('??###??')),
                         'expired_at' => $expiredAt,
                         'current_qty' => $qty,
-                        'cost_price' => rand(5000, 500000),
+                        'cost_price' => fake()->numberBetween(5000, 150000),
                     ]);
                 }
             }

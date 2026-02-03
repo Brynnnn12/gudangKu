@@ -9,18 +9,20 @@ class CategoryPolicy
 {
     /**
      * Determine whether the user can view any models.
+     * Super-admin, admin, and viewer can view categories.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('super-admin');
+        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
     }
 
     /**
      * Determine whether the user can view the model.
+     * Super-admin, admin, and viewer can view categories.
      */
     public function view(User $user, Category $category): bool
     {
-        return $user->hasRole('super-admin');
+        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
     }
 
     /**

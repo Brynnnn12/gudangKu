@@ -17,14 +17,21 @@ class StockBatchPolicy
 
     /**
      * Determine whether the user can view the model.
+     * Super-admin and viewer can view all, admin only assigned warehouses.
      */
     public function view(User $user, StockBatch $stockBatch): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
+        if ($user->hasAnyRole(['super-admin', 'viewer'])) {
+            return true;
+        }
+
+        // Admin hanya bisa melihat batch dari gudang yang dia ditugaskan
+        return $user->warehouses()->where('warehouse_id', $stockBatch->warehouseStock->warehouse_id)->exists();
     }
 
     /**
      * Determine whether the user can create models.
+     * Only super-admin and admin can create. Viewer cannot.
      */
     public function create(User $user): bool
     {
@@ -33,14 +40,24 @@ class StockBatchPolicy
 
     /**
      * Determine whether the user can update the model.
+     * Super-admin can update all, admin only assigned warehouses. Viewer cannot.
      */
     public function update(User $user, StockBatch $stockBatch): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin']);
+        if ($user->hasRole('super-admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('admin')) {
+            return $user->warehouses()->where('warehouse_id', $stockBatch->warehouseStock->warehouse_id)->exists();
+        }
+
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
+     * Only super-admin can delete. Admin and viewer cannot.
      */
     public function delete(User $user, StockBatch $stockBatch): bool
     {

@@ -44,9 +44,7 @@ class WarehouseController extends Controller
 
         $action->execute($request->validated());
 
-        session()->flash('success', 'Warehouse created successfully.');
-
-        return redirect()->route('warehouses.index');
+        return redirect()->route('warehouses.index')->with('success', 'Warehouse created successfully.');
     }
 
     /**
@@ -72,9 +70,7 @@ class WarehouseController extends Controller
 
         $action->execute($warehouse, $request->validated());
 
-        session()->flash('success', 'Warehouse updated successfully.');
-
-        return redirect()->route('warehouses.index');
+        return redirect()->route('warehouses.index')->with('success', 'Warehouse updated successfully.');
     }
 
     /**
@@ -86,12 +82,11 @@ class WarehouseController extends Controller
 
         try {
             $action->execute($warehouse);
-            session()->flash('success', 'Warehouse deleted successfully.');
-        } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-        }
 
-        return redirect()->route('warehouses.index');
+            return redirect()->route('warehouses.index')->with('success', 'Warehouse deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('warehouses.index')->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -108,11 +103,10 @@ class WarehouseController extends Controller
 
         try {
             $count = $action->execute($request->ids);
-            session()->flash('success', "{$count} warehouses deleted successfully.");
-        } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-        }
 
-        return redirect()->route('warehouses.index');
+            return redirect()->route('warehouses.index')->with('success', "{$count} warehouses deleted successfully.");
+        } catch (\Exception $e) {
+            return redirect()->route('warehouses.index')->with('error', $e->getMessage());
+        }
     }
 }

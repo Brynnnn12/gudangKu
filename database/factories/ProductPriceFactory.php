@@ -16,8 +16,9 @@ class ProductPriceFactory extends Factory
      */
     public function definition(): array
     {
-        $costPrice = fake()->randomFloat(2, 10000, 500000);
-        $sellingPrice = $costPrice * fake()->randomFloat(2, 1.2, 2.5);
+        $costPrice = fake()->randomFloat(2, 5000, 150000); // 5rb - 150rb
+        $margin = fake()->randomFloat(2, 1.1, 1.8); // Margin 10-80%
+        $sellingPrice = $costPrice * $margin;
 
         return [
             'product_id' => \App\Models\Product::factory(),

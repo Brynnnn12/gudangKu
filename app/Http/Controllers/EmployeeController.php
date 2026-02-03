@@ -53,9 +53,7 @@ class EmployeeController extends Controller
     {
         $action->execute($request->validated());
 
-        session()->flash('success', 'Employee created successfully.');
-
-        return redirect()->route('employees.index');
+        return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
     /**
@@ -79,9 +77,7 @@ class EmployeeController extends Controller
     {
         $action->execute($employee, $request->validated());
 
-        session()->flash('success', 'Employee updated successfully.');
-
-        return redirect()->route('employees.index');
+        return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
     }
 
     /**
@@ -93,9 +89,7 @@ class EmployeeController extends Controller
 
         $action->execute($employee);
 
-        session()->flash('success', 'Employee deleted successfully.');
-
-        return redirect()->route('employees.index');
+        return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
     }
 
     /**
@@ -112,8 +106,6 @@ class EmployeeController extends Controller
 
         $count = $action->execute($request->ids);
 
-        session()->flash('success', "{$count} employees deleted successfully.");
-
-        return redirect()->route('employees.index');
+        return redirect()->route('employees.index')->with('success', "{$count} employees deleted successfully.");
     }
 }

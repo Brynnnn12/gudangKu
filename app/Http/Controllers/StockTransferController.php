@@ -66,9 +66,7 @@ class StockTransferController extends Controller
 
         $transfer = $action->execute($request->validated());
 
-        session()->flash('success', 'Stock transfer request created successfully. Awaiting approval.');
-
-        return redirect()->route('stock-transfers.show', $transfer);
+        return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer request created successfully. Awaiting approval.');
     }
 
     /**
@@ -100,9 +98,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->validated());
 
-            session()->flash('success', 'Stock transfer updated successfully.');
-
-            return redirect()->route('stock-transfers.show', $transfer);
+            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer updated successfully.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -118,9 +114,7 @@ class StockTransferController extends Controller
         try {
             $action->execute($stockTransfer);
 
-            session()->flash('success', 'Stock transfer deleted successfully.');
-
-            return redirect()->route('stock-transfers.index');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer deleted successfully.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -136,9 +130,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer);
 
-            session()->flash('success', 'Stock transfer approved and completed successfully. Stock has been moved between warehouses.');
-
-            return redirect()->route('stock-transfers.show', $transfer);
+            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer approved and completed successfully. Stock has been moved between warehouses.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -158,9 +150,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->input('reject_reason'));
 
-            session()->flash('success', 'Stock transfer rejected.');
-
-            return redirect()->route('stock-transfers.show', $transfer);
+            return redirect()->route('stock-transfers.show', $transfer)->with('success', 'Stock transfer rejected.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

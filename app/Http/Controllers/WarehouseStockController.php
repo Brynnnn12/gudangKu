@@ -60,9 +60,7 @@ class WarehouseStockController extends Controller
         $this->authorize('create', WarehouseStock::class);
 
         // Prevent manual creation - guide users to use batch creation
-        session()->flash('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
-
-        return redirect()->route('warehouse-stocks.index');
+        return redirect()->route('warehouse-stocks.index')->with('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
     }
 
     /**
@@ -89,9 +87,7 @@ class WarehouseStockController extends Controller
         $this->authorize('update', $warehouseStock);
 
         // Prevent manual updates - guide users to use batch operations
-        session()->flash('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
-
-        return redirect()->route('warehouse-stocks.index');
+        return redirect()->route('warehouse-stocks.index')->with('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
     }
 
     /**
@@ -106,13 +102,11 @@ class WarehouseStockController extends Controller
 
         $action->execute($warehouseStock);
 
-        if ($batchCount > 0) {
-            session()->flash('success', "Warehouse stock and {$batchCount} related batches deleted successfully.");
-        } else {
-            session()->flash('success', 'Warehouse stock deleted successfully.');
-        }
+        $message = $batchCount > 0
+            ? "Warehouse stock and {$batchCount} related batches deleted successfully."
+            : 'Warehouse stock deleted successfully.';
 
-        return redirect()->route('warehouse-stocks.index');
+        return redirect()->route('warehouse-stocks.index')->with('success', $message);
     }
 
     /**
@@ -131,9 +125,7 @@ class WarehouseStockController extends Controller
 
         $count = count($request->ids);
 
-        session()->flash('success', "{$count} warehouse stocks deleted successfully.");
-
-        return redirect()->route('warehouse-stocks.index');
+        return redirect()->route('warehouse-stocks.index')->with('success', "{$count} warehouse stocks deleted successfully.");
     }
 
     /**
@@ -152,13 +144,10 @@ class WarehouseStockController extends Controller
             );
 
             $batchCount = count($result['affected_batches']);
-            session()->flash('success', "Successfully reduced {$result['total_reduced']} units using FEFO. {$batchCount} batches affected.");
 
-            return redirect()->route('warehouse-stocks.index');
+            return redirect()->route('warehouse-stocks.index')->with('success', "Successfully reduced {$result['total_reduced']} units using FEFO. {$batchCount} batches affected.");
         } catch (\InvalidArgumentException $e) {
-            session()->flash('error', $e->getMessage());
-
-            return redirect()->back();
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 }

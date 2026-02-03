@@ -94,9 +94,7 @@ class StockBatchController extends Controller
 
         $batch = $action->execute($request->validated());
 
-        session()->flash('success', 'Stock batch created successfully. Warehouse stock updated.');
-
-        return redirect()->route('stock-batches.index');
+        return redirect()->route('stock-batches.index')->with('success', 'Stock batch created successfully. Warehouse stock updated.');
     }
 
     /**
@@ -108,9 +106,7 @@ class StockBatchController extends Controller
 
         $action->execute($stockBatch, $request->validated());
 
-        session()->flash('success', 'Stock batch updated successfully. Warehouse stock recalculated.');
-
-        return redirect()->route('stock-batches.index');
+        return redirect()->route('stock-batches.index')->with('success', 'Stock batch updated successfully. Warehouse stock recalculated.');
     }
 
     /**
@@ -125,8 +121,6 @@ class StockBatchController extends Controller
 
         $action->execute($stockBatch);
 
-        session()->flash('success', "Stock batch deleted. Warehouse stock updated for {$warehouseName} - {$productName}.");
-
-        return redirect()->route('stock-batches.index');
+        return redirect()->route('stock-batches.index')->with('success', "Stock batch deleted. Warehouse stock updated for {$warehouseName} - {$productName}.");
     }
 }

@@ -11,7 +11,6 @@ class ProductPriceSeeder extends Seeder
      */
     public function run(): void
     {
-        //factory call to create product prices
-        \App\Models\ProductPrice::factory()->count(50)->create();
+        \App\Models\ProductPrice::factory()->count(4)->create();
     }
 }

@@ -41,9 +41,7 @@ class CategoryController extends Controller
     {
         $action->execute($request->validated());
 
-        session()->flash('success', 'Kategori Berhasil Dibuat.');
-
-        return redirect()->route('categories.index');
+        return redirect()->route('categories.index')->with('success', 'Kategori Berhasil Dibuat.');
     }
 
     /**
@@ -69,9 +67,7 @@ class CategoryController extends Controller
     {
         $action->execute($category, $request->validated());
 
-        session()->flash('success', 'Kategori Berhasil Diperbarui.');
-
-        return redirect()->route('categories.index');
+        return redirect()->route('categories.index')->with('success', 'Kategori Berhasil Diperbarui.');
     }
 
     /**
@@ -83,12 +79,11 @@ class CategoryController extends Controller
 
         try {
             $action->execute($category);
-            session()->flash('success', 'Kategori Berhasil Dihapus.');
-        } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-        }
 
-        return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Kategori Berhasil Dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->route('categories.index')->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -105,11 +100,10 @@ class CategoryController extends Controller
 
         try {
             $count = $action->execute($request->ids);
-            session()->flash('success', "{$count} kategori berhasil dihapus.");
-        } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-        }
 
-        return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', "{$count} kategori berhasil dihapus.");
+        } catch (\Exception $e) {
+            return redirect()->route('categories.index')->with('error', $e->getMessage());
+        }
     }
 }

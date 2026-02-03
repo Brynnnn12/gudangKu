@@ -25,7 +25,7 @@ class StockBatchFactory extends Factory
             'batch_number' => 'BATCH-'.strtoupper(fake()->bothify('??###??')),
             'expired_at' => $expiredAt,
             'current_qty' => $currentQty,
-            'cost_price' => fake()->randomFloat(2, 5000, 500000),
+            'cost_price' => fake()->randomFloat(2, 5000, 150000),
             'is_active' => true,
             'status' => $expiredAt ? ($expiredAt < now() ? 'expired' : (now()->diffInDays($expiredAt) <= 30 ? 'warning' : 'available')) : 'available',
         ];

@@ -17,35 +17,26 @@ class WarehouseFactory extends Factory
     public function definition(): array
     {
         $warehouseNames = [
-            'Gudang Pusat Jakarta',
-            'Gudang Cabang Surabaya',
-            'Gudang Bandung',
-            'Gudang Semarang',
-            'Gudang Medan',
-            'Gudang Makassar',
-            'Gudang Palembang',
-            'Gudang Yogyakarta',
+            'Gudang Tegal',
+            'Gudang Brebes',
+            'Gudang Pemalang',
         ];
 
         $cities = [
-            'Jakarta' => [
-                'Jl. Raya Bekasi No. 123, Jakarta Timur',
-                'Jl. Gatot Subroto Kav. 52-53, Jakarta Selatan',
-                'Jl. Pluit Raya No. 88, Jakarta Utara',
+            'Tegal' => [
+                'Jl. Pahlawan No. 45, Tegal',
+                'Jl. Ahmad Yani No. 123, Tegal',
+                'Jl. Raya Slawi KM 3, Tegal',
             ],
-            'Surabaya' => [
-                'Jl. Raya Darmo No. 135, Surabaya',
-                'Jl. Mayjen Sungkono No. 89, Surabaya Barat',
+            'Brebes' => [
+                'Jl. Dr. Sutomo No. 78, Brebes',
+                'Jl. Raya Jatibarang No. 234, Brebes',
+                'Jl. Pemuda No. 56, Brebes',
             ],
-            'Bandung' => [
-                'Jl. Soekarno Hatta No. 456, Bandung',
-                'Jl. Cibiru Raya No. 234, Bandung Timur',
-            ],
-            'Semarang' => [
-                'Jl. Kaligawe Raya KM 5, Semarang',
-            ],
-            'Medan' => [
-                'Jl. Gatot Subroto No. 234, Medan',
+            'Pemalang' => [
+                'Jl. Jenderal Sudirman No. 89, Pemalang',
+                'Jl. Raya Comal KM 2, Pemalang',
+                'Jl. Kartini No. 67, Pemalang',
             ],
         ];
 

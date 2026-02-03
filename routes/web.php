@@ -16,7 +16,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::delete('employees/bulk-destroy', [\App\Http\Controllers\EmployeeController::class, 'bulkDestroy'])
         ->name('employees.bulk-destroy');
 
-    // Resource untuk Employees (hanya aktifkan rute yang diperlukan)
     Route::resource('employees', \App\Http\Controllers\EmployeeController::class)
         ->parameters(['employees' => 'employee'])
         ->except(['create', 'edit']); // <--- Tambahkan ini
@@ -24,7 +23,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::delete('categories/bulk-destroy', [\App\Http\Controllers\CategoryController::class, 'bulkDestroy'])
         ->name('categories.bulk-destroy');
 
-    // Ulangi hal yang sama untuk yang lain
     Route::resource('categories', \App\Http\Controllers\CategoryController::class)
         ->parameters(['categories' => 'category'])
         ->except(['create', 'edit']);

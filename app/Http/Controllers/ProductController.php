@@ -49,9 +49,7 @@ class ProductController extends Controller
 
         $action->execute($request->validated());
 
-        session()->flash('success', 'Product created successfully.');
-
-        return redirect()->route('products.index');
+        return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
     /**
@@ -79,9 +77,7 @@ class ProductController extends Controller
 
         $action->execute($product, $request->validated());
 
-        session()->flash('success', 'Product updated successfully.');
-
-        return redirect()->route('products.index');
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -93,9 +89,7 @@ class ProductController extends Controller
 
         $action->execute($product);
 
-        session()->flash('success', 'Product deleted successfully.');
-
-        return redirect()->route('products.index');
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 
     /**
@@ -112,8 +106,6 @@ class ProductController extends Controller
 
         $count = $action->execute($request->ids);
 
-        session()->flash('success', "{$count} products deleted successfully.");
-
-        return redirect()->route('products.index');
+        return redirect()->route('products.index')->with('success', "{$count} products deleted successfully.");
     }
 }

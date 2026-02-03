@@ -16,10 +16,31 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
+        $categories = [
+            'Susu & Produk Olahan Susu',
+            'Minuman Ringan',
+            'Makanan Ringan & Snack',
+            'Bahan Pokok & Sembako',
+            'Makanan Instan & Mi',
+            'Minuman Dalam Kemasan',
+            'Makanan Kaleng & Botol',
+            'Bumbu Dapur & Rempah',
+            'Makanan Beku & Frozen Food',
+            'Minuman Tradisional',
+            'Makanan Kering & Tahan Lama',
+            'Minuman Segar & Jus',
+            'Produk Susu & Yogurt',
+            'Minuman Energi & Suplemen',
+            'Makanan Siap Saji',
+            'Kopi & Teh',
+            'Coklat & Permen',
+            'Makanan Bayi & Anak',
+            'Produk Organik & Sehat',
+            'Makanan Import',
+        ];
 
         return [
-            'name' => ucwords($name),
+            'name' => fake()->randomElement($categories),
         ];
     }
 }

@@ -9,18 +9,20 @@ class ProductPolicy
 {
     /**
      * Determine whether the user can view any models.
+     * Super-admin, admin, and viewer can view products.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('super-admin');
+        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
     }
 
     /**
      * Determine whether the user can view the model.
+     * Super-admin, admin, and viewer can view products.
      */
     public function view(User $user, Product $product): bool
     {
-        return $user->hasRole('super-admin');
+        return $user->hasAnyRole(['super-admin', 'admin', 'viewer']);
     }
 
     /**

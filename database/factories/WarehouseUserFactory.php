@@ -17,7 +17,8 @@ class WarehouseUserFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'warehouse_id' => \App\Models\Warehouse::inRandomOrder()->first()?->id ?? \App\Models\Warehouse::factory(),
+            'user_id' => \App\Models\User::inRandomOrder()->first()?->id ?? \App\Models\User::factory(),
         ];
     }
 }

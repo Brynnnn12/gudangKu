@@ -18,21 +18,21 @@ class WarehouseStockPolicy
 
     /**
      * Determine whether the user can view the model.
-     * Check if user is assigned to the warehouse.
+     * Super-admin and viewer can view all, admin only assigned warehouses.
      */
     public function view(User $user, WarehouseStock $warehouseStock): bool
     {
-        if ($user->hasRole('super-admin')) {
+        if ($user->hasAnyRole(['super-admin', 'viewer'])) {
             return true;
         }
 
-        // Check if user is assigned to this warehouse
+        // Admin hanya bisa melihat stok dari gudang yang dia ditugaskan
         return $user->warehouses()->where('warehouse_id', $warehouseStock->warehouse_id)->exists();
     }
 
     /**
      * Determine whether the user can create models.
-     * Only super-admin and admin can create warehouse stocks.
+     * Only super-admin and admin can create warehouse stocks. Viewer cannot.
      */
     public function create(User $user): bool
     {
@@ -41,7 +41,7 @@ class WarehouseStockPolicy
 
     /**
      * Determine whether the user can update the model.
-     * Admins can only update stocks from warehouses they are assigned to.
+     * Super-admin can update all, admin only assigned warehouses. Viewer cannot update.
      */
     public function update(User $user, WarehouseStock $warehouseStock): bool
     {
@@ -58,7 +58,7 @@ class WarehouseStockPolicy
 
     /**
      * Determine whether the user can delete the model.
-     * Only super-admin can delete warehouse stocks.
+     * Only super-admin can delete. Admin and viewer cannot.
      */
     public function delete(User $user, WarehouseStock $warehouseStock): bool
     {
