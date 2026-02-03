@@ -2,15 +2,14 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
 
@@ -71,6 +70,14 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('stock-batches', \App\Http\Controllers\StockBatchController::class)
         ->parameters(['stock-batches' => 'stockBatch'])
         ->only(['index', 'show']);
+
+    // Stock Transfers (Inter-warehouse transfers with approval)
+    Route::post('stock-transfers/{stockTransfer}/approve', [\App\Http\Controllers\StockTransferController::class, 'approve'])
+        ->name('stock-transfers.approve');
+    Route::post('stock-transfers/{stockTransfer}/reject', [\App\Http\Controllers\StockTransferController::class, 'reject'])
+        ->name('stock-transfers.reject');
+    Route::resource('stock-transfers', \App\Http\Controllers\StockTransferController::class)
+        ->parameters(['stock-transfers' => 'stockTransfer']);
 });
 
 Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');

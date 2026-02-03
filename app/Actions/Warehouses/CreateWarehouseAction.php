@@ -13,11 +13,6 @@ class CreateWarehouseAction
      */
     public function execute(array $input): Warehouse
     {
-        $warehouse = Warehouse::create([
-            'name' => $input['name'],
-            'address' => $input['address'],
-        ]);
-
-        return $warehouse;
+        return Warehouse::create($input);
     }
 }

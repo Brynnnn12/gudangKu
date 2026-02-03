@@ -8,20 +8,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CreateWarehouseModal from '@/pages/warehouses/create';
-import EditWarehouseModal from '@/pages/warehouses/edit';
-import type { Warehouse } from '@/types/models/warehouses';
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; warehouse: Warehouse | null };
-    delete: { isOpen: boolean; warehouse: Warehouse | null };
-    bulkDelete: boolean;
-}
+import { WarehouseFormModal } from './WarehouseFormModal';
+import type { WarehouseModalState } from '@/hooks/useWarehouseModals';
 
 interface WarehouseModalsProps {
-    modals: ModalState;
-    onCloseModal: (type: keyof ModalState) => void;
+    modals: WarehouseModalState;
+    onCloseModal: (type: keyof WarehouseModalState) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -37,19 +29,17 @@ export function WarehouseModals({
     return (
         <>
             {/* Create Modal */}
-            <CreateWarehouseModal
+            <WarehouseFormModal
                 open={modals.create}
                 onClose={() => onCloseModal('create')}
             />
 
             {/* Edit Modal */}
-            {modals.edit.isOpen && modals.edit.warehouse && (
-                <EditWarehouseModal
-                    open={modals.edit.isOpen}
-                    warehouse={modals.edit.warehouse}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <WarehouseFormModal
+                open={modals.edit.isOpen}
+                warehouse={modals.edit.warehouse}
+                onClose={() => onCloseModal('edit')}
+            />
 
             {/* Bulk Delete Confirmation Modal */}
             <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>

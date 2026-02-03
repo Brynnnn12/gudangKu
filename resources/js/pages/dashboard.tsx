@@ -1,8 +1,52 @@
 import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
+import { SummaryCards } from '@/pages/dashboard/SummaryCards';
+import { StockByCategoryChart } from '@/pages/dashboard/StockByCategoryChart';
+import { StockMovementChart } from '@/pages/dashboard/StockMovementChart';
+import { RecentActivities } from '@/pages/dashboard/RecentActivities';
+import { FefoWarnings } from '@/pages/dashboard/FefoWarnings';
+
+interface DashboardProps {
+    summaryCards: {
+        totalStock: number;
+        totalValue: number;
+        nearExpiryCount: number;
+        pendingTransfers: number;
+    };
+    stockByCategory: Array<{
+        name: string;
+        total: number;
+    }>;
+    stockMovement: Array<{
+        date: string;
+        stock_in: number;
+        stock_out: number;
+    }>;
+    recentActivities: Array<{
+        id: number;
+        warehouse: string;
+        product: string;
+        sku: string;
+        qty: number;
+        type: string;
+        user: string;
+        notes: string | null;
+        created_at: string;
+    }>;
+    fefoWarnings: Array<{
+        id: number;
+        batch_number: string;
+        warehouse: string;
+        product: string;
+        sku: string;
+        qty: number;
+        expired_at: string;
+        status: string;
+        days_until_expiry: number | null;
+    }>;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,25 +55,38 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({
+    summaryCards,
+    stockByCategory,
+    stockMovement,
+    recentActivities,
+    fefoWarnings,
+}: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+            <Head title="Dashboard Analitik" />
+            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Dashboard Analitik</h1>
+                        <p className="text-muted-foreground">Overview inventory dan mutasi barang</p>
                     </div>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+
+                {/* Summary Cards */}
+                <SummaryCards {...summaryCards} />
+
+                {/* Charts Row */}
+                <div className="grid gap-4 md:grid-cols-2">
+                    <StockByCategoryChart data={stockByCategory} />
+                    <StockMovementChart data={stockMovement} />
                 </div>
+
+                {/* Recent Activities */}
+                <RecentActivities data={recentActivities} />
+
+                {/* FEFO Warnings */}
+                {fefoWarnings.length > 0 && <FefoWarnings data={fefoWarnings} />}
             </div>
         </AppLayout>
     );

@@ -105,9 +105,12 @@ class WarehouseController extends Controller
     {
         $this->authorize('delete', $warehouse);
 
-        $action->execute($warehouse);
-
-        session()->flash('success', 'Warehouse deleted successfully.');
+        try {
+            $action->execute($warehouse);
+            session()->flash('success', 'Warehouse deleted successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
 
         return redirect()->route('warehouses.index');
     }
@@ -124,9 +127,12 @@ class WarehouseController extends Controller
             'ids.*' => 'required|integer|exists:warehouses,id',
         ]);
 
-        $count = $action->execute($request->ids);
-
-        session()->flash('success', "{$count} warehouses deleted successfully.");
+        try {
+            $count = $action->execute($request->ids);
+            session()->flash('success', "{$count} warehouses deleted successfully.");
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
 
         return redirect()->route('warehouses.index');
     }

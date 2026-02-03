@@ -101,9 +101,12 @@ class CategoryController extends Controller
     {
         $this->authorize('delete', $category);
 
-        $action->execute($category);
-
-        session()->flash('success', 'Category deleted successfully.');
+        try {
+            $action->execute($category);
+            session()->flash('success', 'Category deleted successfully.');
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
 
         return redirect()->route('categories.index');
     }
@@ -120,9 +123,12 @@ class CategoryController extends Controller
             'ids.*' => 'required|integer|exists:categories,id',
         ]);
 
-        $count = $action->execute($request->ids);
-
-        session()->flash('success', "{$count} categories deleted successfully.");
+        try {
+            $count = $action->execute($request->ids);
+            session()->flash('success', "{$count} categories deleted successfully.");
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
 
         return redirect()->route('categories.index');
     }

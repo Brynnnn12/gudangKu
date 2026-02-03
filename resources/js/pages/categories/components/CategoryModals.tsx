@@ -8,20 +8,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CreateCategoryModal from '@/pages/categories/create';
-import EditCategoryModal from '@/pages/categories/edit';
-import type { Category } from '@/types/models/categories';
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; category: Category | null };
-    delete: { isOpen: boolean; category: Category | null };
-    bulkDelete: boolean;
-}
+import { CategoryFormModal } from './CategoryFormModal';
+import type { CategoryModalState } from '@/hooks/useCategoryModals';
 
 interface CategoryModalsProps {
-    modals: ModalState;
-    onCloseModal: (type: keyof ModalState) => void;
+    modals: CategoryModalState;
+    onCloseModal: (type: keyof CategoryModalState) => void;
     onConfirmDelete: () => void;
     onConfirmBulkDelete: () => void;
     selectedCount: number;
@@ -37,19 +29,17 @@ export function CategoryModals({
     return (
         <>
             {/* Create Modal */}
-            <CreateCategoryModal
+            <CategoryFormModal
                 open={modals.create}
                 onClose={() => onCloseModal('create')}
             />
 
             {/* Edit Modal */}
-            {modals.edit.isOpen && modals.edit.category && (
-                <EditCategoryModal
-                    open={modals.edit.isOpen}
-                    category={modals.edit.category}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <CategoryFormModal
+                open={modals.edit.isOpen}
+                category={modals.edit.category}
+                onClose={() => onCloseModal('edit')}
+            />
 
             {/* Bulk Delete Confirmation Modal */}
             <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>

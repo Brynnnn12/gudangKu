@@ -1,9 +1,11 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Pagination } from '@/components/pagination';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { Warehouse, Filters, PageProps } from '@/types/models/warehouses';
+import { useWarehouseModals } from '@/hooks/useWarehouseModals';
+import { useSelection } from '@/hooks/useSelection';
 import { WarehouseToolbar } from './components/WarehouseToolbar';
 import { WarehouseTable } from './components/WarehouseTable';
 import { WarehouseModals } from './components/WarehouseModals';
@@ -12,13 +14,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Warehouses', href: '/dashboard/warehouses' },
 ];
-
-interface ModalState {
-    create: boolean;
-    edit: { isOpen: boolean; warehouse: Warehouse | null };
-    delete: { isOpen: boolean; warehouse: Warehouse | null };
-    bulkDelete: boolean;
-}
 
 export default function Index({
     warehouses,
@@ -31,14 +26,16 @@ export default function Index({
         search: filters.search || '',
     });
 
-    const [modals, setModals] = useState<ModalState>({
-        create: false,
-        edit: { isOpen: false, warehouse: null },
-        delete: { isOpen: false, warehouse: null },
-        bulkDelete: false,
-    });
-
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const { modals, openModal, closeModal } = useWarehouseModals();
+    const {
+        selectedIds,
+        toggleSelectAll,
+        toggleSelectOne,
+        clearSelection,
+        allSelected,
+        someSelected,
+        selectedCount,
+    } = useSelection(warehouses.data);
 
     // Search with auto page reset
     useEffect(() => {
@@ -63,22 +60,6 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search]);
 
-    const openModal = (type: keyof ModalState, data?: Warehouse) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: true }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: true, warehouse: data || null } }));
-        }
-    };
-
-    const closeModal = (type: keyof ModalState) => {
-        if (type === 'create' || type === 'bulkDelete') {
-            setModals(prev => ({ ...prev, [type]: false }));
-        } else {
-            setModals(prev => ({ ...prev, [type]: { isOpen: false, warehouse: null } }));
-        }
-    };
-
     const handleDelete = () => {
         if (!modals.delete.warehouse) return;
 
@@ -93,20 +74,10 @@ export default function Index({
             data: { ids: selectedIds },
             preserveScroll: true,
             onSuccess: () => {
-                setSelectedIds([]);
+                clearSelection();
                 closeModal('bulkDelete');
             },
         });
-    };
-
-    const toggleSelectAll = (checked: boolean) => {
-        setSelectedIds(checked ? warehouses.data.map(wh => wh.id) : []);
-    };
-
-    const toggleSelectOne = (id: number, checked: boolean) => {
-        setSelectedIds(prev =>
-            checked ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
-        );
     };
 
     const clearFilters = () => {
@@ -118,8 +89,6 @@ export default function Index({
     };
 
     const hasActiveFilters = !!searchForm.data.search;
-    const allSelected = warehouses.data.length > 0 && selectedIds.length === warehouses.data.length;
-    const someSelected = selectedIds.length > 0 && selectedIds.length < warehouses.data.length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -131,7 +100,7 @@ export default function Index({
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
-                    selectedCount={selectedIds.length}
+                    selectedCount={selectedCount}
                     isSearching={searchForm.processing}
                     hasActiveFilters={hasActiveFilters}
                 />
@@ -169,7 +138,7 @@ export default function Index({
                     onCloseModal={closeModal}
                     onConfirmDelete={handleDelete}
                     onConfirmBulkDelete={handleBulkDelete}
-                    selectedCount={selectedIds.length}
+                    selectedCount={selectedCount}
                 />
             </div>
         </AppLayout>

@@ -82,6 +82,10 @@ export function AppSidebar() {
                         href: '/dashboard/warehouse-stocks',
                     },
                     {
+                        title: 'Transfer Stok',
+                        href: '/dashboard/stock-transfers',
+                    },
+                    {
                         title: 'Log Stok',
                         href: '/dashboard/stock-logs',
                     },

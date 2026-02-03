@@ -7,14 +7,12 @@ use App\Models\Category;
 class CreateCategoryAction
 {
     /**
-     * Create a new category.
+     * Create a new category with auto-generated slug via HasSlug trait.
      *
      * @param  array<string, mixed>  $input
      */
     public function execute(array $input): Category
     {
-        $category = Category::create($input);
-
-        return $category;
+        return Category::create($input);
     }
 }

@@ -13,10 +13,7 @@ class UpdateWarehouseAction
      */
     public function execute(Warehouse $warehouse, array $input): Warehouse
     {
-        $warehouse->update([
-            'name' => $input['name'] ?? $warehouse->name,
-            'address' => $input['address'] ?? $warehouse->address,
-        ]);
+        $warehouse->update($input);
 
         return $warehouse->fresh();
     }

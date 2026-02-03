@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             WarehouseStockSeeder::class, // 7. Create warehouse stocks (needs warehouses + products)
             StockBatchSeeder::class,     // 8. Create stock batches (needs warehouse stocks)
             StockLogSeeder::class,       // 9. Create stock logs (optional, needs everything)
+            StockTransferSeeder::class,  // 10. Create stock transfers (needs warehouses + products + users)
         ]);
     }
 }
