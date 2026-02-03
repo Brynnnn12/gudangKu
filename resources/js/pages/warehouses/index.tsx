@@ -1,14 +1,14 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
+import { useSearch } from '@/hooks/useSearch';
+import { useSelection } from '@/hooks/useSelection';
+import { useWarehouseModals } from '@/hooks/useWarehouseModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { Warehouse, Filters, PageProps } from '@/types/models/warehouses';
-import { useWarehouseModals } from '@/hooks/useWarehouseModals';
-import { useSelection } from '@/hooks/useSelection';
-import { WarehouseToolbar } from './components/WarehouseToolbar';
-import { WarehouseTable } from './components/WarehouseTable';
+import type { Filters, PageProps } from '@/types/models/warehouses';
 import { WarehouseModals } from './components/WarehouseModals';
+import { WarehouseTable } from './components/WarehouseTable';
+import { WarehouseToolbar } from './components/WarehouseToolbar';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -22,8 +22,10 @@ export default function Index({
     warehouses: PageProps;
     filters?: Filters;
 }) {
-    const searchForm = useForm({
-        search: filters.search || '',
+    const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
+        route: '/dashboard/warehouses',
+        initialSearch: filters.search || '',
+        only: ['warehouses'],
     });
 
     const { modals, openModal, closeModal } = useWarehouseModals();
@@ -36,29 +38,6 @@ export default function Index({
         someSelected,
         selectedCount,
     } = useSelection(warehouses.data);
-
-    // Search with auto page reset
-    useEffect(() => {
-        if (!searchForm.isDirty) return;
-
-        const timer = setTimeout(() => {
-            router.get(
-                '/dashboard/warehouses',
-                {
-                    search: searchForm.data.search,
-                    page: undefined, // Reset to page 1 on search
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                    only: ['warehouses'],
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search]);
 
     const handleDelete = () => {
         if (!modals.delete.warehouse) return;
@@ -81,28 +60,22 @@ export default function Index({
     };
 
     const clearFilters = () => {
-        searchForm.setData({ search: '' });
-        router.get('/dashboard/warehouses', {}, {
-            replace: true,
-            preserveState: false
-        });
+        clearSearch();
     };
-
-    const hasActiveFilters = !!searchForm.data.search;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Warehouses" />
             <div className="p-6">
                 <WarehouseToolbar
-                    searchValue={searchForm.data.search}
-                    onSearchChange={(value) => searchForm.setData('search', value)}
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedCount}
-                    isSearching={searchForm.processing}
-                    hasActiveFilters={hasActiveFilters}
+                    isSearching={isSearching}
+                    hasActiveFilters={hasActiveSearch}
                 />
 
                 <WarehouseTable
@@ -117,7 +90,7 @@ export default function Index({
                 />
 
                 {/* Pagination */}
-                {warehouses.data.length > 0 && (
+                {warehouses.last_page > 1 && (
                     <div className="mt-4">
                         <Pagination
                             links={warehouses.links}

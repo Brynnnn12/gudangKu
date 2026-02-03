@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { Calendar, DollarSign, Package, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -50,33 +51,28 @@ export default function EditStockBatchModal({
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-125">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Edit Stock Batch
-                    </DialogTitle>
-                    <DialogDescription>
-                        Update batch details. Changing quantity will recalculate warehouse stock
-                        totals.
-                    </DialogDescription>
-                </DialogHeader>
+                <ModalHeader
+                    icon={Package}
+                    title="Edit Batch Stok"
+                    description="Perbarui detail batch. Mengubah kuantitas akan menghitung ulang total stok gudang."
+                />
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         {/* Batch Info (Read-only) */}
                         <div className="rounded-lg border bg-muted/50 p-4">
                             <div className="grid gap-2 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Batch Number:</span>
+                                    <span className="text-muted-foreground">Nomor Batch:</span>
                                     <span className="font-medium">{stockBatch.batch_number}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Warehouse:</span>
+                                    <span className="text-muted-foreground">Gudang:</span>
                                     <span className="font-medium">
                                         {stockBatch.warehouse_stock?.warehouse?.name}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Product:</span>
+                                    <span className="text-muted-foreground">Produk:</span>
                                     <span className="font-medium">
                                         {stockBatch.warehouse_stock?.product?.name}
                                     </span>
@@ -89,7 +85,7 @@ export default function EditStockBatchModal({
                             <div className="grid gap-2">
                                 <Label htmlFor="current_qty">
                                     <Package className="mr-2 inline h-4 w-4" />
-                                    Current Quantity *
+                                    Kuantitas Saat Ini *
                                 </Label>
                                 <Input
                                     id="current_qty"
@@ -100,7 +96,7 @@ export default function EditStockBatchModal({
                                 />
                                 <InputError message={form.errors.current_qty} />
                                 <p className="text-sm text-muted-foreground">
-                                    Warehouse stock will auto-adjust
+                                    Stok gudang akan disesuaikan otomatis
                                 </p>
                             </div>
 
@@ -108,7 +104,7 @@ export default function EditStockBatchModal({
                             <div className="grid gap-2">
                                 <Label htmlFor="cost_price">
                                     <DollarSign className="mr-2 inline h-4 w-4" />
-                                    Cost Price (Rp) *
+                                    Harga Beli (Rp) *
                                 </Label>
                                 <Input
                                     id="cost_price"
@@ -126,7 +122,7 @@ export default function EditStockBatchModal({
                         <div className="grid gap-2">
                             <Label htmlFor="expired_at">
                                 <Calendar className="mr-2 inline h-4 w-4" />
-                                Expiry Date (Optional)
+                                Tanggal Kadaluarsa (Opsional)
                             </Label>
                             <Input
                                 id="expired_at"
@@ -136,17 +132,17 @@ export default function EditStockBatchModal({
                             />
                             <InputError message={form.errors.expired_at} />
                             <p className="text-sm text-muted-foreground">
-                                Leave empty if product has no expiry date
+                                Kosongkan jika produk tidak memiliki tanggal kadaluarsa
                             </p>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={handleClose}>
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? 'Updating...' : 'Update Batch'}
+                            {form.processing ? 'Memperbarui...' : 'Perbarui Batch'}
                         </Button>
                     </DialogFooter>
                 </form>

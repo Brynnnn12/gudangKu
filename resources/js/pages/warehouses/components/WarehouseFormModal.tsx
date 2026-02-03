@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { Save, Warehouse as WarehouseIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -69,31 +70,21 @@ export function WarehouseFormModal({ open, warehouse, onClose }: WarehouseFormMo
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-[500px]">
                 <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                <WarehouseIcon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <DialogTitle>{isEdit ? 'Edit' : 'Create'} Warehouse</DialogTitle>
-                                <DialogDescription>
-                                    {isEdit
-                                        ? 'Update warehouse information'
-                                        : 'Add a new warehouse location'}
-                                </DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
+                    <ModalHeader
+                        icon={WarehouseIcon}
+                        title={isEdit ? 'Edit Gudang' : 'Tambah Gudang'}
+                        description={isEdit ? 'Perbarui informasi gudang' : 'Tambahkan lokasi gudang baru'}
+                    />
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="warehouse-name">
-                                Warehouse Name <span className="text-destructive">*</span>
+                                Nama Gudang <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="warehouse-name"
                                 value={form.data.name}
                                 onChange={(e) => form.setData('name', e.target.value)}
-                                placeholder="e.g., Main Warehouse, Branch A"
+                                placeholder="Contoh: Gudang Utama, Cabang Jakarta"
                                 required
                                 autoFocus
                             />
@@ -102,13 +93,13 @@ export function WarehouseFormModal({ open, warehouse, onClose }: WarehouseFormMo
 
                         <div className="space-y-2">
                             <Label htmlFor="warehouse-address">
-                                Address <span className="text-destructive">*</span>
+                                Alamat <span className="text-destructive">*</span>
                             </Label>
                             <Textarea
                                 id="warehouse-address"
                                 value={form.data.address}
                                 onChange={(e) => form.setData('address', e.target.value)}
-                                placeholder="Enter full address..."
+                                placeholder="Masukkan alamat lengkap gudang"
                                 rows={3}
                                 required
                             />
@@ -122,11 +113,11 @@ export function WarehouseFormModal({ open, warehouse, onClose }: WarehouseFormMo
                             onClick={handleClose}
                             disabled={form.processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? `${isEdit ? 'Updating' : 'Creating'}...` : isEdit ? 'Update' : 'Create'}
+                            {form.processing ? `${isEdit ? 'Memperbarui' : 'Menyimpan'}...` : isEdit ? 'Perbarui' : 'Simpan'}
                         </Button>
                     </DialogFooter>
                 </form>

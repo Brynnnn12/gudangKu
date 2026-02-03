@@ -43,6 +43,10 @@ class WarehouseStockController extends Controller
                         );
                 });
             })
+            // Filter by warehouse
+            ->when($request->warehouse_id, fn ($query, $warehouseId) => $query->where('warehouse_id', $warehouseId))
+            // Filter by product
+            ->when($request->product_id, fn ($query, $productId) => $query->where('product_id', $productId))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -51,7 +55,7 @@ class WarehouseStockController extends Controller
             'warehouseStocks' => $warehouseStocks,
             'warehouses' => Warehouse::select('id', 'name')->get(),
             'products' => Product::select('id', 'name', 'sku', 'brand')->get(),
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'warehouse_id', 'product_id']),
         ]);
     }
 

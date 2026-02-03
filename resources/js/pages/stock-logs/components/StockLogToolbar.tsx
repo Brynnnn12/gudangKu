@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,11 +24,11 @@ interface StockLogToolbarProps {
 }
 
 const stockLogTypes: { value: StockLogType; label: string }[] = [
-  { value: 'entry', label: 'Entry' },
-  { value: 'exit', label: 'Exit' },
+  { value: 'entry', label: 'Masuk' },
+  { value: 'exit', label: 'Keluar' },
   { value: 'transfer', label: 'Transfer' },
-  { value: 'adjustment', label: 'Adjustment' },
-  { value: 'damage', label: 'Damage' },
+  { value: 'adjustment', label: 'Penyesuaian' },
+  { value: 'damage', label: 'Rusak' },
 ];
 
 export function StockLogToolbar({ warehouses, products, users, filters }: StockLogToolbarProps) {
@@ -45,19 +45,45 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
   const [type, setType] = useState<StockLogType | undefined>(filters.type);
   const [dateFrom, setDateFrom] = useState(filters.date_from || '');
   const [dateTo, setDateTo] = useState(filters.date_to || '');
+  const previousSearch = useRef(filters.search || '');
 
   const applyFilters = () => {
+    // Get current URL params to preserve pagination when filters change
+    const currentParams = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+
+    // Copy all existing params except page (reset to 1 when filters change)
+    currentParams.forEach((value, key) => {
+      if (key !== 'page') {
+        params[key] = value;
+      }
+    });
+
+    // Update filter params
+    if (search) params.search = search;
+    else delete params.search;
+
+    if (warehouseId) params.warehouse = String(warehouseId);
+    else delete params.warehouse;
+
+    if (productId) params.product = String(productId);
+    else delete params.product;
+
+    if (userId) params.user = String(userId);
+    else delete params.user;
+
+    if (type) params.type = type;
+    else delete params.type;
+
+    if (dateFrom) params.date_from = dateFrom;
+    else delete params.date_from;
+
+    if (dateTo) params.date_to = dateTo;
+    else delete params.date_to;
+
     router.get(
       '/dashboard/stock-logs',
-      {
-        search: search || undefined,
-        warehouse: warehouseId || undefined,
-        product: productId || undefined,
-        user: userId || undefined,
-        type: type || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-      },
+      params,
       {
         preserveState: true,
         preserveScroll: true,
@@ -65,8 +91,15 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
     );
   };
 
-  // Apply filters with debounce for search
+  // Apply filters with debounce for search only
   useEffect(() => {
+    // Only trigger if search actually changed
+    if (previousSearch.current === search) {
+      return;
+    }
+
+    previousSearch.current = search;
+
     const timer = setTimeout(() => {
       applyFilters();
     }, 500);
@@ -97,7 +130,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
           type="text"
-          placeholder="Search by warehouse, product, user, or notes..."
+          placeholder="Cari berdasarkan gudang, produk, pengguna, atau catatan..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -133,7 +166,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Warehouses" />
+            <SelectValue placeholder="Semua Gudang" />
           </SelectTrigger>
           <SelectContent>
             {warehouses.map((warehouse) => (
@@ -171,7 +204,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Products" />
+            <SelectValue placeholder="Semua Produk" />
           </SelectTrigger>
           <SelectContent>
             {products.map((product) => (
@@ -209,7 +242,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Users" />
+            <SelectValue placeholder="Semua Pengguna" />
           </SelectTrigger>
           <SelectContent>
             {users.map((user) => (
@@ -247,7 +280,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Types" />
+            <SelectValue placeholder="Semua Tipe" />
           </SelectTrigger>
           <SelectContent>
             {stockLogTypes.map((t) => (
@@ -261,7 +294,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
         {/* Date From */}
         <Input
           type="date"
-          placeholder="Date From"
+          placeholder="Tanggal Dari"
           value={dateFrom}
           onChange={(e) => {
             setDateFrom(e.target.value);
@@ -274,7 +307,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
         {/* Date To */}
         <Input
           type="date"
-          placeholder="Date To"
+          placeholder="Tanggal Sampai"
           value={dateTo}
           onChange={(e) => {
             setDateTo(e.target.value);
@@ -289,7 +322,7 @@ export function StockLogToolbar({ warehouses, products, users, filters }: StockL
       {hasActiveFilters && (
         <Button onClick={clearFilters} variant="outline" size="sm" className="w-full sm:w-auto">
           <X className="mr-2 h-4 w-4" />
-          Clear All Filters
+          Hapus Semua Filter
         </Button>
       )}
     </div>

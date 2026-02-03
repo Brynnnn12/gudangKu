@@ -41,12 +41,6 @@ class CategoryController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        $this->authorize('create', Category::class);
-
-        return redirect()->route('categories.index');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -55,7 +49,7 @@ class CategoryController extends Controller
     {
         $action->execute($request->validated());
 
-        session()->flash('success', 'Category created successfully.');
+        session()->flash('success', 'Kategori Berhasil Dibuat.');
 
         return redirect()->route('categories.index');
     }
@@ -75,12 +69,6 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Category $category)
-    {
-        $this->authorize('update', $category);
-
-        return redirect()->route('categories.index');
-    }
 
     /**
      * Update the specified resource in storage.
@@ -89,7 +77,7 @@ class CategoryController extends Controller
     {
         $action->execute($category, $request->validated());
 
-        session()->flash('success', 'Category updated successfully.');
+        session()->flash('success', 'Kategori Berhasil Diperbarui.');
 
         return redirect()->route('categories.index');
     }
@@ -103,7 +91,7 @@ class CategoryController extends Controller
 
         try {
             $action->execute($category);
-            session()->flash('success', 'Category deleted successfully.');
+            session()->flash('success', 'Kategori Berhasil Dihapus.');
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());
         }
@@ -125,7 +113,7 @@ class CategoryController extends Controller
 
         try {
             $count = $action->execute($request->ids);
-            session()->flash('success', "{$count} categories deleted successfully.");
+            session()->flash('success', "{$count} kategori berhasil dihapus.");
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());
         }

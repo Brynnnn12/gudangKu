@@ -56,10 +56,10 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
             <DialogContent className="sm:max-w-[500px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
-                        <DialogTitle>Stock Out</DialogTitle>
+                        <DialogTitle>Stok Keluar</DialogTitle>
                         <DialogDescription>
-                            Reduce stock using FEFO method. System will automatically deduct from
-                            batches with nearest expiry date.
+                            Kurangi stok menggunakan metode FEFO. Sistem akan otomatis mengurangi dari
+                            batch dengan tanggal kadaluarsa terdekat.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -74,7 +74,7 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                                         {warehouseStock.product.name}
                                     </div>
                                     <div>
-                                        SKU: {warehouseStock.product.sku} | Available:{' '}
+                                        SKU: {warehouseStock.product.sku} | Tersedia:{' '}
                                         <strong>{maxQuantity} {warehouseStock.product.unit}</strong>
                                     </div>
                                 </div>
@@ -84,14 +84,14 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                         {/* Quantity */}
                         <div className="space-y-2">
                             <Label htmlFor="quantity">
-                                Quantity <span className="text-destructive">*</span>
+                                Kuantitas <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="quantity"
                                 type="number"
                                 min="1"
                                 max={maxQuantity}
-                                placeholder="Enter quantity to reduce"
+                                placeholder="Masukkan jumlah yang akan dikurangi"
                                 value={form.data.quantity}
                                 onChange={(e) => form.setData('quantity', e.target.value)}
                                 disabled={form.processing}
@@ -99,7 +99,7 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                             <InputError message={form.errors.quantity} />
                             {isOverStock && (
                                 <p className="text-sm text-destructive">
-                                    Exceeds available stock ({maxQuantity})
+                                    Melebihi stok tersedia ({maxQuantity})
                                 </p>
                             )}
                         </div>
@@ -107,7 +107,7 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                         {/* Type */}
                         <div className="space-y-2">
                             <Label htmlFor="type">
-                                Type <span className="text-destructive">*</span>
+                                Tipe <span className="text-destructive">*</span>
                             </Label>
                             <Select
                                 value={form.data.type}
@@ -115,11 +115,11 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                                 disabled={form.processing}
                             >
                                 <SelectTrigger id="type">
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Pilih tipe" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="exit">Exit (Penjualan)</SelectItem>
-                                    <SelectItem value="damage">Damage (Rusak/Hilang)</SelectItem>
+                                    <SelectItem value="exit">Keluar (Penjualan)</SelectItem>
+                                    <SelectItem value="damage">Rusak/Hilang</SelectItem>
                                 </SelectContent>
                             </Select>
                             <InputError message={form.errors.type} />
@@ -127,10 +127,10 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
 
                         {/* Notes */}
                         <div className="space-y-2">
-                            <Label htmlFor="notes">Notes</Label>
+                            <Label htmlFor="notes">Catatan</Label>
                             <Textarea
                                 id="notes"
-                                placeholder="Optional notes (e.g., customer name, reason)"
+                                placeholder="Catatan opsional (misal: nama pelanggan, alasan)"
                                 value={form.data.notes}
                                 onChange={(e) => form.setData('notes', e.target.value)}
                                 rows={3}
@@ -147,13 +147,13 @@ export default function StockOutModal({ open, warehouseStock, onClose }: StockOu
                             onClick={onClose}
                             disabled={form.processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             type="submit"
                             disabled={form.processing || !form.data.quantity || isOverStock}
                         >
-                            {form.processing ? 'Processing...' : 'Confirm Stock Out'}
+                            {form.processing ? 'Memproses...' : 'Konfirmasi Stok Keluar'}
                         </Button>
                     </DialogFooter>
                 </form>

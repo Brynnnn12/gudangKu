@@ -1,6 +1,6 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import { AlertCircle, Info } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Info } from 'lucide-react';
 import { Pagination } from '@/components/pagination';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AppLayout from '@/layouts/app-layout';
@@ -52,19 +52,51 @@ export default function Index({
     });
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const previousFilters = useRef({
+        search: filters.search || '',
+        warehouse_id: filters.warehouse_id || '',
+        product_id: filters.product_id || ''
+    });
 
     useEffect(() => {
-        if (!searchForm.isDirty) return;
+        // Only trigger if filters actually changed
+        if (previousFilters.current.search === searchForm.data.search &&
+            previousFilters.current.warehouse_id === searchForm.data.warehouse_id &&
+            previousFilters.current.product_id === searchForm.data.product_id) {
+            return;
+        }
+
+        previousFilters.current = {
+            search: searchForm.data.search,
+            warehouse_id: searchForm.data.warehouse_id,
+            product_id: searchForm.data.product_id
+        };
 
         const timer = setTimeout(() => {
+            // Get current URL params to preserve pagination
+            const currentParams = new URLSearchParams(window.location.search);
+            const params: Record<string, string> = {};
+
+            // Copy all existing params except page (reset to 1 when filters change)
+            currentParams.forEach((value, key) => {
+                if (key !== 'page') {
+                    params[key] = value;
+                }
+            });
+
+            // Update filter params
+            if (searchForm.data.search) params.search = searchForm.data.search;
+            else delete params.search;
+
+            if (searchForm.data.warehouse_id) params.warehouse_id = searchForm.data.warehouse_id;
+            else delete params.warehouse_id;
+
+            if (searchForm.data.product_id) params.product_id = searchForm.data.product_id;
+            else delete params.product_id;
+
             router.get(
                 '/dashboard/warehouse-stocks',
-                {
-                    search: searchForm.data.search,
-                    warehouse_id: searchForm.data.warehouse_id,
-                    product_id: searchForm.data.product_id,
-                    page: undefined,
-                },
+                params,
                 {
                     preserveState: true,
                     preserveScroll: true,
@@ -196,7 +228,7 @@ export default function Index({
                     someSelected={someSelected}
                 />
 
-                {warehouseStocks.data.length > 0 && (
+                {warehouseStocks.last_page > 1 && (
                     <div className="mt-4">
                         <Pagination
                             links={warehouseStocks.links}

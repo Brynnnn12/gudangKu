@@ -68,20 +68,19 @@ export default function StockBatchesIndex({
             <div className="p-6 text-gray-900 dark:text-gray-100">
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Stock Batches (FEFO Monitoring)
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Batch Stok (Pemantauan FEFO)
                 </h2>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  Monitor stock batches with First Expired First Out (FEFO) method
+                  Pantau batch stok dengan metode First Expired First Out (FEFO)
                 </p>
               </div>
 
               {/* Info banner */}
               <div className="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
-                <p className="font-medium">📦 FEFO System (First Expired First Out)</p>
+                <p className="font-medium">📦 Sistem FEFO (First Expired First Out)</p>
                 <p className="mt-1">
-                  Batches are automatically sorted by expiry date. Products with nearest expiry will be
-                  prioritized for outbound operations.
+                  Batch diurutkan otomatis berdasarkan tanggal kadaluarsa. Produk dengan kadaluarsa terdekat akan diprioritaskan untuk operasi keluar.
                 </p>
               </div>
 
@@ -139,17 +138,17 @@ export default function StockBatchesIndex({
               <AlertDialog open={modals.delete.isOpen} onOpenChange={(open) => !open && closeModal('delete')}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Stock Batch?</AlertDialogTitle>
+                    <AlertDialogTitle>Hapus Batch Stok?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete batch{' '}
+                      Apakah Anda yakin ingin menghapus batch{' '}
                       <strong>{modals.delete.stockBatch?.batch_number}</strong>?
-                      This will reduce warehouse stock totals and cannot be undone.
+                      Ini akan mengurangi total stok gudang dan tidak dapat dibatalkan.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete
+                      Hapus
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

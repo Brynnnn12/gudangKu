@@ -1,14 +1,14 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
+import { useCategoryModals } from '@/hooks/useCategoryModals';
+import { useSearch } from '@/hooks/useSearch';
+import { useSelection } from '@/hooks/useSelection';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { Category, Filters, PageProps } from '@/types/models/categories';
-import { useCategoryModals } from '@/hooks/useCategoryModals';
-import { useSelection } from '@/hooks/useSelection';
-import { CategoryToolbar } from './components/CategoryToolbar';
-import { CategoryTable } from './components/CategoryTable';
+import type { Filters, PageProps } from '@/types/models/categories';
 import { CategoryModals } from './components/CategoryModals';
+import { CategoryTable } from './components/CategoryTable';
+import { CategoryToolbar } from './components/CategoryToolbar';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -22,8 +22,10 @@ export default function Index({
     categories: PageProps;
     filters?: Filters;
 }) {
-    const searchForm = useForm({
-        search: filters.search || '',
+    const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
+        route: '/dashboard/categories',
+        initialSearch: filters.search || '',
+        only: ['categories'],
     });
 
     const { modals, openModal, closeModal } = useCategoryModals();
@@ -37,30 +39,6 @@ export default function Index({
         selectedCount,
     } = useSelection(categories.data);
 
-    // Search with auto page reset
-    useEffect(() => {
-        if (!searchForm.isDirty) return;
-
-        const timer = setTimeout(() => {
-            router.get(
-                '/dashboard/categories',
-                {
-                    search: searchForm.data.search,
-                    page: undefined, // Reset to page 1 on search
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                    only: ['categories'],
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search]);
-
-    // Delete handlers
     const handleDelete = () => {
         if (!modals.delete.category) return;
 
@@ -81,31 +59,23 @@ export default function Index({
         });
     };
 
-    // Filter handlers
     const clearFilters = () => {
-        searchForm.setData({ search: '' });
-        router.get('/dashboard/categories', {}, {
-            replace: true,
-            preserveState: false
-        });
+        clearSearch();
     };
-
-    // Computed values
-    const hasActiveFilters = !!searchForm.data.search;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Categories" />
+            <Head title="Kategori" />
             <div className="p-6">
                 <CategoryToolbar
-                    searchValue={searchForm.data.search}
-                    onSearchChange={(value) => searchForm.setData('search', value)}
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedCount}
-                    isSearching={searchForm.processing}
-                    hasActiveFilters={hasActiveFilters}
+                    isSearching={isSearching}
+                    hasActiveFilters={hasActiveSearch}
                 />
 
                 <CategoryTable
@@ -119,9 +89,8 @@ export default function Index({
                     someSelected={someSelected}
                 />
 
-                {/* Pagination */}
-                {categories.data.length > 0 && (
-                    <div className="mt-4">
+                {categories.last_page > 1 && (
+                    <div className="mt-6">
                         <Pagination
                             links={categories.links}
                             meta={{

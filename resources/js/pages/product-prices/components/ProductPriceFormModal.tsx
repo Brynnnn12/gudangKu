@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { Calendar, DollarSign, Package, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,19 +23,26 @@ import {
 } from '@/components/ui/select';
 import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
 
-interface EditProductPriceModalProps {
+interface ProductPriceFormModalProps {
     open: boolean;
-    productPrice: ProductPrice | null;
+    productPrice?: ProductPrice | null;
     products: ProductForSelect[];
     onClose: () => void;
 }
 
-export default function EditProductPriceModal({ open, productPrice, products, onClose }: EditProductPriceModalProps) {
+export function ProductPriceFormModal({
+    open,
+    productPrice,
+    products,
+    onClose
+}: ProductPriceFormModalProps) {
+    const isEditing = !!productPrice;
+
     const form = useForm({
         product_id: productPrice?.product_id?.toString() || '',
         cost_price: productPrice ? Math.floor(Number(productPrice.cost_price)).toString() : '',
         selling_price: productPrice ? Math.floor(Number(productPrice.selling_price)).toString() : '',
-        effective_from: productPrice?.effective_from || '',
+        effective_from: productPrice?.effective_from || new Date().toISOString().split('T')[0],
     });
 
     useEffect(() => {
@@ -46,21 +54,32 @@ export default function EditProductPriceModal({ open, productPrice, products, on
                 effective_from: productPrice.effective_from,
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productPrice]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!productPrice) return;
 
-        form.put(`/dashboard/product-prices/${productPrice.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                onClose();
-            },
-        });
+        if (isEditing && productPrice) {
+            form.put(`/dashboard/product-prices/${productPrice.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onClose();
+                },
+            });
+        } else {
+            form.post('/dashboard/product-prices', {
+                preserveScroll: true,
+                onSuccess: () => {
+                    form.reset();
+                    onClose();
+                },
+            });
+        }
     };
 
     const handleClose = () => {
+        form.reset();
         form.clearErrors();
         onClose();
     };
@@ -75,36 +94,26 @@ export default function EditProductPriceModal({ open, productPrice, products, on
         form.setData(field, number);
     };
 
-    if (!productPrice) return null;
-
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-125">
                 <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                <DollarSign className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <DialogTitle>Edit Product Price</DialogTitle>
-                                <DialogDescription>
-                                    Update price information
-                                </DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
+                    <ModalHeader
+                        icon={DollarSign}
+                        title={isEditing ? 'Edit Harga Produk' : 'Tambah Harga Produk'}
+                        description={isEditing ? 'Perbarui informasi harga' : 'Tambahkan harga baru untuk produk'}
+                    />
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="edit-product">
-                                Product <span className="text-destructive">*</span>
+                            <Label htmlFor={`${isEditing ? 'edit' : 'create'}-product`}>
+                                Produk <span className="text-destructive">*</span>
                             </Label>
                             <Select
                                 value={form.data.product_id}
                                 onValueChange={(value) => form.setData('product_id', value)}
                             >
-                                <SelectTrigger id="edit-product">
-                                    <SelectValue placeholder="Select product" />
+                                <SelectTrigger id={`${isEditing ? 'edit' : 'create'}-product`}>
+                                    <SelectValue placeholder="Pilih produk" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {products.map((product) => (
@@ -124,15 +133,15 @@ export default function EditProductPriceModal({ open, productPrice, products, on
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-cost-price">
-                                    Cost Price <span className="text-destructive">*</span>
+                                <Label htmlFor={`${isEditing ? 'edit' : 'create'}-cost-price`}>
+                                    Harga Modal <span className="text-destructive">*</span>
                                 </Label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                         Rp
                                     </span>
                                     <Input
-                                        id="edit-cost-price"
+                                        id={`${isEditing ? 'edit' : 'create'}-cost-price`}
                                         value={form.data.cost_price ? formatCurrency(form.data.cost_price) : ''}
                                         onChange={(e) => handlePriceChange('cost_price', e.target.value)}
                                         placeholder="0"
@@ -144,15 +153,15 @@ export default function EditProductPriceModal({ open, productPrice, products, on
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-selling-price">
-                                    Selling Price <span className="text-destructive">*</span>
+                                <Label htmlFor={`${isEditing ? 'edit' : 'create'}-selling-price`}>
+                                    Harga Jual <span className="text-destructive">*</span>
                                 </Label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                         Rp
                                     </span>
                                     <Input
-                                        id="edit-selling-price"
+                                        id={`${isEditing ? 'edit' : 'create'}-selling-price`}
                                         value={form.data.selling_price ? formatCurrency(form.data.selling_price) : ''}
                                         onChange={(e) => handlePriceChange('selling_price', e.target.value)}
                                         placeholder="0"
@@ -165,13 +174,13 @@ export default function EditProductPriceModal({ open, productPrice, products, on
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="edit-effective-from">
-                                Effective From <span className="text-destructive">*</span>
+                            <Label htmlFor={`${isEditing ? 'edit' : 'create'}-effective-from`}>
+                                Berlaku Mulai <span className="text-destructive">*</span>
                             </Label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    id="edit-effective-from"
+                                    id={`${isEditing ? 'edit' : 'create'}-effective-from`}
                                     type="date"
                                     value={form.data.effective_from}
                                     onChange={(e) => form.setData('effective_from', e.target.value)}
@@ -181,7 +190,7 @@ export default function EditProductPriceModal({ open, productPrice, products, on
                             </div>
                             <InputError message={form.errors.effective_from} />
                             <p className="text-xs text-muted-foreground">
-                                The date when this price becomes effective
+                                Tanggal mulai berlakunya harga ini
                             </p>
                         </div>
                     </div>
@@ -192,11 +201,14 @@ export default function EditProductPriceModal({ open, productPrice, products, on
                             onClick={handleClose}
                             disabled={form.processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? 'Updating...' : 'Update Price'}
+                            {form.processing
+                                ? (isEditing ? 'Memperbarui...' : 'Menyimpan...')
+                                : (isEditing ? 'Perbarui' : 'Simpan')
+                            }
                         </Button>
                     </DialogFooter>
                 </form>

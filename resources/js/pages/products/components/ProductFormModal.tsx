@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { Package, Save, Tag } from 'lucide-react';
 import { useEffect } from 'react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,16 +23,18 @@ import {
 } from '@/components/ui/select';
 import type { Product, Category } from '@/types/models/products';
 
-interface EditProductModalProps {
+interface ProductFormModalProps {
     open: boolean;
-    product: Product | null;
+    product?: Product | null;
     categories: Category[];
     onClose: () => void;
 }
 
 const UNITS = ['Karton', 'Box', 'Pcs', 'Liter', 'Kg', 'Meter', 'Buah', 'Lusin', 'Pack'];
 
-export default function EditProductModal({ open, product, categories, onClose }: EditProductModalProps) {
+export function ProductFormModal({ open, product, categories, onClose }: ProductFormModalProps) {
+    const isEditing = !!product;
+
     const form = useForm({
         category_id: product?.category_id?.toString() || '',
         name: product?.name || '',
@@ -47,56 +50,60 @@ export default function EditProductModal({ open, product, categories, onClose }:
                 brand: product.brand,
                 unit: product.unit,
             });
+            form.clearErrors();
+        } else {
+            form.reset();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!product) return;
 
-        form.put(`/dashboard/products/${product.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                onClose();
-            },
-        });
+        if (isEditing) {
+            form.put(`/dashboard/products/${product.id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onClose();
+                },
+            });
+        } else {
+            form.post('/dashboard/products', {
+                preserveScroll: true,
+                onSuccess: () => {
+                    form.reset();
+                    onClose();
+                },
+            });
+        }
     };
 
     const handleClose = () => {
+        form.reset();
         form.clearErrors();
         onClose();
     };
-
-    if (!product) return null;
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-125">
                 <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                <Package className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <DialogTitle>Edit Product</DialogTitle>
-                                <DialogDescription>
-                                    Update product information
-                                </DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
+                    <ModalHeader
+                        icon={Package}
+                        title={isEditing ? 'Edit Produk' : 'Tambah Produk'}
+                        description={isEditing ? 'Perbarui informasi produk' : 'Tambahkan produk baru ke inventaris Anda'}
+                    />
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="edit-category">
-                                Category <span className="text-destructive">*</span>
+                            <Label htmlFor="product-category">
+                                Kategori <span className="text-destructive">*</span>
                             </Label>
                             <Select
                                 value={form.data.category_id}
                                 onValueChange={(value) => form.setData('category_id', value)}
                             >
-                                <SelectTrigger id="edit-category">
-                                    <SelectValue placeholder="Select category" />
+                                <SelectTrigger id="product-category">
+                                    <SelectValue placeholder="Pilih kategori" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((category) => (
@@ -110,14 +117,14 @@ export default function EditProductModal({ open, product, categories, onClose }:
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="edit-name">
-                                Product Name <span className="text-destructive">*</span>
+                            <Label htmlFor="product-name">
+                                Nama Produk <span className="text-destructive">*</span>
                             </Label>
                             <Input
-                                id="edit-name"
+                                id="product-name"
                                 value={form.data.name}
                                 onChange={(e) => form.setData('name', e.target.value)}
-                                placeholder="e.g., Samsung Galaxy S24"
+                                placeholder="Contoh: Samsung Galaxy S24, Laptop Asus ROG"
                                 required
                                 maxLength={255}
                             />
@@ -126,14 +133,14 @@ export default function EditProductModal({ open, product, categories, onClose }:
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-brand">
-                                    Brand <span className="text-destructive">*</span>
+                                <Label htmlFor="product-brand">
+                                    Merek <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
-                                    id="edit-brand"
+                                    id="product-brand"
                                     value={form.data.brand}
                                     onChange={(e) => form.setData('brand', e.target.value)}
-                                    placeholder="e.g., Samsung"
+                                    placeholder="Contoh: Samsung, Apple, Xiaomi"
                                     required
                                     maxLength={100}
                                 />
@@ -141,15 +148,15 @@ export default function EditProductModal({ open, product, categories, onClose }:
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-unit">
-                                    Unit <span className="text-destructive">*</span>
+                                <Label htmlFor="product-unit">
+                                    Satuan <span className="text-destructive">*</span>
                                 </Label>
                                 <Select
                                     value={form.data.unit}
                                     onValueChange={(value) => form.setData('unit', value)}
                                 >
-                                    <SelectTrigger id="edit-unit">
-                                        <SelectValue placeholder="Select unit" />
+                                    <SelectTrigger id="product-unit">
+                                        <SelectValue placeholder="Pilih satuan" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {UNITS.map((unit) => (
@@ -163,21 +170,24 @@ export default function EditProductModal({ open, product, categories, onClose }:
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-sku">SKU (Auto-generated)</Label>
-                            <div className="relative">
-                                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    id="edit-sku"
-                                    value={product.sku}
-                                    disabled
-                                    className="pl-9 font-mono bg-muted"
-                                />
+                        {isEditing ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="product-sku">SKU (Otomatis)</Label>
+                                <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
+                                    <Tag className="h-4 w-4 text-muted-foreground" />
+                                    <span className="font-mono text-sm font-medium">{product.sku}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    SKU tidak dapat diubah setelah produk dibuat
+                                </p>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                SKU tidak dapat diubah setelah produk dibuat
-                            </p>
-                        </div>
+                        ) : (
+                            <div className="rounded-lg bg-muted/50 p-3 border">
+                                <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium">SKU</span> akan dibuat otomatis dengan format <span className="font-mono">PRD-XXXXXX</span>
+                                </p>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button
@@ -186,11 +196,14 @@ export default function EditProductModal({ open, product, categories, onClose }:
                             onClick={handleClose}
                             disabled={form.processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? 'Updating...' : 'Update Product'}
+                            {form.processing
+                                ? (isEditing ? 'Memperbarui...' : 'Menyimpan...')
+                                : (isEditing ? 'Perbarui' : 'Simpan')
+                            }
                         </Button>
                     </DialogFooter>
                 </form>

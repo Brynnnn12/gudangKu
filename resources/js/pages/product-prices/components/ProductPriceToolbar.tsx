@@ -39,12 +39,16 @@ export function ProductPriceToolbar({
 }: ProductPriceToolbarProps) {
     return (
         <>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Product Prices</h1>
-                    {selectedCount > 0 && (
+                    <h1 className="text-3xl font-bold">Harga Produk</h1>
+                    {selectedCount > 0 ? (
                         <p className="text-sm text-muted-foreground mt-1">
-                            {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
+                            {selectedCount} harga dipilih
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Kelola harga produk Anda
                         </p>
                     )}
                 </div>
@@ -55,21 +59,21 @@ export function ProductPriceToolbar({
                             onClick={onBulkDeleteClick}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Selected ({selectedCount})
+                            Hapus
                         </Button>
                     )}
                     <Button onClick={onAddClick}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Price
+                        Tambah Harga
                     </Button>
                 </div>
             </div>
 
-            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            <div className="mb-4 flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by product name, SKU, or brand..."
+                        placeholder="Cari berdasarkan nama produk, SKU, atau merek"
                         value={searchValue}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -85,7 +89,7 @@ export function ProductPriceToolbar({
                             <SelectTrigger>
                                 <div className="flex items-center gap-2">
                                     <Filter className="h-4 w-4" />
-                                    <SelectValue placeholder="All Products" />
+                                    <SelectValue placeholder="Semua Produk" />
                                 </div>
                             </SelectTrigger>
                             <SelectContent>
@@ -103,7 +107,7 @@ export function ProductPriceToolbar({
                             size="icon"
                             onClick={onClearFilters}
                             disabled={isSearching}
-                            title="Clear filters"
+                            title="Hapus filter"
                         >
                             <X className="h-4 w-4" />
                         </Button>

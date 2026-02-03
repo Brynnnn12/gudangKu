@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { Calendar, DollarSign, Hash, Package, Save } from 'lucide-react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -71,27 +72,22 @@ export default function CreateStockBatchModal({
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-150">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Add Stock Batch (Stock Entry)
-                    </DialogTitle>
-                    <DialogDescription>
-                        Create a new stock batch. This will automatically update warehouse stock
-                        totals.
-                    </DialogDescription>
-                </DialogHeader>
+                <ModalHeader
+                    icon={Package}
+                    title="Tambah Batch Stok (Masuk Stok)"
+                    description="Buat batch stok baru. Ini akan otomatis memperbarui total stok gudang."
+                />
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         {/* Warehouse */}
                         <div className="grid gap-2">
-                            <Label htmlFor="warehouse_id">Warehouse *</Label>
+                            <Label htmlFor="warehouse_id">Gudang *</Label>
                             <Select
                                 value={form.data.warehouse_id}
                                 onValueChange={value => form.setData('warehouse_id', value)}
                             >
                                 <SelectTrigger id="warehouse_id">
-                                    <SelectValue placeholder="Select warehouse" />
+                                    <SelectValue placeholder="Pilih gudang" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {warehouses.map(warehouse => (
@@ -108,14 +104,14 @@ export default function CreateStockBatchModal({
                         <div className="grid gap-2">
                             <Label htmlFor="product_id">
                                 <Package className="mr-2 inline h-4 w-4" />
-                                Product *
+                                Produk *
                             </Label>
                             <Select
                                 value={form.data.product_id}
                                 onValueChange={value => form.setData('product_id', value)}
                             >
                                 <SelectTrigger id="product_id">
-                                    <SelectValue placeholder="Select product" />
+                                    <SelectValue placeholder="Pilih produk" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {products.map(product => (
@@ -132,14 +128,14 @@ export default function CreateStockBatchModal({
                         <div className="grid gap-2">
                             <Label htmlFor="batch_number">
                                 <Hash className="mr-2 inline h-4 w-4" />
-                                Batch Number *
+                                Nomor Batch *
                             </Label>
                             <div className="flex gap-2">
                                 <Input
                                     id="batch_number"
                                     value={form.data.batch_number}
                                     onChange={e => form.setData('batch_number', e.target.value)}
-                                    placeholder="e.g., BATCH-20260202-A1B2"
+                                    placeholder="contoh: BATCH-20260202-A1B2"
                                 />
                                 <Button
                                     type="button"
@@ -157,7 +153,7 @@ export default function CreateStockBatchModal({
                             <div className="grid gap-2">
                                 <Label htmlFor="current_qty">
                                     <Package className="mr-2 inline h-4 w-4" />
-                                    Quantity *
+                                    Kuantitas *
                                 </Label>
                                 <Input
                                     id="current_qty"
@@ -174,7 +170,7 @@ export default function CreateStockBatchModal({
                             <div className="grid gap-2">
                                 <Label htmlFor="cost_price">
                                     <DollarSign className="mr-2 inline h-4 w-4" />
-                                    Cost Price (Rp) *
+                                    Harga Beli (Rp) *
                                 </Label>
                                 <Input
                                     id="cost_price"
@@ -193,7 +189,7 @@ export default function CreateStockBatchModal({
                         <div className="grid gap-2">
                             <Label htmlFor="expired_at">
                                 <Calendar className="mr-2 inline h-4 w-4" />
-                                Expiry Date (Optional)
+                                Tanggal Kadaluarsa (Opsional)
                             </Label>
                             <Input
                                 id="expired_at"
@@ -204,17 +200,17 @@ export default function CreateStockBatchModal({
                             />
                             <InputError message={form.errors.expired_at} />
                             <p className="text-sm text-muted-foreground">
-                                Leave empty if product has no expiry date
+                                Kosongkan jika produk tidak memiliki tanggal kadaluarsa
                             </p>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={handleClose}>
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? 'Creating...' : 'Create Batch'}
+                            {form.processing ? 'Membuat...' : 'Buat Batch'}
                         </Button>
                     </DialogFooter>
                 </form>

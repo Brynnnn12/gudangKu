@@ -1,5 +1,6 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { useSearch } from '@/hooks/useSearch';
 import { Pagination } from '@/components/pagination';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -31,8 +32,10 @@ export default function Index({
     users: User[];
     filters?: Filters;
 }) {
-    const searchForm = useForm({
-        search: filters.search || '',
+    const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
+        route: '/dashboard/warehouse-users',
+        initialSearch: filters.search || '',
+        only: ['warehouseUsers'],
     });
 
     const [modals, setModals] = useState<ModalState>({
@@ -43,29 +46,6 @@ export default function Index({
     });
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-    // Search with auto page reset
-    useEffect(() => {
-        if (!searchForm.isDirty) return;
-
-        const timer = setTimeout(() => {
-            router.get(
-                '/dashboard/warehouse-users',
-                {
-                    search: searchForm.data.search,
-                    page: undefined, // Reset to page 1 on search
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                    only: ['warehouseUsers'],
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search]);
 
     const openModal = (type: keyof ModalState, data?: WarehouseUser) => {
         if (type === 'create' || type === 'bulkDelete') {
@@ -114,14 +94,9 @@ export default function Index({
     };
 
     const clearFilters = () => {
-        searchForm.setData({ search: '' });
-        router.get('/dashboard/warehouse-users', {}, {
-            replace: true,
-            preserveState: false
-        });
+        clearSearch();
     };
 
-    const hasActiveFilters = !!searchForm.data.search;
     const allSelected = warehouseUsers.data.length > 0 && selectedIds.length === warehouseUsers.data.length;
     const someSelected = selectedIds.length > 0 && selectedIds.length < warehouseUsers.data.length;
 
@@ -130,14 +105,14 @@ export default function Index({
             <Head title="Warehouse Users" />
             <div className="p-6">
                 <WarehouseUserToolbar
-                    searchValue={searchForm.data.search}
-                    onSearchChange={(value) => searchForm.setData('search', value)}
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedIds.length}
-                    isSearching={searchForm.processing}
-                    hasActiveFilters={hasActiveFilters}
+                    isSearching={isSearching}
+                    hasActiveFilters={hasActiveSearch}
                 />
 
                 <WarehouseUserTable
@@ -152,7 +127,7 @@ export default function Index({
                 />
 
                 {/* Pagination */}
-                {warehouseUsers.data.length > 0 && (
+                {warehouseUsers.last_page > 1 && (
                     <div className="mt-4">
                         <Pagination
                             links={warehouseUsers.links}

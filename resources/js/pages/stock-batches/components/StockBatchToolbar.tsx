@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Plus, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,9 +25,9 @@ interface StockBatchToolbarProps {
 }
 
 const statusOptions: { value: StockBatchStatus; label: string }[] = [
-  { value: 'available', label: 'Available' },
-  { value: 'warning', label: 'Near Expiry' },
-  { value: 'expired', label: 'Expired' },
+  { value: 'available', label: 'Tersedia' },
+  { value: 'warning', label: 'Mendekati Kadaluarsa' },
+  { value: 'expired', label: 'Kadaluarsa' },
 ];
 
 export function StockBatchToolbar({ warehouses, products, filters, onAddClick }: StockBatchToolbarProps) {
@@ -41,18 +41,42 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
   const [status, setStatus] = useState<StockBatchStatus | undefined>(filters.status);
   const [nearExpiry, setNearExpiry] = useState(filters.near_expiry || false);
   const [isActive, setIsActive] = useState(filters.is_active || false);
+  const previousSearch = useRef(filters.search || '');
 
   const applyFilters = () => {
+    // Get current URL params to preserve pagination when filters change via select/checkbox
+    const currentParams = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+
+    // Copy all existing params except page (reset to 1 when filters change)
+    currentParams.forEach((value, key) => {
+      if (key !== 'page') {
+        params[key] = value;
+      }
+    });
+
+    // Update filter params
+    if (search) params.search = search;
+    else delete params.search;
+
+    if (warehouseId) params.warehouse_id = String(warehouseId);
+    else delete params.warehouse_id;
+
+    if (productId) params.product_id = String(productId);
+    else delete params.product_id;
+
+    if (status) params.status = status;
+    else delete params.status;
+
+    if (nearExpiry) params.near_expiry = 'true';
+    else delete params.near_expiry;
+
+    if (isActive) params.is_active = 'true';
+    else delete params.is_active;
+
     router.get(
       '/dashboard/stock-batches',
-      {
-        search: search || undefined,
-        warehouse_id: warehouseId || undefined,
-        product_id: productId || undefined,
-        status: status || undefined,
-        near_expiry: nearExpiry || undefined,
-        is_active: isActive || undefined,
-      },
+      params,
       {
         preserveState: true,
         preserveScroll: true,
@@ -60,8 +84,15 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
     );
   };
 
-  // Apply filters with debounce for search
+  // Apply filters with debounce for search only
   useEffect(() => {
+    // Only trigger if search actually changed
+    if (previousSearch.current === search) {
+      return;
+    }
+
+    previousSearch.current = search;
+
     const timer = setTimeout(() => {
       applyFilters();
     }, 500);
@@ -90,7 +121,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
       <div className="flex justify-end">
         <Button onClick={onAddClick}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Stock Batch
+          Tambah Batch Stok
         </Button>
       </div>
 
@@ -99,7 +130,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
           type="text"
-          placeholder="Search by batch number, warehouse, or product..."
+          placeholder="Cari berdasarkan nomor batch, gudang, atau produk..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -118,7 +149,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Warehouses" />
+            <SelectValue placeholder="Semua Gudang" />
           </SelectTrigger>
           <SelectContent>
             {warehouses.map((warehouse) => (
@@ -139,7 +170,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Products" />
+            <SelectValue placeholder="Semua Produk" />
           </SelectTrigger>
           <SelectContent>
             {products.map((product) => (
@@ -160,7 +191,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Status" />
+            <SelectValue placeholder="Semua Status" />
           </SelectTrigger>
           <SelectContent>
             {statusOptions.map((opt) => (
@@ -187,7 +218,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
             htmlFor="near_expiry"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Near Expiry Only
+            Hanya Mendekati Kadaluarsa
           </Label>
         </div>
 
@@ -204,7 +235,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
             htmlFor="is_active"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Active Only
+            Hanya Aktif
           </Label>
         </div>
       </div>
@@ -213,7 +244,7 @@ export function StockBatchToolbar({ warehouses, products, filters, onAddClick }:
       {hasActiveFilters && (
         <Button onClick={clearFilters} variant="outline" size="sm" className="w-full sm:w-auto">
           <X className="mr-2 h-4 w-4" />
-          Clear All Filters
+          Hapus Semua Filter
         </Button>
       )}
     </div>

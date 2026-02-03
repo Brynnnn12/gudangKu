@@ -32,8 +32,24 @@ export function WarehouseUserTable({
     allSelected,
     someSelected,
 }: WarehouseUserTableProps) {
+    if (warehouseUsers.length === 0) {
+        return (
+            <div className="rounded-lg border border-dashed bg-card">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <UserCircle className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold">Belum Ada Penugasan</h3>
+                    <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+                        Mulai dengan menugaskan pengguna pertama ke gudang
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="rounded-md border bg-card">
+        <div className="rounded-lg border bg-card shadow-sm">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -41,25 +57,24 @@ export function WarehouseUserTable({
                             <Checkbox
                                 checked={allSelected}
                                 onCheckedChange={onSelectAll}
-                                aria-label="Select all"
+                                aria-label="Pilih semua"
                                 className={someSelected ? 'data-[state=checked]:bg-muted-foreground' : ''}
                             />
                         </TableHead>
-                        <TableHead>Warehouse</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="font-semibold">Gudang</TableHead>
+                        <TableHead className="font-semibold">Pengguna</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="text-right font-semibold">Aksi</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {warehouseUsers.length > 0 ? (
-                        warehouseUsers.map((warehouseUser) => (
-                            <TableRow key={warehouseUser.id}>
+                    {warehouseUsers.map((warehouseUser) => (
+                            <TableRow key={warehouseUser.id} className="group">
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedIds.includes(warehouseUser.id)}
                                         onCheckedChange={(checked) => onSelectOne(warehouseUser.id, checked as boolean)}
-                                        aria-label={`Select ${warehouseUser.warehouse?.name}`}
+                                        aria-label={`Pilih ${warehouseUser.warehouse?.name}`}
                                     />
                                 </TableCell>
                                 <TableCell>
@@ -77,32 +92,30 @@ export function WarehouseUserTable({
                                 <TableCell className="text-muted-foreground">
                                     {warehouseUser.user?.email}
                                 </TableCell>
-                                <TableCell className="text-right space-x-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => onEdit(warehouseUser)}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-destructive hover:text-destructive"
-                                        onClick={() => onDelete(warehouseUser)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5"
+                                            onClick={() => onEdit(warehouseUser)}
+                                        >
+                                            <Edit className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Edit</span>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => onDelete(warehouseUser)}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Hapus</span>
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center">
-                                No warehouse users found.
-                            </TableCell>
-                        </TableRow>
-                    )}
+                        ))}
                 </TableBody>
             </Table>
         </div>

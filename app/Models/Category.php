@@ -15,7 +15,6 @@ class Category extends Model
         'slug',
     ];
 
-    // relasi
     public function products()
     {
         return $this->hasMany(Product::class);

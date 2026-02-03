@@ -59,16 +59,6 @@ class StockTransferPolicy
         $hasRole = $user->hasAnyRole(['super-admin', 'admin']);
         $isPending = $stockTransfer->isPending();
 
-        \Log::info('StockTransfer Policy Approve Check', [
-            'user_id' => $user->id,
-            'user_roles' => $user->roles->pluck('name')->toArray(),
-            'transfer_id' => $stockTransfer->id,
-            'transfer_status' => $stockTransfer->status,
-            'has_role' => $hasRole,
-            'is_pending' => $isPending,
-            'result' => $hasRole && $isPending,
-        ]);
-
         return $hasRole && $isPending;
     }
 
@@ -80,16 +70,6 @@ class StockTransferPolicy
     {
         $hasRole = $user->hasAnyRole(['super-admin', 'admin']);
         $isPending = $stockTransfer->isPending();
-
-        \Log::info('StockTransfer Policy Reject Check', [
-            'user_id' => $user->id,
-            'user_roles' => $user->roles->pluck('name')->toArray(),
-            'transfer_id' => $stockTransfer->id,
-            'transfer_status' => $stockTransfer->status,
-            'has_role' => $hasRole,
-            'is_pending' => $isPending,
-            'result' => $hasRole && $isPending,
-        ]);
 
         return $hasRole && $isPending;
     }

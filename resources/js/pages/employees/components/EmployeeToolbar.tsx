@@ -37,12 +37,16 @@ export function EmployeeToolbar({
     return (
         <>
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Employees</h1>
-                    {selectedCount > 0 && (
+                    <h1 className="text-3xl font-bold">Karyawan</h1>
+                    {selectedCount > 0 ? (
                         <p className="text-sm text-muted-foreground mt-1">
-                            {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
+                            {selectedCount} karyawan dipilih
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Kelola data karyawan Anda
                         </p>
                     )}
                 </div>
@@ -53,22 +57,22 @@ export function EmployeeToolbar({
                             onClick={onBulkDeleteClick}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Selected ({selectedCount})
+                            Hapus
                         </Button>
                     )}
                     <Button onClick={onAddClick}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Employee
+                        Tambah Karyawan
                     </Button>
                 </div>
             </div>
 
             {/* Search & Filters */}
-            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            <div className="mb-4 flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name or email..."
+                        placeholder="Cari berdasarkan nama atau email"
                         value={searchValue}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -81,10 +85,10 @@ export function EmployeeToolbar({
                     disabled={isSearching}
                 >
                     <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Filter by role" />
+                        <SelectValue placeholder="Filter berdasarkan peran" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="all">Semua Peran</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="user">User</SelectItem>
                     </SelectContent>
@@ -96,7 +100,7 @@ export function EmployeeToolbar({
                             size="icon"
                             onClick={onClearFilters}
                             disabled={isSearching}
-                            title="Clear filters"
+                            title="Hapus filter"
                         >
                             <X className="h-4 w-4" />
                         </Button>

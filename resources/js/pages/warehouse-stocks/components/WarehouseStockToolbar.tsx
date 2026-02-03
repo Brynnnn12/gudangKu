@@ -46,12 +46,16 @@ export function WarehouseStockToolbar({
 }: WarehouseStockToolbarProps) {
     return (
         <>
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">Warehouse Stocks</h1>
-                    {selectedCount > 0 && (
+                    <h1 className="text-3xl font-bold">Stok Gudang</h1>
+                    {selectedCount > 0 ? (
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
+                            {selectedCount} item dipilih
+                        </p>
+                    ) : (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Kelola stok produk di gudang
                         </p>
                     )}
                 </div>
@@ -59,13 +63,13 @@ export function WarehouseStockToolbar({
                     {selectedCount > 0 && (
                         <Button variant="destructive" onClick={onBulkDeleteClick}>
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Selected ({selectedCount})
+                            Hapus
                         </Button>
                     )}
                     {onAddClick && (
                         <Button onClick={onAddClick}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Stock
+                            Tambah Stok
                         </Button>
                     )}
                 </div>
@@ -75,7 +79,7 @@ export function WarehouseStockToolbar({
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder="Search warehouse or product..."
+                        placeholder="Cari gudang atau produk..."
                         value={searchValue}
                         onChange={e => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -88,7 +92,7 @@ export function WarehouseStockToolbar({
                         onValueChange={onWarehouseChange}
                     >
                         <SelectTrigger className="w-full sm:w-50">
-                            <SelectValue placeholder="All Warehouses" />
+                            <SelectValue placeholder="Semua Gudang" />
                         </SelectTrigger>
                         <SelectContent>
                             {warehouses.map(warehouse => (
@@ -103,7 +107,7 @@ export function WarehouseStockToolbar({
                         onValueChange={onProductChange}
                     >
                         <SelectTrigger className="w-full sm:w-50">
-                            <SelectValue placeholder="All Products" />
+                            <SelectValue placeholder="Semua Produk" />
                         </SelectTrigger>
                         <SelectContent>
                             {products.map(product => (
@@ -119,7 +123,7 @@ export function WarehouseStockToolbar({
                             size="icon"
                             onClick={onClearFilters}
                             disabled={isSearching}
-                            title="Clear filters"
+                            title="Hapus filter"
                         >
                             <X className="h-4 w-4" />
                         </Button>

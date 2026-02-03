@@ -12,15 +12,25 @@ export default function StockLogsIndex({ stockLogs, warehouses, products, users,
     <AppLayout
       breadcrumbs={[
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Stock Logs', href: '/dashboard/stock-logs' },
+        { title: 'Riwayat Stok', href: '/dashboard/stock-logs' },
       ]}
     >
-      <Head title="Stock Logs" />
+      <Head title="Riwayat Stok" />
 
       <div className="py-12">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
             <div className="p-6 text-gray-900 dark:text-gray-100">
+              {/* Header */}
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Riwayat Stok
+                </h2>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Lihat riwayat lengkap semua perubahan dan mutasi stok
+                </p>
+              </div>
+
               {/* Toolbar with filters */}
               <StockLogToolbar
                 warehouses={warehouses}
@@ -31,9 +41,9 @@ export default function StockLogsIndex({ stockLogs, warehouses, products, users,
 
               {/* Info banner */}
               <div className="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
-                <p className="font-medium">📋 Permanent Audit Trail</p>
+                <p className="font-medium">📋 Jejak Audit Permanen</p>
                 <p className="mt-1">
-                  Stock logs are permanent records of all stock mutations. They cannot be modified or deleted.
+                  Riwayat stok adalah catatan permanen dari semua mutasi stok. Data tidak dapat diubah atau dihapus.
                 </p>
               </div>
 

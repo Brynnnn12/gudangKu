@@ -2,15 +2,9 @@ import { useForm } from '@inertiajs/react';
 import { Save, Tag } from 'lucide-react';
 import { useEffect } from 'react';
 import InputError from '@/components/input-error';
+import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Category } from '@/types/models/categories';
@@ -28,7 +22,6 @@ export function CategoryFormModal({ open, category, onClose }: CategoryFormModal
         name: category?.name || '',
     });
 
-    // Reset form when category changes or modal opens/closes
     useEffect(() => {
         if (open) {
             form.setData('name', category?.name || '');
@@ -64,45 +57,38 @@ export function CategoryFormModal({ open, category, onClose }: CategoryFormModal
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
             <DialogContent className="sm:max-w-125">
                 <form onSubmit={handleSubmit}>
-                    <DialogHeader>
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                <Tag className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <DialogTitle>{isEdit ? 'Edit' : 'Create'} Category</DialogTitle>
-                                <DialogDescription>
-                                    {isEdit
-                                        ? 'Update category information'
-                                        : 'Add a new category to organize your products'}
-                                </DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
+                    <ModalHeader
+                        icon={Tag}
+                        title={isEdit ? 'Edit Kategori' : 'Tambah Kategori'}
+                        description={isEdit ? 'Perbarui informasi kategori' : 'Tambahkan kategori baru untuk mengatur produk Anda'}
+                    />
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="category-name">
-                                Category Name <span className="text-destructive">*</span>
+                                Nama Kategori <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="category-name"
                                 value={form.data.name}
                                 onChange={(e) => form.setData('name', e.target.value)}
-                                placeholder="e.g., Electronics, Clothing"
+                                placeholder="Contoh: Elektronik, Pakaian, Makanan"
                                 required
                                 autoFocus
                             />
                             <InputError message={form.errors.name} />
                             {isEdit && category ? (
-                                <div className="rounded-lg bg-muted/50 p-2.5">
-                                    <p className="text-xs font-medium text-muted-foreground mb-1">
-                                        Current Slug
+                                <div className="rounded-lg bg-muted/50 p-3 border border-muted">
+                                    <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                                        Slug URL Saat Ini
                                     </p>
-                                    <code className="text-sm">{category.slug}</code>
+                                    <code className="text-sm font-mono bg-muted-foreground/10 px-2 py-1 rounded">
+                                        {category.slug}
+                                    </code>
                                 </div>
                             ) : (
-                                <p className="text-xs text-muted-foreground">
-                                    💡 The URL-friendly slug will be automatically generated
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <span className="text-sm">💡</span>
+                                    Slug URL ramah mesin pencari akan dibuat otomatis
                                 </p>
                             )}
                         </div>
@@ -114,11 +100,11 @@ export function CategoryFormModal({ open, category, onClose }: CategoryFormModal
                             onClick={handleClose}
                             disabled={form.processing}
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button type="submit" disabled={form.processing}>
                             <Save className="mr-2 h-4 w-4" />
-                            {form.processing ? `${isEdit ? 'Updating' : 'Creating'}...` : isEdit ? 'Update' : 'Create'}
+                            {form.processing ? `${isEdit ? 'Memperbarui' : 'Menyimpan'}...` : isEdit ? 'Perbarui' : 'Simpan'}
                         </Button>
                     </DialogFooter>
                 </form>

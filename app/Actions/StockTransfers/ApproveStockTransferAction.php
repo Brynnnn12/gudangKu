@@ -6,6 +6,7 @@ use App\Models\StockBatch;
 use App\Models\StockLog;
 use App\Models\StockTransfer;
 use App\Models\WarehouseStock;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ApproveStockTransferAction
@@ -66,7 +67,7 @@ class ApproveStockTransferAction
                     'warehouse_id' => $transfer->from_warehouse_id,
                     'product_id' => $transfer->product_id,
                     'batch_id' => $batch->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => Auth::id(),
                     'qty' => -$deductQty,
                     'type' => 'transfer',
                     'notes' => "Transfer ke {$transfer->toWarehouse->name} - Transfer #{$transfer->id}",
@@ -108,7 +109,7 @@ class ApproveStockTransferAction
                 'warehouse_id' => $transfer->to_warehouse_id,
                 'product_id' => $transfer->product_id,
                 'batch_id' => $newBatch->id,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'qty' => $transfer->qty,
                 'type' => 'transfer',
                 'notes' => "Transfer dari {$transfer->fromWarehouse->name} - Transfer #{$transfer->id}",

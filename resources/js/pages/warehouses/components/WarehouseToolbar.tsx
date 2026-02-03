@@ -26,12 +26,16 @@ export function WarehouseToolbar({
     return (
         <>
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Warehouses</h1>
-                    {selectedCount > 0 && (
+                    <h1 className="text-3xl font-bold">Gudang</h1>
+                    {selectedCount > 0 ? (
                         <p className="text-sm text-muted-foreground mt-1">
-                            {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
+                            {selectedCount} gudang dipilih
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Kelola lokasi gudang Anda
                         </p>
                     )}
                 </div>
@@ -42,22 +46,22 @@ export function WarehouseToolbar({
                             onClick={onBulkDeleteClick}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Selected ({selectedCount})
+                            Hapus
                         </Button>
                     )}
                     <Button onClick={onAddClick}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Warehouse
+                        Tambah Gudang
                     </Button>
                 </div>
             </div>
 
             {/* Search */}
-            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            <div className="mb-4 flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name or address..."
+                        placeholder="Cari berdasarkan nama atau alamat"
                         value={searchValue}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -71,7 +75,7 @@ export function WarehouseToolbar({
                             size="icon"
                             onClick={onClearFilters}
                             disabled={isSearching}
-                            title="Clear filters"
+                            title="Hapus filter"
                         >
                             <X className="h-4 w-4" />
                         </Button>

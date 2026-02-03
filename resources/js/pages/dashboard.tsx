@@ -4,25 +4,28 @@ import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 import { SummaryCards } from '@/pages/dashboard/SummaryCards';
 import { StockByCategoryChart } from '@/pages/dashboard/StockByCategoryChart';
-import { StockMovementChart } from '@/pages/dashboard/StockMovementChart';
+import { RevenueVsCostChart } from '@/pages/dashboard/StockMovementChart';
 import { RecentActivities } from '@/pages/dashboard/RecentActivities';
 import { FefoWarnings } from '@/pages/dashboard/FefoWarnings';
 
 interface DashboardProps {
     summaryCards: {
-        totalStock: number;
+        totalRevenue: number;
+        totalCosts: number;
+        profit: number;
+        profitMargin: number;
         totalValue: number;
         nearExpiryCount: number;
-        pendingTransfers: number;
     };
     stockByCategory: Array<{
         name: string;
         total: number;
     }>;
-    stockMovement: Array<{
+    revenueVsCost: Array<{
         date: string;
-        stock_in: number;
-        stock_out: number;
+        revenue: number;
+        costs: number;
+        profit: number;
     }>;
     recentActivities: Array<{
         id: number;
@@ -58,7 +61,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Dashboard({
     summaryCards,
     stockByCategory,
-    stockMovement,
+    revenueVsCost,
     recentActivities,
     fefoWarnings,
 }: DashboardProps) {
@@ -69,7 +72,7 @@ export default function Dashboard({
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Dashboard Analitik</h1>
-                        <p className="text-muted-foreground">Overview inventory dan mutasi barang</p>
+                        <p className="text-muted-foreground">Ringkasan finansial dan performa bisnis</p>
                     </div>
                 </div>
 
@@ -78,15 +81,15 @@ export default function Dashboard({
 
                 {/* Charts Row */}
                 <div className="grid gap-4 md:grid-cols-2">
+                    <RevenueVsCostChart data={revenueVsCost} />
                     <StockByCategoryChart data={stockByCategory} />
-                    <StockMovementChart data={stockMovement} />
                 </div>
+
+                {/* FEFO Warnings (Priority) */}
+                {fefoWarnings.length > 0 && <FefoWarnings data={fefoWarnings} />}
 
                 {/* Recent Activities */}
                 <RecentActivities data={recentActivities} />
-
-                {/* FEFO Warnings */}
-                {fefoWarnings.length > 0 && <FefoWarnings data={fefoWarnings} />}
             </div>
         </AppLayout>
     );

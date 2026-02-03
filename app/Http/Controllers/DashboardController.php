@@ -7,6 +7,7 @@ use App\Models\StockBatch;
 use App\Models\StockLog;
 use App\Models\StockTransfer;
 use App\Models\WarehouseStock;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +19,7 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $isSuperAdmin = $user->hasRole('super-admin');
 
         // Get warehouse IDs for non-super-admin users
@@ -26,16 +27,16 @@ class DashboardController extends Controller
             ? null
             : $user->warehouseUsers()->pluck('warehouse_id')->toArray();
 
-        // 1. Summary Cards
+        // 1. Summary Cards with Financial Metrics
         $summaryCards = $this->getSummaryCards($warehouseIds);
 
         // 2. Stock by Category Chart
         $stockByCategory = $this->getStockByCategory($warehouseIds);
 
-        // 3. Stock Movement Chart (Last 7 Days)
-        $stockMovement = $this->getStockMovement($warehouseIds);
+        // 3. Revenue vs Cost Chart (Last 7 Days)
+        $revenueVsCost = $this->getRevenueVsCost($warehouseIds);
 
-        // 4. Recent Activities (Top 10 Stock Logs)
+        // 4. Recent Activities (Top 8 Stock Logs)
         $recentActivities = $this->getRecentActivities($warehouseIds);
 
         // 5. FEFO Warnings (Expired & Near Expiry Batches)
@@ -44,34 +45,58 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', [
             'summaryCards' => $summaryCards,
             'stockByCategory' => $stockByCategory,
-            'stockMovement' => $stockMovement,
+            'revenueVsCost' => $revenueVsCost,
             'recentActivities' => $recentActivities,
             'fefoWarnings' => $fefoWarnings,
         ]);
     }
 
     /**
-     * Get summary cards data.
+     * Get summary cards data with financial metrics.
      */
     private function getSummaryCards(?array $warehouseIds): array
     {
-        $warehouseStocksQuery = WarehouseStock::query();
-        $stockBatchesQuery = StockBatch::query()->whereHas('warehouseStock');
-        $stockTransfersQuery = StockTransfer::query();
+        $sevenDaysAgo = now()->subDays(7);
+
+        // Total Revenue (from stock out transactions in last 7 days)
+        $revenueQuery = StockLog::query()
+            ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->where('stock_logs.created_at', '>=', $sevenDaysAgo)
+            ->where('stock_logs.qty', '<', 0);
 
         if ($warehouseIds !== null) {
-            $warehouseStocksQuery->whereIn('warehouse_id', $warehouseIds);
-            $stockBatchesQuery->whereHas('warehouseStock', fn ($q) => $q->whereIn('warehouse_id', $warehouseIds));
-            $stockTransfersQuery->where(function ($q) use ($warehouseIds) {
-                $q->whereIn('from_warehouse_id', $warehouseIds)
-                    ->orWhereIn('to_warehouse_id', $warehouseIds);
-            });
+            $revenueQuery->whereIn('stock_logs.warehouse_id', $warehouseIds);
         }
 
-        // Total Physical Stock
-        $totalStock = $warehouseStocksQuery->sum('total_quantity');
+        $totalRevenue = $revenueQuery->get()->sum(function ($log) {
+            // Revenue = qty * cost_price * 1.3 (assume 30% markup)
+            return abs($log->qty) * $log->cost_price * 1.3;
+        });
+
+        // Total Costs (from stock in transactions in last 7 days)
+        $costsQuery = StockLog::query()
+            ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->where('stock_logs.created_at', '>=', $sevenDaysAgo)
+            ->where('stock_logs.qty', '>', 0);
+
+        if ($warehouseIds !== null) {
+            $costsQuery->whereIn('stock_logs.warehouse_id', $warehouseIds);
+        }
+
+        $totalCosts = $costsQuery->get()->sum(function ($log) {
+            return $log->qty * $log->cost_price;
+        });
+
+        // Profit Margin
+        $profit = $totalRevenue - $totalCosts;
+        $profitMargin = $totalRevenue > 0 ? ($profit / $totalRevenue) * 100 : 0;
 
         // Total Inventory Value
+        $stockBatchesQuery = StockBatch::query()->whereHas('warehouseStock');
+        if ($warehouseIds !== null) {
+            $stockBatchesQuery->whereHas('warehouseStock', fn ($q) => $q->whereIn('warehouse_id', $warehouseIds));
+        }
+
         $totalValue = $stockBatchesQuery->get()->sum(function ($batch) {
             return $batch->current_qty * $batch->cost_price;
         });
@@ -85,14 +110,13 @@ class DashboardController extends Controller
             ->where('current_qty', '>', 0)
             ->count();
 
-        // Pending Transfers
-        $pendingTransfers = $stockTransfersQuery->where('status', 'pending')->count();
-
         return [
-            'totalStock' => $totalStock,
-            'totalValue' => $totalValue,
+            'totalRevenue' => round($totalRevenue, 0),
+            'totalCosts' => round($totalCosts, 0),
+            'profit' => round($profit, 0),
+            'profitMargin' => round($profitMargin, 1),
+            'totalValue' => round($totalValue, 0),
             'nearExpiryCount' => $nearExpiryCount,
-            'pendingTransfers' => $pendingTransfers,
         ];
     }
 
@@ -129,19 +153,20 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get stock movement for last 7 days.
+     * Get revenue vs cost for last 7 days.
      */
-    private function getStockMovement(?array $warehouseIds): array
+    private function getRevenueVsCost(?array $warehouseIds): array
     {
         $sevenDaysAgo = now()->subDays(6)->startOfDay();
 
         $stockLogs = StockLog::query()
-            ->when($warehouseIds !== null, fn ($q) => $q->whereIn('warehouse_id', $warehouseIds))
-            ->where('created_at', '>=', $sevenDaysAgo)
+            ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->when($warehouseIds !== null, fn ($q) => $q->whereIn('stock_logs.warehouse_id', $warehouseIds))
+            ->where('stock_logs.created_at', '>=', $sevenDaysAgo)
             ->select([
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(CASE WHEN qty > 0 THEN qty ELSE 0 END) as stock_in'),
-                DB::raw('SUM(CASE WHEN qty < 0 THEN ABS(qty) ELSE 0 END) as stock_out'),
+                DB::raw('DATE(stock_logs.created_at) as date'),
+                DB::raw('SUM(CASE WHEN stock_logs.qty > 0 THEN stock_logs.qty * stock_batches.cost_price ELSE 0 END) as costs'),
+                DB::raw('SUM(CASE WHEN stock_logs.qty < 0 THEN ABS(stock_logs.qty) * stock_batches.cost_price * 1.3 ELSE 0 END) as revenue'),
             ])
             ->groupBy('date')
             ->orderBy('date')
@@ -155,8 +180,9 @@ class DashboardController extends Controller
 
             $result[] = [
                 'date' => $date,
-                'stock_in' => $log ? (int) $log->stock_in : 0,
-                'stock_out' => $log ? (int) $log->stock_out : 0,
+                'revenue' => $log ? (float) $log->revenue : 0,
+                'costs' => $log ? (float) $log->costs : 0,
+                'profit' => $log ? ((float) $log->revenue - (float) $log->costs) : 0,
             ];
         }
 
@@ -172,7 +198,7 @@ class DashboardController extends Controller
             ->with(['warehouse', 'product', 'user'])
             ->when($warehouseIds !== null, fn ($q) => $q->whereIn('warehouse_id', $warehouseIds))
             ->orderBy('created_at', 'desc')
-            ->limit(10)
+            ->limit(8)
             ->get()
             ->map(function ($log) {
                 return [

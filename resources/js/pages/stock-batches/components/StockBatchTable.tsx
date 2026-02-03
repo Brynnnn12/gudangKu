@@ -14,17 +14,17 @@ interface StockBatchTableProps {
 // Status badge config
 const statusConfig = {
   available: {
-    label: 'Available',
+    label: 'Tersedia',
     color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     icon: CheckCircle,
   },
   warning: {
-    label: 'Near Expiry',
+    label: 'Mendekati Kadaluarsa',
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
     icon: AlertTriangle,
   },
   expired: {
-    label: 'Expired',
+    label: 'Kadaluarsa',
     color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
     icon: XCircle,
   },
@@ -33,8 +33,16 @@ const statusConfig = {
 export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTableProps) {
   if (stockBatches.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900">
-        <p className="text-gray-600 dark:text-gray-400">No stock batches found.</p>
+      <div className="rounded-lg border border-dashed bg-card">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+            <Package className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="mt-4 text-lg font-semibold">Belum Ada Batch Stok</h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+            Mulai dengan menambahkan batch stok pertama untuk memantau produk dengan sistem FEFO
+          </p>
+        </div>
       </div>
     );
   }
@@ -45,28 +53,28 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
         <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
           <tr>
             <th scope="col" className="px-6 py-3">
-              Batch Number
+              Nomor Batch
             </th>
             <th scope="col" className="px-6 py-3">
-              Warehouse
+              Gudang
             </th>
             <th scope="col" className="px-6 py-3">
-              Product
+              Produk
             </th>
             <th scope="col" className="px-6 py-3 text-right">
-              Current Qty
+              Qty Saat Ini
             </th>
             <th scope="col" className="px-6 py-3 text-right">
-              Cost Price
+              Harga Beli
             </th>
             <th scope="col" className="px-6 py-3">
-              Expiry Date
+              Tanggal Kadaluarsa
             </th>
             <th scope="col" className="px-6 py-3">
               Status
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              Actions
+              Aksi
             </th>
           </tr>
         </thead>
@@ -96,7 +104,7 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
                     </span>
                     {isFirstBatch && batch.status === 'available' && (
                       <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                        FEFO Priority
+                        Prioritas FEFO
                       </Badge>
                     )}
                   </div>
@@ -136,12 +144,12 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
                             (new Date(batch.expired_at).getTime() - Date.now()) /
                               (1000 * 60 * 60 * 24)
                           )}{' '}
-                          days
+                          hari
                         </div>
                       )}
                     </div>
                   ) : (
-                    <span className="text-gray-500">No expiry</span>
+                    <span className="text-gray-500">Tidak ada kadaluarsa</span>
                   )}
                 </td>
                 <td className="px-6 py-4">
@@ -153,8 +161,9 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-2">
                     <Link href={`/dashboard/stock-batches/${batch.id}`}>
-                      <Button variant="ghost" size="sm" title="View Details">
+                      <Button variant="ghost" size="sm" title="Lihat Detail">
                         <Eye className="h-4 w-4" />
+                        <span className="sr-only sm:not-sr-only ml-1">Lihat</span>
                       </Button>
                     </Link>
                     <Button
@@ -164,15 +173,17 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
                       title="Edit Batch"
                     >
                       <Edit className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only ml-1">Edit</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onDelete(batch)}
                       className="text-destructive hover:text-destructive"
-                      title="Delete Batch"
+                      title="Hapus Batch"
                     >
                       <Trash2 className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only ml-1">Hapus</span>
                     </Button>
                   </div>
                 </td>

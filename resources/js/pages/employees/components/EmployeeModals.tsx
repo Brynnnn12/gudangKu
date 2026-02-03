@@ -8,9 +8,40 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CreateEmployeeModal from '@/pages/employees/create';
-import EditEmployeeModal from '@/pages/employees/edit';
+import { EmployeeFormModal } from '@/pages/employees/components/EmployeeFormModal';
 import type { User as EmployeeUser } from '@/types/models/employee';
+
+const DeleteConfirmDialog = ({
+    open,
+    title,
+    description,
+    onConfirm,
+    onClose,
+}: {
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    onClose: () => void;
+}) => (
+    <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
+                <AlertDialogDescription>{description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                    onClick={onConfirm}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                    Hapus
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+);
 
 interface ModalState {
     create: boolean;
@@ -36,67 +67,33 @@ export function EmployeeModals({
 }: EmployeeModalsProps) {
     return (
         <>
-            {/* Create Modal */}
-            <CreateEmployeeModal
-                open={modals.create}
-                onClose={() => onCloseModal('create')}
+            <EmployeeFormModal
+                open={modals.create || modals.edit.isOpen}
+                employee={modals.edit.employee}
+                onClose={() => {
+                    if (modals.create) {
+                        onCloseModal('create');
+                    } else {
+                        onCloseModal('edit');
+                    }
+                }}
             />
 
-            {/* Edit Modal */}
-            {modals.edit.isOpen && modals.edit.employee && (
-                <EditEmployeeModal
-                    open={modals.edit.isOpen}
-                    employee={modals.edit.employee}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <DeleteConfirmDialog
+                open={modals.bulkDelete}
+                title="Hapus Beberapa Karyawan"
+                description={`Apakah Anda yakin ingin menghapus ${selectedCount} karyawan? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmBulkDelete}
+                onClose={() => onCloseModal('bulkDelete')}
+            />
 
-            {/* Bulk Delete Confirmation Modal */}
-            <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Multiple Employees</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {selectedCount} employee{selectedCount > 1 ? 's' : ''}?
-                            This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmBulkDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete {selectedCount} Item{selectedCount > 1 ? 's' : ''}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Delete Confirmation Modal */}
-            <AlertDialog open={modals.delete.isOpen} onOpenChange={() => onCloseModal('delete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Employee</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete{' '}
-                            <span className="font-semibold text-foreground">
-                                {modals.delete.employee?.name}
-                            </span>
-                            ? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={modals.delete.isOpen}
+                title="Hapus Karyawan"
+                description={`Apakah Anda yakin ingin menghapus karyawan "${modals.delete.employee?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmDelete}
+                onClose={() => onCloseModal('delete')}
+            />
         </>
     );
 }

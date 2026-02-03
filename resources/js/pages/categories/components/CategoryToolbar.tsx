@@ -26,12 +26,16 @@ export function CategoryToolbar({
     return (
         <>
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Categories</h1>
-                    {selectedCount > 0 && (
+                    <h1 className="text-3xl font-bold tracking-tight">Kategori</h1>
+                    {selectedCount > 0 ? (
                         <p className="text-sm text-muted-foreground mt-1">
-                            {selectedCount} item{selectedCount > 1 ? 's' : ''} selected
+                            {selectedCount} kategori dipilih
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Kelola kategori produk Anda
                         </p>
                     )}
                 </div>
@@ -40,43 +44,43 @@ export function CategoryToolbar({
                         <Button
                             variant="destructive"
                             onClick={onBulkDeleteClick}
+                            className="gap-2"
                         >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Selected ({selectedCount})
+                            <Trash2 className="h-4 w-4" />
+                            Hapus ({selectedCount})
                         </Button>
                     )}
-                    <Button onClick={onAddClick}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Category
+                    <Button onClick={onAddClick} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Tambah Kategori
                     </Button>
                 </div>
             </div>
 
             {/* Search */}
-            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            <div className="mb-6 flex gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name or slug..."
+                        placeholder="Cari berdasarkan nama atau slug..."
                         value={searchValue}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 h-10"
                         disabled={isSearching}
                     />
                 </div>
-                <div className="flex gap-2">
-                    {hasActiveFilters && (
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={onClearFilters}
-                            disabled={isSearching}
-                            title="Clear filters"
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
+                {hasActiveFilters && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={onClearFilters}
+                        disabled={isSearching}
+                        title="Hapus filter"
+                        className="h-10 w-10"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
         </>
     );

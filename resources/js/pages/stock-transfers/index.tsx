@@ -1,5 +1,5 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Pagination } from '@/components/pagination';
 import {
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useSearch } from '@/hooks/useSearch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type {
@@ -49,8 +50,9 @@ export default function Index({
     products,
     filters = {},
 }: StockTransfersIndexPageProps) {
-    const searchForm = useForm({
-        search: filters.search || '',
+    const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
+        route: '/dashboard/stock-transfers',
+        initialSearch: filters.search || '',
     });
 
     const [filtersState, setFiltersState] = useState(filters);
@@ -60,29 +62,6 @@ export default function Index({
         delete: { isOpen: false, transfer: null },
     });
     const [rejectReason, setRejectReason] = useState('');
-
-    // Search with auto page reset
-    useEffect(() => {
-        if (!searchForm.isDirty) return;
-
-        const timer = setTimeout(() => {
-            router.get(
-                '/dashboard/stock-transfers',
-                {
-                    ...filtersState,
-                    search: searchForm.data.search,
-                    page: undefined,
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search]);
 
     const handleFilterChange = (key: string, value: string | undefined) => {
         const newFilters = { ...filtersState, [key]: value };
@@ -95,13 +74,15 @@ export default function Index({
     };
 
     const clearFilters = () => {
-        searchForm.setData({ search: '' });
+        clearSearch();
         setFiltersState({});
         router.get('/dashboard/stock-transfers', {}, {
             replace: true,
             preserveState: false,
         });
     };
+
+    const hasActiveFilters = hasActiveSearch || Object.keys(filtersState).length > 0;
 
     const openModal = (type: keyof ModalState, transfer: StockTransfer) => {
         setModals(prev => ({ ...prev, [type]: { isOpen: true, transfer } }));
@@ -154,19 +135,16 @@ export default function Index({
         });
     };
 
-    const hasActiveFilters = !!(searchForm.data.search || filtersState.from_warehouse_id ||
-        filtersState.to_warehouse_id || filtersState.product_id || filtersState.status);
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Stock Transfers" />
             <div className="p-6">
                 <StockTransferToolbar
-                    searchValue={searchForm.data.search}
-                    onSearchChange={(value) => searchForm.setData('search', value)}
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
                     onAddClick={() => router.visit('/dashboard/stock-transfers/create')}
                     onClearFilters={clearFilters}
-                    isSearching={searchForm.processing}
+                    isSearching={isSearching}
                     hasActiveFilters={hasActiveFilters}
                     warehouses={warehouses}
                     products={products}
@@ -198,21 +176,21 @@ export default function Index({
                 <AlertDialog open={modals.approve.isOpen} onOpenChange={() => closeModal('approve')}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Approve Transfer?</AlertDialogTitle>
+                            <AlertDialogTitle>Setujui Transfer?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will execute the stock transfer from{' '}
-                                <strong>{modals.approve.transfer?.from_warehouse.name}</strong> to{' '}
-                                <strong>{modals.approve.transfer?.to_warehouse.name}</strong> for{' '}
-                                <strong>{modals.approve.transfer?.qty}</strong> units of{' '}
+                                Ini akan mengeksekusi transfer stok dari{' '}
+                                <strong>{modals.approve.transfer?.from_warehouse.name}</strong> ke{' '}
+                                <strong>{modals.approve.transfer?.to_warehouse.name}</strong> untuk{' '}
+                                <strong>{modals.approve.transfer?.qty}</strong> unit{' '}
                                 <strong>{modals.approve.transfer?.product.name}</strong>.
                                 <br /><br />
-                                Stock will be deducted from source warehouse using FEFO logic and added to destination warehouse.
+                                Stok akan dikurangi dari gudang sumber menggunakan logika FEFO dan ditambahkan ke gudang tujuan.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>Batal</AlertDialogCancel>
                             <AlertDialogAction onClick={handleApprove}>
-                                Approve Transfer
+                                Setujui Transfer
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -222,27 +200,27 @@ export default function Index({
                 <Dialog open={modals.reject.isOpen} onOpenChange={() => closeModal('reject')}>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Reject Transfer</DialogTitle>
+                            <DialogTitle>Tolak Transfer</DialogTitle>
                             <DialogDescription>
-                                Please provide a reason for rejecting this transfer request.
+                                Berikan alasan untuk menolak permintaan transfer ini.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-2">
-                            <Label htmlFor="reject_reason">Reason (Optional)</Label>
+                            <Label htmlFor="reject_reason">Alasan (Opsional)</Label>
                             <Textarea
                                 id="reject_reason"
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
-                                placeholder="Enter rejection reason..."
+                                placeholder="Masukkan alasan penolakan..."
                                 rows={4}
                             />
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => closeModal('reject')}>
-                                Cancel
+                                Batal
                             </Button>
                             <Button variant="destructive" onClick={handleReject}>
-                                Reject Transfer
+                                Tolak Transfer
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -252,15 +230,15 @@ export default function Index({
                 <AlertDialog open={modals.delete.isOpen} onOpenChange={() => closeModal('delete')}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Transfer?</AlertDialogTitle>
+                            <AlertDialogTitle>Hapus Transfer?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Are you sure you want to delete this transfer request? This action cannot be undone.
+                                Apakah Anda yakin ingin menghapus permintaan transfer ini? Tindakan ini tidak dapat dibatalkan.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>Batal</AlertDialogCancel>
                             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                                Delete
+                                Hapus
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

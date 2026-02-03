@@ -8,9 +8,40 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CreateWarehouseUserModal from '@/pages/warehouse-users/create';
-import EditWarehouseUserModal from '@/pages/warehouse-users/edit';
+import { WarehouseUserFormModal } from '@/pages/warehouse-users/components/WarehouseUserFormModal';
 import type { WarehouseUser, Warehouse, User } from '@/types/models/warehouse-users';
+
+const DeleteConfirmDialog = ({
+    open,
+    title,
+    description,
+    onConfirm,
+    onClose,
+}: {
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    onClose: () => void;
+}) => (
+    <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
+                <AlertDialogDescription>{description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                    onClick={onConfirm}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                    Hapus
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+);
 
 interface ModalState {
     create: boolean;
@@ -40,68 +71,35 @@ export function WarehouseUserModals({
 }: WarehouseUserModalsProps) {
     return (
         <>
-            {/* Create Modal */}
-            <CreateWarehouseUserModal
-                open={modals.create}
+            <WarehouseUserFormModal
+                open={modals.create || modals.edit.isOpen}
+                warehouseUser={modals.edit.warehouseUser}
                 warehouses={warehouses}
                 users={users}
-                onClose={() => onCloseModal('create')}
+                onClose={() => {
+                    if (modals.create) {
+                        onCloseModal('create');
+                    } else {
+                        onCloseModal('edit');
+                    }
+                }}
             />
 
-            {/* Edit Modal */}
-            {modals.edit.isOpen && modals.edit.warehouseUser && (
-                <EditWarehouseUserModal
-                    open={modals.edit.isOpen}
-                    warehouseUser={modals.edit.warehouseUser}
-                    warehouses={warehouses}
-                    users={users}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <DeleteConfirmDialog
+                open={modals.bulkDelete}
+                title="Hapus Beberapa Penugasan"
+                description={`Apakah Anda yakin ingin menghapus ${selectedCount} penugasan pengguna gudang? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmBulkDelete}
+                onClose={() => onCloseModal('bulkDelete')}
+            />
 
-            {/* Bulk Delete Confirmation Modal */}
-            <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Multiple Warehouse Users</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {selectedCount} warehouse user{selectedCount > 1 ? 's' : ''}?
-                            This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmBulkDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete {selectedCount} Item{selectedCount > 1 ? 's' : ''}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Delete Confirmation Modal */}
-            <AlertDialog open={modals.delete.isOpen} onOpenChange={() => onCloseModal('delete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will delete the warehouse user assignment for "{modals.delete.warehouseUser?.warehouse?.name}" and "{modals.delete.warehouseUser?.user?.name}".
-                            This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={modals.delete.isOpen}
+                title="Hapus Penugasan"
+                description={`Apakah Anda yakin ingin menghapus penugasan "${modals.delete.warehouseUser?.warehouse?.name}" untuk "${modals.delete.warehouseUser?.user?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmDelete}
+                onClose={() => onCloseModal('delete')}
+            />
         </>
     );
 }

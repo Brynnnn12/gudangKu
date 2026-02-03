@@ -8,8 +8,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import type { Product } from '@/types/models/products';
 import type { StockTransferStatus } from '@/types/models/stock-transfers';
-import type { Warehouse, Product } from '@/types/models';
+import type { Warehouse } from '@/types/models/warehouses';
 
 interface StockTransferToolbarProps {
     searchValue: string;
@@ -52,15 +53,15 @@ export function StockTransferToolbar({
             {/* Header tetap sama */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Stock Transfers</h1>
+                    <h1 className="text-3xl font-bold">Transfer Stok</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Manage inter-warehouse stock transfers
+                        Kelola transfer stok antar gudang
                     </p>
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={onAddClick}>
                         <Plus className="mr-2 h-4 w-4" />
-                        New Transfer
+                        Transfer Baru
                     </Button>
                 </div>
             </div>
@@ -70,7 +71,7 @@ export function StockTransferToolbar({
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by warehouse, product, or notes..."
+                        placeholder="Cari berdasarkan gudang, produk, atau catatan..."
                         value={searchValue}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="pl-9"
@@ -85,10 +86,10 @@ export function StockTransferToolbar({
                         onValueChange={(val) => handleSelectChange('from_warehouse_id', val)}
                     >
                         <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="From Warehouse" />
+                            <SelectValue placeholder="Dari Gudang" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Warehouses</SelectItem>
+                            <SelectItem value="all">Semua Gudang</SelectItem>
                             {warehouses.map((w) => (
                                 <SelectItem key={w.id} value={w.id.toString()}>
                                     {w.name}
@@ -103,10 +104,10 @@ export function StockTransferToolbar({
                         onValueChange={(val) => handleSelectChange('to_warehouse_id', val)}
                     >
                         <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="To Warehouse" />
+                            <SelectValue placeholder="Ke Gudang" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Warehouses</SelectItem>
+                            <SelectItem value="all">Semua Gudang</SelectItem>
                             {warehouses.map((w) => (
                                 <SelectItem key={w.id} value={w.id.toString()}>
                                     {w.name}
@@ -121,10 +122,10 @@ export function StockTransferToolbar({
                         onValueChange={(val) => handleSelectChange('product_id', val)}
                     >
                         <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Product" />
+                            <SelectValue placeholder="Produk" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Products</SelectItem>
+                            <SelectItem value="all">Semua Produk</SelectItem>
                             {products.map((p) => (
                                 <SelectItem key={p.id} value={p.id.toString()}>
                                     {p.sku} - {p.name}
@@ -142,10 +143,10 @@ export function StockTransferToolbar({
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
+                            <SelectItem value="all">Semua Status</SelectItem>
+                            <SelectItem value="pending">Menunggu</SelectItem>
+                            <SelectItem value="completed">Selesai</SelectItem>
+                            <SelectItem value="rejected">Ditolak</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -155,7 +156,7 @@ export function StockTransferToolbar({
                             size="icon"
                             onClick={onClearFilters}
                             disabled={isSearching}
-                            title="Clear filters"
+                            title="Hapus filter"
                         >
                             <X className="h-4 w-4" />
                         </Button>

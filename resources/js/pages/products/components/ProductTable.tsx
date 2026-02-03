@@ -33,8 +33,24 @@ export function ProductTable({
     allSelected,
     someSelected,
 }: ProductTableProps) {
+    if (products.length === 0) {
+        return (
+            <div className="rounded-lg border border-dashed bg-card">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <Package className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold">Belum Ada Produk</h3>
+                    <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+                        Mulai dengan menambahkan produk pertama ke inventaris Anda
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="rounded-md border bg-card">
+        <div className="rounded-lg border bg-card shadow-sm">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -42,34 +58,32 @@ export function ProductTable({
                             <Checkbox
                                 checked={allSelected}
                                 onCheckedChange={onSelectAll}
-                                aria-label="Select all"
+                                aria-label="Pilih semua"
                                 className={someSelected ? 'data-[state=checked]:bg-muted-foreground' : ''}
                             />
                         </TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Brand</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="font-semibold">SKU</TableHead>
+                        <TableHead className="font-semibold">Nama Produk</TableHead>
+                        <TableHead className="font-semibold">Merek</TableHead>
+                        <TableHead className="font-semibold">Kategori</TableHead>
+                        <TableHead className="font-semibold">Satuan</TableHead>
+                        <TableHead className="text-right font-semibold">Aksi</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {products.length > 0 ? (
-                        products.map((product) => (
-                            <TableRow key={product.id}>
+                    {products.map((product) => (
+                        <TableRow key={product.id} className="group">
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedIds.includes(product.id)}
                                         onCheckedChange={(checked) => onSelectOne(product.id, checked as boolean)}
-                                        aria-label={`Select ${product.name}`}
+                                        aria-label={`Pilih ${product.name}`}
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <Tag className="h-4 w-4 text-muted-foreground" />
-                                        <span className="font-mono text-sm">{product.sku}</span>
-                                    </div>
+                                    <Badge variant="secondary" className="font-mono text-xs">
+                                        {product.sku}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
                                 <TableCell className="text-muted-foreground">{product.brand}</TableCell>
@@ -82,32 +96,30 @@ export function ProductTable({
                                         <span>{product.unit}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-right space-x-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => onEdit(product)}
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-destructive hover:text-destructive"
-                                        onClick={() => onDelete(product)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5"
+                                            onClick={() => onEdit(product)}
+                                        >
+                                            <Edit className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Edit</span>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => onDelete(product)}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only">Hapus</span>
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
-                                No products found.
-                            </TableCell>
-                        </TableRow>
-                    )}
+                        ))}
                 </TableBody>
             </Table>
         </div>

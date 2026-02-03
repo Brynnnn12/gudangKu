@@ -44,7 +44,7 @@ export function RecentActivities({ data }: RecentActivitiesProps) {
                         <CardDescription>10 transaksi stok terakhir</CardDescription>
                     </div>
                     <Link
-                        href="/dashboard/stock-logs"
+                        href="/dashboard/recent-activities"
                         className="text-sm text-primary hover:underline"
                     >
                         Lihat Semua

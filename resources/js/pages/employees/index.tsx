@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -45,17 +45,36 @@ export default function Index({
     });
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const previousFilters = useRef({ search: filters.search || '', role: filters.role || '' });
 
-    // Search and filter with auto page reset
+    // Search and filter with real-time updates
     useEffect(() => {
-        if (!searchForm.isDirty) return;
+        // Only trigger if filters actually changed
+        if (previousFilters.current.search === searchForm.data.search &&
+            previousFilters.current.role === searchForm.data.role) {
+            return;
+        }
+
+        previousFilters.current = { search: searchForm.data.search, role: searchForm.data.role };
 
         const timer = setTimeout(() => {
-            const params: Record<string, string | undefined> = {
-                page: undefined, // Reset to page 1 on search/filter
-            };
+            // Get current URL params to preserve pagination
+            const currentParams = new URLSearchParams(window.location.search);
+            const params: Record<string, string> = {};
+
+            // Copy all existing params except page (reset to 1 when filters change)
+            currentParams.forEach((value, key) => {
+                if (key !== 'page') {
+                    params[key] = value;
+                }
+            });
+
+            // Update filter params
             if (searchForm.data.search) params.search = searchForm.data.search;
+            else delete params.search;
+
             if (searchForm.data.role && searchForm.data.role !== 'all') params.role = searchForm.data.role;
+            else delete params.role;
 
             router.get(
                 '/dashboard/employees',
@@ -164,7 +183,7 @@ export default function Index({
                 />
 
                 {/* Pagination */}
-                {employees.data.length > 0 && (
+                {employees.last_page > 1 && (
                     <div className="mt-4">
                         <Pagination
                             links={employees.links}

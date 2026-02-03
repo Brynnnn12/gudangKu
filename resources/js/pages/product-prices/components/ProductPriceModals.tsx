@@ -9,8 +9,43 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
-import CreateProductPriceModal from '@/pages/product-prices/create';
-import EditProductPriceModal from '@/pages/product-prices/edit';
+import { ProductPriceFormModal } from '@/pages/product-prices/components/ProductPriceFormModal';
+
+const DeleteConfirmDialog = ({
+    open,
+    title,
+    description,
+    onConfirm,
+    onClose,
+    children,
+}: {
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    onClose: () => void;
+    children?: React.ReactNode;
+}) => (
+    <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                    <div>{description}{children}</div>
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                    onClick={onConfirm}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                    Hapus
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+);
 
 
 interface ModalState {
@@ -56,79 +91,54 @@ export function ProductPriceModals({
 
     return (
         <>
-            <CreateProductPriceModal
-                open={modals.create}
+            <ProductPriceFormModal
+                open={modals.create || modals.edit.isOpen}
+                productPrice={modals.edit.productPrice}
                 products={products}
-                onClose={() => onCloseModal('create')}
+                onClose={() => {
+                    if (modals.create) {
+                        onCloseModal('create');
+                    } else {
+                        onCloseModal('edit');
+                    }
+                }}
             />
 
-            {modals.edit.isOpen && modals.edit.productPrice && (
-                <EditProductPriceModal
-                    open={modals.edit.isOpen}
-                    productPrice={modals.edit.productPrice}
-                    products={products}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <DeleteConfirmDialog
+                open={modals.bulkDelete}
+                title="Hapus Beberapa Harga"
+                description={`Apakah Anda yakin ingin menghapus ${selectedCount} harga produk? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmBulkDelete}
+                onClose={() => onCloseModal('bulkDelete')}
+            />
 
-            <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Multiple Prices</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {selectedCount} price{selectedCount > 1 ? 's' : ''}?
-                            This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmBulkDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete {selectedCount} Item{selectedCount > 1 ? 's' : ''}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={modals.delete.isOpen} onOpenChange={() => onCloseModal('delete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {modals.delete.productPrice && (
-                                <div className="space-y-2 mt-2">
-                                    <p>
-                                        This will delete the price for "{modals.delete.productPrice.product?.name}" effective from{' '}
-                                        {formatDate(modals.delete.productPrice.effective_from)}:
-                                    </p>
-                                    <div className="rounded-md bg-muted p-3 space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Cost Price:</span>
-                                            <span className="font-medium">{formatCurrency(modals.delete.productPrice.cost_price)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Selling Price:</span>
-                                            <span className="font-medium">{formatCurrency(modals.delete.productPrice.selling_price)}</span>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm">This action cannot be undone.</p>
-                                </div>
-                            )}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={modals.delete.isOpen}
+                title="Hapus Harga Produk"
+                description=""
+                onConfirm={onConfirmDelete}
+                onClose={() => onCloseModal('delete')}
+            >
+                {modals.delete.productPrice && (
+                    <div className="space-y-2 mt-2">
+                        <p>
+                            Hapus harga untuk "{modals.delete.productPrice.product?.name}" berlaku mulai{' '}
+                            {formatDate(modals.delete.productPrice.effective_from)}:
+                        </p>
+                        <div className="rounded-md bg-muted p-3 space-y-1">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Harga Modal:</span>
+                                <span className="font-medium">{formatCurrency(modals.delete.productPrice.cost_price)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Harga Jual:</span>
+                                <span className="font-medium">{formatCurrency(modals.delete.productPrice.selling_price)}</span>
+                            </div>
+                        </div>
+                        <p className="text-sm">Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                )}
+            </DeleteConfirmDialog>
         </>
     );
 }

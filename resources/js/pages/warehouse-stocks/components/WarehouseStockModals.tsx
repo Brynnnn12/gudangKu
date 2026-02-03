@@ -8,11 +8,42 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CreateWarehouseStockModal from '@/pages/warehouse-stocks/create';
-import EditWarehouseStockModal from '@/pages/warehouse-stocks/edit';
+import { WarehouseStockFormModal } from '@/pages/warehouse-stocks/components/WarehouseStockFormModal';
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
+
+const DeleteConfirmDialog = ({
+    open,
+    title,
+    description,
+    onConfirm,
+    onClose,
+}: {
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    onClose: () => void;
+}) => (
+    <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{title}</AlertDialogTitle>
+                <AlertDialogDescription>{description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                    onClick={onConfirm}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                    Hapus
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+);
 
 interface ModalState {
     create: boolean;
@@ -42,64 +73,35 @@ export function WarehouseStockModals({
 }: WarehouseStockModalsProps) {
     return (
         <>
-            <CreateWarehouseStockModal
-                open={modals.create}
+            <WarehouseStockFormModal
+                open={modals.create || modals.edit.isOpen}
+                warehouseStock={modals.edit.warehouseStock}
                 warehouses={warehouses}
                 products={products}
-                onClose={() => onCloseModal('create')}
+                onClose={() => {
+                    if (modals.create) {
+                        onCloseModal('create');
+                    } else {
+                        onCloseModal('edit');
+                    }
+                }}
             />
 
-            {modals.edit.isOpen && modals.edit.warehouseStock && (
-                <EditWarehouseStockModal
-                    open={modals.edit.isOpen}
-                    warehouseStock={modals.edit.warehouseStock}
-                    onClose={() => onCloseModal('edit')}
-                />
-            )}
+            <DeleteConfirmDialog
+                open={modals.bulkDelete}
+                title="Hapus Beberapa Stok Gudang"
+                description={`Apakah Anda yakin ingin menghapus ${selectedCount} stok gudang? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmBulkDelete}
+                onClose={() => onCloseModal('bulkDelete')}
+            />
 
-            <AlertDialog open={modals.bulkDelete} onOpenChange={() => onCloseModal('bulkDelete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Multiple Warehouse Stocks</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to delete {selectedCount} warehouse stock
-                            {selectedCount > 1 ? 's' : ''}? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmBulkDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete {selectedCount} Item{selectedCount > 1 ? 's' : ''}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={modals.delete.isOpen} onOpenChange={() => onCloseModal('delete')}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will delete the warehouse stock for "
-                            {modals.delete.warehouseStock?.product?.name}" at "
-                            {modals.delete.warehouseStock?.warehouse?.name}". This action cannot be
-                            undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={onConfirmDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DeleteConfirmDialog
+                open={modals.delete.isOpen}
+                title="Hapus Stok Gudang"
+                description={`Apakah Anda yakin ingin menghapus stok untuk "${modals.delete.warehouseStock?.product?.name}" di "${modals.delete.warehouseStock?.warehouse?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={onConfirmDelete}
+                onClose={() => onCloseModal('delete')}
+            />
         </>
     );
 }

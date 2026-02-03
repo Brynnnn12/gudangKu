@@ -1,6 +1,7 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Pagination } from '@/components/pagination';
+import { useSearch } from '@/hooks/useSearch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { Product, Filters, PageProps, Category } from '@/types/models/products';
@@ -29,8 +30,10 @@ export default function Index({
     categories: Category[];
     filters?: Filters;
 }) {
-    const searchForm = useForm({
-        search: filters.search || '',
+    const { searchValue, setSearchValue, clearSearch, isSearching, hasActiveSearch } = useSearch({
+        route: '/dashboard/products',
+        initialSearch: filters.search || '',
+        only: ['products'],
     });
 
     const [modals, setModals] = useState<ModalState>({
@@ -41,28 +44,6 @@ export default function Index({
     });
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-    useEffect(() => {
-        if (!searchForm.isDirty) return;
-
-        const timer = setTimeout(() => {
-            router.get(
-                '/dashboard/products',
-                {
-                    search: searchForm.data.search,
-                    page: undefined,
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    replace: true,
-                    only: ['products'],
-                }
-            );
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchForm.data.search]);
 
     const openModal = (type: keyof ModalState, data?: Product) => {
         if (type === 'create' || type === 'bulkDelete') {
@@ -111,14 +92,9 @@ export default function Index({
     };
 
     const clearFilters = () => {
-        searchForm.setData({ search: '' });
-        router.get('/dashboard/products', {}, {
-            replace: true,
-            preserveState: false
-        });
+        clearSearch();
     };
 
-    const hasActiveFilters = !!searchForm.data.search;
     const allSelected = products.data.length > 0 && selectedIds.length === products.data.length;
     const someSelected = selectedIds.length > 0 && selectedIds.length < products.data.length;
 
@@ -127,14 +103,14 @@ export default function Index({
             <Head title="Products" />
             <div className="p-6">
                 <ProductToolbar
-                    searchValue={searchForm.data.search}
-                    onSearchChange={(value: string) => searchForm.setData('search', value)}
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
                     onAddClick={() => openModal('create')}
                     onBulkDeleteClick={() => openModal('bulkDelete')}
                     onClearFilters={clearFilters}
                     selectedCount={selectedIds.length}
-                    isSearching={searchForm.processing}
-                    hasActiveFilters={hasActiveFilters}
+                    isSearching={isSearching}
+                    hasActiveFilters={hasActiveSearch}
                 />
 
                 <ProductTable
@@ -148,7 +124,7 @@ export default function Index({
                     someSelected={someSelected}
                 />
 
-                {products.data.length > 0 && (
+                {products.last_page > 1 && (
                     <div className="mt-4">
                         <Pagination
                             links={products.links}
