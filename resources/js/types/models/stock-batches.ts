@@ -1,6 +1,6 @@
 import type { Product } from './products';
-import type { Warehouse } from './warehouses';
 import type { WarehouseStock } from './warehouse-stocks';
+import type { Warehouse } from './warehouses';
 
 /**
  * Stock batch status types

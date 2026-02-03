@@ -10,6 +10,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
+
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import type { StockBatchShowPageProps } from '@/types/models/stock-batches';
@@ -174,7 +175,7 @@ export default function StockBatchShow({ stockBatch }: StockBatchShowPageProps) 
                       {stockBatch.status === 'expired'
                         ? 'Expired'
                         : `${Math.ceil(
-                            (new Date(stockBatch.expired_at).getTime() - Date.now()) /
+                            (new Date(stockBatch.expired_at).getTime() - new Date().getTime()) /
                               (1000 * 60 * 60 * 24)
                           )} days remaining`}
                     </p>

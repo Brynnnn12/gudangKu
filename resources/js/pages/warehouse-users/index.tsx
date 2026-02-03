@@ -1,14 +1,14 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { useSearch } from '@/hooks/useSearch';
-import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import { Pagination } from '@/components/pagination';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
+import { useSearch } from '@/hooks/useSearch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import type { WarehouseUser, Filters, PageProps, Warehouse, User } from '@/types/models/warehouse-users';
 import { WarehouseUserModals } from './components/WarehouseUserModals';
 import { WarehouseUserTable } from './components/WarehouseUserTable';
 import { WarehouseUserToolbar } from './components/WarehouseUserToolbar';
-import type { WarehouseUser, Filters, PageProps, Warehouse, User } from '@/types/models/warehouse-users';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

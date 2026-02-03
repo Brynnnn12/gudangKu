@@ -1,14 +1,15 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
 import { Info } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
+import CreateStockBatchModal from '@/pages/stock-batches/components/CreateStockBatchModal';
 import { type BreadcrumbItem } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock, Filters, PageProps } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
-import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import StockOutModal from './components/StockOutModal';
 import { WarehouseStockModals } from './components/WarehouseStockModals';
 import { WarehouseStockTable } from './components/WarehouseStockTable';
@@ -37,7 +38,7 @@ export default function Index({
     });
 
     const { modals, openModal, closeModal } = useGenericModals<WarehouseStock>({
-        simple: ['create', 'bulkDelete'],
+        simple: ['create', 'bulkDelete', 'stockIn'],
         withData: ['edit', 'delete', 'stockOut']
     });
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -192,6 +193,7 @@ export default function Index({
                     onSelectAll={toggleSelectAll}
                     onSelectOne={toggleSelectOne}
                     onEdit={undefined} // Disabled - totals auto-calculated from batches
+                    onStockIn={() => openModal('stockIn')}
                     onStockOut={(warehouseStock: WarehouseStock) =>
                         openModal('stockOut', warehouseStock)
                     }
@@ -227,6 +229,15 @@ export default function Index({
                     onConfirmBulkDelete={handleBulkDelete}
                     selectedCount={selectedIds.length}
                 />
+
+                {modals.stockIn.isOpen && (
+                    <CreateStockBatchModal
+                        open={modals.stockIn.isOpen}
+                        warehouses={warehouses}
+                        products={products}
+                        onClose={() => closeModal('stockIn')}
+                    />
+                )}
 
                 {modals.stockOut.isOpen && (modals.stockOut as ModalWithData<WarehouseStock>).data && (
                     <StockOutModal

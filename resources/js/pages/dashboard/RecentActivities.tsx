@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
 
 interface RecentActivity {
     id: number;

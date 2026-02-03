@@ -1,4 +1,4 @@
-import { Edit, Package, Tag, Trash2 } from 'lucide-react';
+import { Edit, Package, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';

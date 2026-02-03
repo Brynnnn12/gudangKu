@@ -1,12 +1,12 @@
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
-import { SummaryCards } from '@/pages/dashboard/SummaryCards';
+import { FefoWarnings } from '@/pages/dashboard/FefoWarnings';
+import { RecentActivities } from '@/pages/dashboard/RecentActivities';
 import { StockByCategoryChart } from '@/pages/dashboard/StockByCategoryChart';
 import { RevenueVsCostChart } from '@/pages/dashboard/StockMovementChart';
-import { RecentActivities } from '@/pages/dashboard/RecentActivities';
-import { FefoWarnings } from '@/pages/dashboard/FefoWarnings';
+import { SummaryCards } from '@/pages/dashboard/SummaryCards';
+import { dashboard } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 
 interface DashboardProps {
     summaryCards: {

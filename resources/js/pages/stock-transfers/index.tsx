@@ -23,8 +23,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useSearch } from '@/hooks/useSearch';
 import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
+import { useSearch } from '@/hooks/useSearch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type {

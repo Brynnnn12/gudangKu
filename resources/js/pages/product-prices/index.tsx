@@ -1,13 +1,13 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Pagination } from '@/components/pagination';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { ProductPrice, Filters, PageProps, ProductForSelect } from '@/types/models/product-prices';
 import { ProductPriceModals } from './components/ProductPriceModals';
 import { ProductPriceTable } from './components/ProductPriceTable';
 import { ProductPriceToolbar } from './components/ProductPriceToolbar';
-import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

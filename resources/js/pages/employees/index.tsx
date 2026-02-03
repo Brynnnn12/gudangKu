@@ -4,10 +4,10 @@ import { Pagination } from '@/components/pagination';
 import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import type { PageProps, User as EmployeeUser } from '@/types/models/employee';
-import { EmployeeToolbar } from './components/EmployeeToolbar';
-import { EmployeeTable } from './components/EmployeeTable';
+import type { PageProps, User } from '@/types/models/employee';
 import { EmployeeModals } from './components/EmployeeModals';
+import { EmployeeTable } from './components/EmployeeTable';
+import { EmployeeToolbar } from './components/EmployeeToolbar';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

@@ -1,5 +1,5 @@
-import type { Product } from './products';
 import type { User } from '../auth';
+import type { Product } from './products';
 import type { Warehouse } from './warehouses';
 
 /**

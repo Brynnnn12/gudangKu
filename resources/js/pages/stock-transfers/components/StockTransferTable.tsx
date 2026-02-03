@@ -1,5 +1,7 @@
-import { Eye, Edit, Trash2, CheckCircle, XCircle, ArrowRightLeft } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { Eye, Edit, Trash2, CheckCircle, XCircle, ArrowRightLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -8,8 +10,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { StockTransfer } from '@/types/models/stock-transfers';
 
 interface StockTransferTableProps {

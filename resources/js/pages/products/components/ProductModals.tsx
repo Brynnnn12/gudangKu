@@ -8,8 +8,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { Product, Category } from '@/types/models/products';
 import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import type { Product, Category } from '@/types/models/products';
 
 import { ProductFormModal } from './ProductFormModal';
 

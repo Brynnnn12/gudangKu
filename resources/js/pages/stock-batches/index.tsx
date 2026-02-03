@@ -1,10 +1,9 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Pagination } from '@/components/pagination';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import type { StockBatch, StockBatchesIndexPageProps } from '@/types/models/stock-batches';
-import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 
 import CreateStockBatchModal from './components/CreateStockBatchModal';
 import EditStockBatchModal from './components/EditStockBatchModal';

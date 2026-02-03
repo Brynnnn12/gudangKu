@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +37,7 @@ export function WarehouseFormModal({ open, warehouse, onClose }: WarehouseFormMo
             });
             form.clearErrors();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, warehouse]);
 
     const handleSubmit = (e: React.FormEvent) => {

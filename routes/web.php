@@ -66,10 +66,9 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         ->parameters(['stock-logs' => 'stockLog'])
         ->only(['index', 'show']);
 
-    // Stock Batches (FEFO Monitoring - read-only)
+    // Stock Batches (FEFO Monitoring)
     Route::resource('stock-batches', \App\Http\Controllers\StockBatchController::class)
-        ->parameters(['stock-batches' => 'stockBatch'])
-        ->only(['index', 'show']);
+        ->parameters(['stock-batches' => 'stockBatch']);
 
     // Stock Transfers (Inter-warehouse transfers with approval)
     Route::post('stock-transfers/{stockTransfer}/approve', [\App\Http\Controllers\StockTransferController::class, 'approve'])

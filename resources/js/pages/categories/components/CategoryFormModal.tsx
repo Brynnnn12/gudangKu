@@ -27,6 +27,7 @@ export function CategoryFormModal({ open, category, onClose }: CategoryFormModal
             form.setData('name', category?.name || '');
             form.clearErrors();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, category]);
 
     const handleSubmit = (e: React.FormEvent) => {

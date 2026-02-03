@@ -1,8 +1,8 @@
 import { Head, router } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
+import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import { useSearch } from '@/hooks/useSearch';
 import { useSelection } from '@/hooks/useSelection';
-import { useGenericModals, type ModalWithData } from '@/hooks/useGenericModals';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { Warehouse, Filters, PageProps } from '@/types/models/warehouses';

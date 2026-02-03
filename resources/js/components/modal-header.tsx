@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { DialogDescription, DialogHeader as ShadcnDialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ModalHeaderProps {

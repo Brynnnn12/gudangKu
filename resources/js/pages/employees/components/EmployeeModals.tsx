@@ -8,9 +8,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 import { EmployeeFormModal } from '@/pages/employees/components/EmployeeFormModal';
 import type { User as EmployeeUser } from '@/types/models/employee';
-import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 const DeleteConfirmDialog = ({
     open,

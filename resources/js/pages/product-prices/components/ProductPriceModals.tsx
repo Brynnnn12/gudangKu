@@ -8,9 +8,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
-import { ProductPriceFormModal } from '@/pages/product-prices/components/ProductPriceFormModal';
 import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
+import { ProductPriceFormModal } from '@/pages/product-prices/components/ProductPriceFormModal';
+import type { ProductPrice, ProductForSelect } from '@/types/models/product-prices';
 
 const DeleteConfirmDialog = ({
     open,

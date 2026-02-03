@@ -8,11 +8,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 import { WarehouseStockFormModal } from '@/pages/warehouse-stocks/components/WarehouseStockFormModal';
 import type { Product } from '@/types/models/products';
 import type { WarehouseStock } from '@/types/models/warehouse-stocks';
 import type { Warehouse } from '@/types/models/warehouses';
-import type { ModalState, ModalWithData } from '@/hooks/useGenericModals';
 
 const DeleteConfirmDialog = ({
     open,

@@ -141,7 +141,7 @@ export function StockBatchTable({ stockBatches, onEdit, onDelete }: StockBatchTa
                       {batch.status !== 'expired' && (
                         <div className="text-xs text-gray-500">
                           {Math.ceil(
-                            (new Date(batch.expired_at).getTime() - Date.now()) /
+                            (new Date(batch.expired_at).getTime() - new Date().getTime()) /
                               (1000 * 60 * 60 * 24)
                           )}{' '}
                           hari
