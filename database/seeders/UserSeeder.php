@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
         User::factory([
             'name' => env('USER_NAME', 'Super Admin'),
             'email' => env('USER_EMAIL', 'admin@example.com'),
-            'phone_number' => env('USER_PHONE', '6285150704897'),
+            'phone_number' => env('USER_PHONE', '6281234567890'),
             'password' => env('USER_PASSWORD', 'password'),
         ])->create()->assignRole('super-admin');
 
@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
         User::factory([
             'name' => 'Viewer User',
             'email' => 'viewer@gudangku.com',
-            'phone_number' => '6281234567892',
+            'phone_number' => '6285150704897',
         ])->create()->assignRole('viewer');
 
         // 5 additional random users with random roles

@@ -43,6 +43,7 @@ return [
 
     'fonnte' => [
     'token' => env('FONNTE_TOKEN'),
+    'enabled' => env('FONNTE_ENABLED', true),
 ],
 
 ];

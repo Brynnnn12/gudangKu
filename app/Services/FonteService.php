@@ -26,6 +26,15 @@ class FonteService
      */
     public function sendMessage(string $phone, string $message): array
     {
+        // Check if Fonnte is enabled
+        if (!config('services.fonnte.enabled', true)) {
+            Log::info('WhatsApp notification disabled', ['phone' => $phone]);
+            return [
+                'success' => true,
+                'data' => ['status' => 'disabled', 'message' => 'Notifications are disabled'],
+            ];
+        }
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => $this->token,

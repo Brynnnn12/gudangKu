@@ -10,7 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class SendWaExpiredNotification implements ShouldQueue
+class SendReportNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -45,7 +45,7 @@ class SendWaExpiredNotification implements ShouldQueue
             $result = $fonteService->sendMessage($this->phone, $this->message);
 
             if (! $result['success']) {
-                Log::warning('Failed to send WhatsApp notification', [
+                Log::warning('Failed to send report notification', [
                     'phone' => $this->phone,
                     'error' => $result['error'] ?? 'Unknown error',
                 ]);
@@ -54,7 +54,7 @@ class SendWaExpiredNotification implements ShouldQueue
                 $this->release(60);
             }
         } catch (\Exception $e) {
-            Log::error('Exception in SendWaExpiredNotification job', [
+            Log::error('Exception in SendReportNotification job', [
                 'phone' => $this->phone,
                 'error' => $e->getMessage(),
             ]);
@@ -69,7 +69,7 @@ class SendWaExpiredNotification implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error('SendWaExpiredNotification job failed permanently', [
+        Log::error('SendReportNotification job failed permanently', [
             'phone' => $this->phone,
             'error' => $exception->getMessage(),
         ]);
