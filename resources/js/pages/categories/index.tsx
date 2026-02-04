@@ -12,7 +12,7 @@ import { CategoryToolbar } from './components/CategoryToolbar';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Categories', href: '/dashboard/categories' },
+    { title: 'Kategori', href: '/dashboard/categories' },
 ];
 
 export default function Index({

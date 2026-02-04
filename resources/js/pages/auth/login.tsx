@@ -1,4 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import AuthImageSection from '@/components/auth-image-section';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -7,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+
 
 type Props = {
     status?: string;
@@ -17,23 +21,16 @@ export default function Login({
     status,
     canResetPassword,
 }: Props) {
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
-            <Head title="Log in" />
+            <Head title="Masuk" />
 
             <div className="grid md:grid-cols-2 items-center gap-4 max-md:gap-8 max-w-6xl max-md:max-w-lg w-full p-4 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] rounded-md">
                 <div className="md:max-w-md w-full px-4 py-4">
                     <div className="mb-12">
-                        <h1 className="text-slate-900 text-3xl font-bold">Sign in</h1>
-                        <p className="text-[15px] mt-6 text-slate-600">
-                            Don't have an account
-                            <TextLink
-                                href="/register"
-                                className="text-blue-600 font-medium hover:underline ml-1 whitespace-nowrap"
-                            >
-                                Register here
-                            </TextLink>
-                        </p>
+                        <h1 className="text-slate-900 text-3xl font-bold">Masuk</h1>
                     </div>
 
                     <Form
@@ -44,7 +41,7 @@ export default function Login({
                             <>
                                 <div>
                                     <Label htmlFor="email" className="text-slate-900 text-[13px] font-medium block mb-2">
-                                        Email
+                                        Alamat email
                                     </Label>
                                     <div className="relative flex items-center">
                                         <input
@@ -81,16 +78,24 @@ export default function Login({
                                         <input
                                             id="password"
                                             name="password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             required
                                             tabIndex={2}
                                             autoComplete="current-password"
                                             placeholder="Enter password"
                                             className="w-full text-slate-900 text-sm border-b border-slate-300 focus:border-blue-600 pl-2 pr-8 py-3 outline-none"
                                         />
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" className="w-4.5 h-4.5 absolute right-2 cursor-pointer" viewBox="0 0 128 128">
-                                            <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z" data-original="#000000"></path>
-                                        </svg>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-2 cursor-pointer"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="w-4.5 h-4.5 text-gray-500" />
+                                            ) : (
+                                                <Eye className="w-4.5 h-4.5 text-gray-500" />
+                                            )}
+                                        </button>
                                     </div>
                                     <InputError message={errors.password} />
                                 </div>
@@ -104,7 +109,7 @@ export default function Login({
                                             className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-slate-300 rounded-sm"
                                         />
                                         <Label htmlFor="remember" className="ml-3 block text-sm text-slate-900">
-                                            Remember me
+                                            Ingat saya
                                         </Label>
                                     </div>
                                     {canResetPassword && (
@@ -114,7 +119,7 @@ export default function Login({
                                                 className="text-blue-600 font-medium text-sm hover:underline"
                                                 tabIndex={5}
                                             >
-                                                Forgot Password?
+                                                Lupa kata sandi?
                                             </TextLink>
                                         </div>
                                     )}
@@ -129,7 +134,7 @@ export default function Login({
                                         data-test="login-button"
                                     >
                                         {processing && <Spinner className="mr-2" />}
-                                        Sign in
+                                        Masuk
                                     </Button>
                                 </div>
 
@@ -141,7 +146,7 @@ export default function Login({
 
                                 <div className="my-6 flex items-center gap-4">
                                     <hr className="w-full border-slate-300" />
-                                    <p className="text-sm text-slate-900 text-center">or</p>
+                                    <p className="text-sm text-slate-900 text-center">atau</p>
                                     <hr className="w-full border-slate-300" />
                                 </div>
 
@@ -165,13 +170,7 @@ export default function Login({
                     </Form>
                 </div>
 
-                <div className="w-full h-full flex items-center bg-[#000842] rounded-xl p-8">
-                    <img
-                        src="/images/login.jpg"
-                        className="w-full h-full object-cover rounded-lg"
-                        alt="login-image"
-                    />
-                </div>
+                <AuthImageSection alt="login-image" />
             </div>
         </div>
     );

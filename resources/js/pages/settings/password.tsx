@@ -25,16 +25,16 @@ export default function Password() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Password settings" />
+            <Head title="Pengaturan Password" />
 
-            <h1 className="sr-only">Password Settings</h1>
+            <h1 className="sr-only">Pengaturan Password</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Update password"
-                        description="Ensure your account is using a long, random password to stay secure"
+                        title="Perbarui Password"
+                        description="Pastikan akun Anda menggunakan password yang panjang dan acak untuk menjaga keamanan"
                     />
 
                     <Form
@@ -101,7 +101,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">
-                                        Confirm password
+                                        Konfirmasi password
                                     </Label>
 
                                     <Input
@@ -110,7 +110,7 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="Confirm password"
+                                        placeholder="Konfirmasi password"
                                     />
 
                                     <InputError
@@ -123,7 +123,7 @@ export default function Password() {
                                         disabled={processing}
                                         data-test="update-password-button"
                                     >
-                                        Save password
+                                        Simpan password
                                     </Button>
 
                                     <Transition
@@ -134,7 +134,7 @@ export default function Password() {
                                         leaveTo="opacity-0"
                                     >
                                         <p className="text-sm text-neutral-600">
-                                            Saved
+                                            Tersimpan
                                         </p>
                                     </Transition>
                                 </div>

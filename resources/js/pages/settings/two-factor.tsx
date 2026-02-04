@@ -42,25 +42,25 @@ export default function TwoFactor({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Two-Factor Authentication" />
+            <Head title="Autentikasi Dua Faktor" />
 
-            <h1 className="sr-only">Two-Factor Authentication Settings</h1>
+            <h1 className="sr-only">Pengaturan Autentikasi Dua Faktor</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Two-Factor Authentication"
-                        description="Manage your two-factor authentication settings"
+                        title="Autentikasi Dua Faktor"
+                        description="Kelola pengaturan autentikasi dua faktor Anda"
                     />
                     {twoFactorEnabled ? (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="default">Enabled</Badge>
+                            <Badge variant="default">Aktif</Badge>
                             <p className="text-muted-foreground">
-                                With two-factor authentication enabled, you will
-                                be prompted for a secure, random pin during
-                                login, which you can retrieve from the
-                                TOTP-supported application on your phone.
+                                Dengan autentikasi dua faktor diaktifkan, Anda akan
+                                diminta untuk memasukkan pin yang aman dan acak saat
+                                login, yang dapat Anda ambil dari aplikasi yang
+                                mendukung TOTP di ponsel Anda.
                             </p>
 
                             <TwoFactorRecoveryCodes
@@ -77,7 +77,7 @@ export default function TwoFactor({
                                             type="submit"
                                             disabled={processing}
                                         >
-                                            <ShieldBan /> Disable 2FA
+                                            <ShieldBan /> Nonaktifkan 2FA
                                         </Button>
                                     )}
                                 </Form>
@@ -85,12 +85,12 @@ export default function TwoFactor({
                         </div>
                     ) : (
                         <div className="flex flex-col items-start justify-start space-y-4">
-                            <Badge variant="destructive">Disabled</Badge>
+                            <Badge variant="destructive">Nonaktif</Badge>
                             <p className="text-muted-foreground">
-                                When you enable two-factor authentication, you
-                                will be prompted for a secure pin during login.
-                                This pin can be retrieved from a TOTP-supported
-                                application on your phone.
+                                Saat Anda mengaktifkan autentikasi dua faktor, Anda
+                                akan diminta untuk memasukkan pin yang aman saat
+                                login. Pin ini dapat diambil dari aplikasi yang
+                                mendukung TOTP di ponsel Anda.
                             </p>
 
                             <div>
@@ -99,7 +99,7 @@ export default function TwoFactor({
                                         onClick={() => setShowSetupModal(true)}
                                     >
                                         <ShieldCheck />
-                                        Continue Setup
+                                        Lanjutkan Pengaturan
                                     </Button>
                                 ) : (
                                     <Form
@@ -114,7 +114,7 @@ export default function TwoFactor({
                                                 disabled={processing}
                                             >
                                                 <ShieldCheck />
-                                                Enable 2FA
+                                                Aktifkan 2FA
                                             </Button>
                                         )}
                                     </Form>
