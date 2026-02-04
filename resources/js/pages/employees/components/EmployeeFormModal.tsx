@@ -33,6 +33,7 @@ export function EmployeeFormModal({ open, employee, onClose }: EmployeeFormModal
     const form = useForm({
         name: employee?.name || '',
         email: employee?.email || '',
+        phone_number: employee?.phone_number || '',
         role: employee?.roles?.[0]?.name || 'viewer',
         password: '',
         password_confirmation: '',
@@ -43,6 +44,7 @@ export function EmployeeFormModal({ open, employee, onClose }: EmployeeFormModal
             form.setData({
                 name: employee.name,
                 email: employee.email,
+                phone_number: employee.phone_number || '',
                 role: employee.roles?.[0]?.name || 'viewer',
                 password: '',
                 password_confirmation: '',
@@ -132,6 +134,24 @@ export function EmployeeFormModal({ open, employee, onClose }: EmployeeFormModal
                                     />
                                 </div>
                                 <InputError message={form.errors.email} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor={`${isEditing ? 'edit' : 'create'}-phone`}>
+                                    Nomor HP (WhatsApp) <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id={`${isEditing ? 'edit' : 'create'}-phone`}
+                                    type="tel"
+                                    value={form.data.phone_number}
+                                    onChange={(e) => form.setData('phone_number', e.target.value)}
+                                    placeholder="628123456789"
+                                    required
+                                />
+                                <InputError message={form.errors.phone_number} />
+                                <p className="text-xs text-muted-foreground">
+                                    💡 Format: 628xxxxxxxxxx (tanpa spasi atau karakter khusus)
+                                </p>
                             </div>
                         </div>
 

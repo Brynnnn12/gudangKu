@@ -24,8 +24,17 @@ class StoreEmployeeRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone_number' => ['required', 'string', 'regex:/^628[0-9]{9,11}$/'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'string', 'in:admin,user'],
+            'role' => ['required', 'string', 'in:admin,viewer'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.required' => 'Nomor HP wajib diisi.',
+            'phone_number.regex' => 'Nomor HP harus format Indonesia (contoh: 628123456789).',
         ];
     }
 }

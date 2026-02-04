@@ -30,7 +30,7 @@ export function FefoWarnings({ data }: FefoWarningsProps) {
         } else {
             return <Badge variant="secondary" className="gap-1 bg-yellow-500/10 text-yellow-600">
                 <AlertTriangle className="h-3 w-3" />
-                {daysUntilExpiry !== null ? `${daysUntilExpiry} hari` : 'Warning'}
+                {daysUntilExpiry !== null ? `${Math.floor(daysUntilExpiry)} hari` : 'Warning'}
             </Badge>;
         }
     };

@@ -24,7 +24,16 @@ class UpdateEmployeeRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$this->route('employee')->id],
-            'role' => ['required', 'string', 'in:admin,user'],
+            'phone_number' => ['required', 'string', 'regex:/^628[0-9]{9,11}$/'],
+            'role' => ['required', 'string', 'in:admin,viewer'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone_number.required' => 'Nomor HP wajib diisi.',
+            'phone_number.regex' => 'Nomor HP harus format Indonesia (contoh: 628123456789).',
         ];
     }
 }

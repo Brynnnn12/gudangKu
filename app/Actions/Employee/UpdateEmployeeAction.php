@@ -18,6 +18,7 @@ class UpdateEmployeeAction
             $user->forceFill([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'phone_number' => $input['phone_number'],
             ])->save();
 
             // Check if role needs update

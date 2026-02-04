@@ -64,6 +64,7 @@ export function EmployeeTable({
                         </TableHead>
                         <TableHead className="font-semibold">Nama</TableHead>
                         <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">No. HP</TableHead>
                         <TableHead className="font-semibold">Peran</TableHead>
                         <TableHead className="text-right font-semibold">Aksi</TableHead>
                     </TableRow>
@@ -85,6 +86,9 @@ export function EmployeeTable({
                                 </TableCell>
                                 <TableCell className="font-medium">{employee.name}</TableCell>
                                 <TableCell className="text-muted-foreground">{employee.email}</TableCell>
+                                <TableCell className="text-muted-foreground font-mono text-sm">
+                                    {employee.phone_number || '-'}
+                                </TableCell>
                                 <TableCell>
                                     <Badge
                                         variant={isAdmin ? 'default' : 'secondary'}
