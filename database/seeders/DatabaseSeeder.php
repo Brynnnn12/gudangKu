@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,        // 4. Create products (needs categories)
             ProductPriceSeeder::class,   // 5. Create product prices (needs products)
             WarehouseUserSeeder::class,  // 6. Assign users to warehouses
+
+
         ]);
     }
 }

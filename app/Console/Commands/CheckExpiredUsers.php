@@ -66,16 +66,22 @@ class CheckExpiredUsers extends Command
      */
     protected function sendNotificationsToViewers($batches): void
     {
+        $channel = config('services.notification_channel', 'whatsapp');
+        $recipientField = $channel === 'email' ? 'email' : 'phone_number';
+
         $viewers = User::role('viewer')
-            ->whereNotNull('phone_number')
+            ->whereNotNull($recipientField)
             ->get();
 
         foreach ($viewers as $viewer) {
             $message = $this->buildMessage($batches, $viewer->name, 7);
-            SendWaExpiredNotification::dispatch($viewer->phone_number, $message);
+            $recipient = $channel === 'email' ? $viewer->email : $viewer->phone_number;
+            $subject = $channel === 'email' ? 'Peringatan Stock Expired (7 Hari)' : null;
+
+            SendWaExpiredNotification::dispatch($recipient, $message, $subject);
         }
 
-        $this->info("Sent notifications to {$viewers->count()} viewers");
+        $this->info("Sent notifications to {$viewers->count()} viewers via {$channel}");
     }
 
     /**
@@ -83,16 +89,22 @@ class CheckExpiredUsers extends Command
      */
     protected function sendNotificationsToAdmins($batches): void
     {
+        $channel = config('services.notification_channel', 'whatsapp');
+        $recipientField = $channel === 'email' ? 'email' : 'phone_number';
+
         $admins = User::role(['admin', 'super-admin'])
-            ->whereNotNull('phone_number')
+            ->whereNotNull($recipientField)
             ->get();
 
         foreach ($admins as $admin) {
             $message = $this->buildMessage($batches, $admin->name, 30);
-            SendWaExpiredNotification::dispatch($admin->phone_number, $message);
+            $recipient = $channel === 'email' ? $admin->email : $admin->phone_number;
+            $subject = $channel === 'email' ? 'Peringatan Stock Expired (30 Hari)' : null;
+
+            SendWaExpiredNotification::dispatch($recipient, $message, $subject);
         }
 
-        $this->info("Sent notifications to {$admins->count()} admins");
+        $this->info("Sent notifications to {$admins->count()} admins via {$channel}");
     }
 
     /**

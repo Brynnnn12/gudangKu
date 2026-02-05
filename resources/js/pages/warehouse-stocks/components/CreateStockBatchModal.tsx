@@ -135,7 +135,7 @@ export default function CreateStockBatchModal({
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={generateBatchNumber}
+                                    onClick={() => form.setData('batch_number', generateBatchNumber())}
                                 >
                                     Generate
                                 </Button>

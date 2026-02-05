@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\NotificationServiceInterface;
+use App\Services\EmailNotificationService;
+use App\Services\FonteService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +18,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind NotificationServiceInterface based on config
+        $this->app->bind(NotificationServiceInterface::class, function ($app) {
+            $channel = config('services.notification_channel', 'whatsapp');
+
+            return match ($channel) {
+                'email' => $app->make(EmailNotificationService::class),
+                'whatsapp' => $app->make(FonteService::class),
+                default => $app->make(FonteService::class),
+            };
+        });
     }
 
     /**

@@ -40,7 +40,7 @@ export default function Profile({
                     <Heading
                         variant="small"
                         title="Informasi Profil"
-                        description="Perbarui nama dan alamat email Anda"
+                        description="Perbarui nama, alamat email, dan nomor telepon Anda"
                     />
 
                     <Form
@@ -89,6 +89,29 @@ export default function Profile({
                                         className="mt-2"
                                         message={errors.email}
                                     />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="phone_number">Nomor Telepon</Label>
+
+                                    <Input
+                                        id="phone_number"
+                                        type="tel"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.phone_number ?? ''}
+                                        name="phone_number"
+                                        autoComplete="tel"
+                                        placeholder="contoh: 6281234567890"
+                                    />
+
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.phone_number}
+                                    />
+
+                                    <p className="text-sm text-muted-foreground">
+                                        Format: 628xxxxxxxxxx (untuk notifikasi WhatsApp)
+                                    </p>
                                 </div>
 
                                 {mustVerifyEmail &&

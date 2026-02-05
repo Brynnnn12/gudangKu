@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
         User::factory([
             'name' => env('USER_NAME', 'Super Admin'),
             'email' => env('USER_EMAIL', 'admin@example.com'),
-            'phone_number' => env('USER_PHONE', '6281234567890'),
+            'phone_number' => env('USER_PHONE', '6285150704897'),
             'password' => env('USER_PASSWORD', 'password'),
         ])->create()->assignRole('super-admin');
 

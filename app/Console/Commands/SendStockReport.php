@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\WarehouseStock;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class SendStockReport extends Command
 {
@@ -53,16 +52,22 @@ class SendStockReport extends Command
         // Build message
         $message = $this->buildReportMessage($period, $startDate, $endDate, $stockMovement, $warehouseStocks);
 
+        // Determine notification channel and recipient field
+        $channel = config('services.notification_channel', 'whatsapp');
+        $recipientField = $channel === 'email' ? 'email' : 'phone_number';
+        $subject = $channel === 'email' ? 'Laporan Stock '.ucfirst($period).' GudangKu' : null;
+
         // Send to viewers
         $viewers = User::role('viewer')
-            ->whereNotNull('phone_number')
+            ->whereNotNull($recipientField)
             ->get();
 
         foreach ($viewers as $viewer) {
-            SendReportNotification::dispatch($viewer->phone_number, $message);
+            $recipient = $channel === 'email' ? $viewer->email : $viewer->phone_number;
+            SendReportNotification::dispatch($recipient, $message, $subject);
         }
 
-        $this->info("Report sent to {$viewers->count()} viewers.");
+        $this->info("Report sent to {$viewers->count()} viewers via {$channel}.");
 
         return Command::SUCCESS;
     }
@@ -86,41 +91,43 @@ class SendStockReport extends Command
     }
 
     /**
-     * Get stock movement (in/out) data
+     * Get stock movement (in/out) data with financial info
      */
     protected function getStockMovement(Carbon $startDate, Carbon $endDate): array
     {
-        $stockIn = StockLog::where('type', 'in')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('qty');
+        // Stock In (entry - qty positive and costs)
+        $stockInData = StockLog::join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->where('stock_logs.type', 'entry')
+            ->whereBetween('stock_logs.created_at', [$startDate, $endDate])
+            ->selectRaw('SUM(ABS(stock_logs.qty)) as total_qty, SUM(ABS(stock_logs.qty) * stock_batches.cost_price) as total_costs')
+            ->first();
 
-        $stockOut = StockLog::where('type', 'out')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('qty');
+        // Stock Out (exit - qty negative and revenue)
+        $stockOutData = StockLog::join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->join('warehouse_stocks', 'stock_batches.warehouse_stock_id', '=', 'warehouse_stocks.id')
+            ->join('products', 'warehouse_stocks.product_id', '=', 'products.id')
+            ->leftJoin('product_prices', function ($join) {
+                $join->on('products.id', '=', 'product_prices.product_id')
+                    ->whereRaw('product_prices.effective_from <= stock_logs.created_at')
+                    ->whereRaw('product_prices.effective_from = (SELECT MAX(effective_from) FROM product_prices WHERE product_id = products.id AND effective_from <= stock_logs.created_at)');
+            })
+            ->where('stock_logs.type', 'exit')
+            ->whereBetween('stock_logs.created_at', [$startDate, $endDate])
+            ->selectRaw('SUM(ABS(stock_logs.qty)) as total_qty, SUM(ABS(stock_logs.qty) * COALESCE(product_prices.selling_price, stock_batches.cost_price * 1.3)) as total_revenue')
+            ->first();
 
-        $topProductsIn = StockLog::select('product_id', DB::raw('SUM(qty) as total_in'))
-            ->with('product:id,name,sku')
-            ->where('type', 'in')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('product_id')
-            ->orderByDesc('total_in')
-            ->limit(5)
-            ->get();
-
-        $topProductsOut = StockLog::select('product_id', DB::raw('SUM(qty) as total_out'))
-            ->with('product:id,name,sku')
-            ->where('type', 'out')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('product_id')
-            ->orderByDesc('total_out')
-            ->limit(5)
-            ->get();
+        $stockIn = $stockInData->total_qty ?? 0;
+        $totalCosts = $stockInData->total_costs ?? 0;
+        $stockOut = $stockOutData->total_qty ?? 0;
+        $totalRevenue = $stockOutData->total_revenue ?? 0;
+        $profit = $totalRevenue - $totalCosts;
 
         return [
             'stock_in' => $stockIn,
             'stock_out' => $stockOut,
-            'top_products_in' => $topProductsIn,
-            'top_products_out' => $topProductsOut,
+            'total_costs' => $totalCosts,
+            'total_revenue' => $totalRevenue,
+            'profit' => $profit,
         ];
     }
 
@@ -145,60 +152,55 @@ class SendStockReport extends Command
     }
 
     /**
-     * Build WhatsApp message
+     * Build WhatsApp message (concise version with financial info)
      */
     protected function buildReportMessage(string $period, Carbon $startDate, Carbon $endDate, array $stockMovement, array $warehouseStocks): string
     {
         $periodLabel = $period === 'weekly' ? 'MINGGUAN' : 'BULANAN';
         $dateRange = $startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y');
 
-        $message = "*LAPORAN STOK {$periodLabel}*\n";
-        $message .= "📅 Periode: {$dateRange}\n\n";
+        $message = "*📊 LAPORAN {$periodLabel}*\n";
+        $message .= "📅 {$dateRange}\n\n";
 
-        // Stock Movement Summary
-        $message .= "📊 *RINGKASAN PERGERAKAN STOK*\n";
-        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $message .= "📥 Stok Masuk: *".number_format($stockMovement['stock_in'])."* unit\n";
-        $message .= "📤 Stok Keluar: *".number_format($stockMovement['stock_out'])."* unit\n";
-        $message .= "📈 Selisih: *".number_format($stockMovement['stock_in'] - $stockMovement['stock_out'])."* unit\n\n";
+        // Financial Summary
+        $profit = $stockMovement['profit'];
+        $profitIcon = $profit >= 0 ? '📈' : '📉';
 
-        // Top Products In
-        if ($stockMovement['top_products_in']->isNotEmpty()) {
-            $message .= "🔝 *TOP 5 PRODUK MASUK*\n";
-            foreach ($stockMovement['top_products_in'] as $index => $item) {
-                $no = $index + 1;
-                $message .= "{$no}. {$item->product->name}\n";
-                $message .= "   SKU: {$item->product->sku} | Qty: ".number_format($item->total_in)."\n";
+        $message .= "💰 *FINANSIAL*\n";
+        $message .= '• Pengeluaran: Rp '.number_format($stockMovement['total_costs'], 0, ',', '.')."\n";
+        $message .= '• Pemasukan: Rp '.number_format($stockMovement['total_revenue'], 0, ',', '.')."\n";
+        $message .= "{$profitIcon} Profit: *Rp ".number_format(abs($profit), 0, ',', '.')."*\n\n";
+
+        // Stock Movement
+        $message .= "📦 *PERGERAKAN STOK*\n";
+        $message .= '• Masuk: '.number_format($stockMovement['stock_in'])." unit\n";
+        $message .= '• Keluar: '.number_format($stockMovement['stock_out'])." unit\n\n";
+
+        // Warehouse Stocks Summary (compact version)
+        $message .= "🏢 *STOK SAAT INI*\n";
+
+        $grandTotalItems = 0;
+        $grandTotalQty = 0;
+        $warehouseCount = count($warehouseStocks);
+
+        // Show details if 3 or fewer warehouses, otherwise just summary
+        if ($warehouseCount <= 3) {
+            foreach ($warehouseStocks as $warehouseName => $data) {
+                $grandTotalItems += $data['total_items'];
+                $grandTotalQty += $data['total_qty'];
+                $message .= "• {$warehouseName}: {$data['total_items']} items, ".number_format($data['total_qty'])." unit\n";
             }
-            $message .= "\n";
+        } else {
+            foreach ($warehouseStocks as $data) {
+                $grandTotalItems += $data['total_items'];
+                $grandTotalQty += $data['total_qty'];
+            }
+            $message .= "• {$warehouseCount} gudang aktif\n";
         }
 
-        // Top Products Out
-        if ($stockMovement['top_products_out']->isNotEmpty()) {
-            $message .= "🔝 *TOP 5 PRODUK KELUAR*\n";
-            foreach ($stockMovement['top_products_out'] as $index => $item) {
-                $no = $index + 1;
-                $message .= "{$no}. {$item->product->name}\n";
-                $message .= "   SKU: {$item->product->sku} | Qty: ".number_format($item->total_out)."\n";
-            }
-            $message .= "\n";
-        }
+        $message .= '• *Total: '.$grandTotalItems.' items, '.number_format($grandTotalQty)." unit*\n\n";
 
-        // Warehouse Stocks
-        $message .= "🏢 *STOK PER GUDANG*\n";
-        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        foreach ($warehouseStocks as $warehouseName => $data) {
-            $message .= "\n*{$warehouseName}*\n";
-            $message .= "Total Items: {$data['total_items']} | Total Qty: ".number_format($data['total_qty'])."\n";
-
-            if (! empty($data['stocks'])) {
-                foreach ($data['stocks'] as $stock) {
-                    $message .= "• {$stock['product']['name']} ({$stock['product']['sku']}): ".number_format($stock['total_quantity'])."\n";
-                }
-            }
-        }
-
-        $message .= "\n\n_Laporan otomatis dari sistem GudangKu_";
+        $message .= '_Sistem GudangKu_';
 
         return $message;
     }

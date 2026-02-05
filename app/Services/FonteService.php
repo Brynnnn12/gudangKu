@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\NotificationServiceInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class FonteService
+class FonteService implements NotificationServiceInterface
 {
     protected string $apiUrl;
 
@@ -20,15 +21,19 @@ class FonteService
     /**
      * Send WhatsApp message
      *
-     * @param  string  $phone  Phone number in international format (e.g., 6281234567890)
+     * @param  string  $recipient  Phone number in international format (e.g., 6281234567890)
      * @param  string  $message  Message content
+     * @param  string|null  $subject  Optional subject (not used for WhatsApp)
      * @return array Response from Fonnte API
      */
-    public function sendMessage(string $phone, string $message): array
+    public function sendMessage(string $recipient, string $message, ?string $subject = null): array
     {
         // Check if Fonnte is enabled
-        if (!config('services.fonnte.enabled', true)) {
-            Log::info('WhatsApp notification disabled', ['phone' => $phone]);
+        if (! config('services.fonnte.enabled', true)) {
+            Log::info('Fonnte notifications are disabled', [
+                'recipient' => $recipient,
+            ]);
+
             return [
                 'success' => true,
                 'data' => ['status' => 'disabled', 'message' => 'Notifications are disabled'],
@@ -39,25 +44,44 @@ class FonteService
             $response = Http::withHeaders([
                 'Authorization' => $this->token,
             ])->post("{$this->apiUrl}/send", [
-                'target' => $phone,
+                'target' => $recipient,
                 'message' => $message,
                 'countryCode' => '62', // Indonesia country code
             ]);
 
             if ($response->successful()) {
-                Log::info('WhatsApp message sent successfully', [
-                    'phone' => $phone,
-                    'response' => $response->json(),
+                $responseData = $response->json();
+
+                // Check if Fonnte actually sent the message
+                $isSent = isset($responseData['status']) ? $responseData['status'] : true;
+
+                if ($isSent) {
+                    Log::info('WhatsApp message sent successfully', [
+                        'recipient' => $recipient,
+                        'response' => $responseData,
+                    ]);
+
+                    return [
+                        'success' => true,
+                        'data' => $responseData,
+                    ];
+                }
+
+                // Fonnte returned error (e.g., disconnected device)
+                Log::warning('Fonnte API returned error', [
+                    'recipient' => $recipient,
+                    'response' => $responseData,
                 ]);
 
                 return [
-                    'success' => true,
-                    'data' => $response->json(),
+                    'success' => false,
+                    'error' => $responseData['reason'] ?? 'Unknown error from Fonnte',
+                    'data' => $responseData,
                 ];
             }
 
             Log::error('Failed to send WhatsApp message', [
-                'phone' => $phone,
+                'recipient' => $recipient,
                 'status' => $response->status(),
                 'response' => $response->body(),
             ]);
@@ -68,7 +92,7 @@ class FonteService
             ];
         } catch (\Exception $e) {
             Log::error('Exception when sending WhatsApp message', [
-                'phone' => $phone,
+                'recipient' => $recipient,
                 'error' => $e->getMessage(),
             ]);
 
@@ -82,17 +106,18 @@ class FonteService
     /**
      * Send bulk WhatsApp messages
      *
-     * @param  array  $recipients  Array of recipients with phone and message
+     * @param  array  $recipients  Array of recipients with recipient, message, and optional subject
      * @return array Results of bulk sending
      */
     public function sendBulkMessages(array $recipients): array
     {
         $results = [];
 
-        foreach ($recipients as $recipient) {
+        foreach ($recipients as $item) {
             $results[] = $this->sendMessage(
-                $recipient['phone'],
-                $recipient['message']
+                $item['recipient'] ?? $item['phone'], // Support both keys for backward compatibility
+                $item['message'],
+                $item['subject'] ?? null
             );
         }
 

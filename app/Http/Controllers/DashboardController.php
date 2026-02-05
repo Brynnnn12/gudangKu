@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\StockBatch;
 use App\Models\StockLog;
-use App\Models\StockTransfer;
-use App\Models\WarehouseStock;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -61,16 +59,26 @@ class DashboardController extends Controller
         // Total Revenue (from stock out transactions in last 7 days)
         $revenueQuery = StockLog::query()
             ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->join('warehouse_stocks', 'stock_batches.warehouse_stock_id', '=', 'warehouse_stocks.id')
+            ->join('products', 'warehouse_stocks.product_id', '=', 'products.id')
+            ->leftJoin('product_prices', function ($join) {
+                $join->on('products.id', '=', 'product_prices.product_id')
+                    ->whereRaw('product_prices.effective_from <= stock_logs.created_at')
+                    ->whereRaw('product_prices.effective_from = (SELECT MAX(effective_from) FROM product_prices WHERE product_id = products.id AND effective_from <= stock_logs.created_at)');
+            })
             ->where('stock_logs.created_at', '>=', $sevenDaysAgo)
-            ->where('stock_logs.qty', '<', 0);
+            ->where('stock_logs.qty', '<', 0)
+            ->select('stock_logs.*', 'stock_batches.cost_price', 'product_prices.selling_price');
 
         if ($warehouseIds !== null) {
             $revenueQuery->whereIn('stock_logs.warehouse_id', $warehouseIds);
         }
 
         $totalRevenue = $revenueQuery->get()->sum(function ($log) {
-            // Revenue = qty * cost_price * 1.3 (assume 30% markup)
-            return abs($log->qty) * $log->cost_price * 1.3;
+            // Use selling_price if available, otherwise fallback to cost_price * 1.3
+            $sellingPrice = $log->selling_price ?? ($log->cost_price * 1.3);
+
+            return abs($log->qty) * $sellingPrice;
         });
 
         // Total Costs (from stock in transactions in last 7 days)
@@ -161,12 +169,19 @@ class DashboardController extends Controller
 
         $stockLogs = StockLog::query()
             ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->join('warehouse_stocks', 'stock_batches.warehouse_stock_id', '=', 'warehouse_stocks.id')
+            ->join('products', 'warehouse_stocks.product_id', '=', 'products.id')
+            ->leftJoin('product_prices', function ($join) {
+                $join->on('products.id', '=', 'product_prices.product_id')
+                    ->whereRaw('product_prices.effective_from <= stock_logs.created_at')
+                    ->whereRaw('product_prices.effective_from = (SELECT MAX(effective_from) FROM product_prices WHERE product_id = products.id AND effective_from <= stock_logs.created_at)');
+            })
             ->when($warehouseIds !== null, fn ($q) => $q->whereIn('stock_logs.warehouse_id', $warehouseIds))
             ->where('stock_logs.created_at', '>=', $sevenDaysAgo)
             ->select([
                 DB::raw('DATE(stock_logs.created_at) as date'),
                 DB::raw('SUM(CASE WHEN stock_logs.qty > 0 THEN stock_logs.qty * stock_batches.cost_price ELSE 0 END) as costs'),
-                DB::raw('SUM(CASE WHEN stock_logs.qty < 0 THEN ABS(stock_logs.qty) * stock_batches.cost_price * 1.3 ELSE 0 END) as revenue'),
+                DB::raw('SUM(CASE WHEN stock_logs.qty < 0 THEN ABS(stock_logs.qty) * COALESCE(product_prices.selling_price, stock_batches.cost_price * 1.3) ELSE 0 END) as revenue'),
             ])
             ->groupBy('date')
             ->orderBy('date')

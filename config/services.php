@@ -41,9 +41,21 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notification Services
+    |--------------------------------------------------------------------------
+    |
+    | Configure notification channel and services for the application.
+    | Supported channels: 'whatsapp', 'email'
+    |
+    */
+
+    'notification_channel' => env('NOTIFICATION_CHANNEL', 'whatsapp'),
+
     'fonnte' => [
-    'token' => env('FONNTE_TOKEN'),
-    'enabled' => env('FONNTE_ENABLED', true),
-],
+        'token' => env('FONNTE_TOKEN'),
+        'enabled' => env('FONNTE_ENABLED', true),
+    ],
 
 ];

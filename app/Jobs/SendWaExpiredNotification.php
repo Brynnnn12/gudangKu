@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Services\FonteService;
+use App\Contracts\NotificationServiceInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,25 +28,30 @@ class SendWaExpiredNotification implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public string $phone,
-        public string $message
+        public string $recipient,
+        public string $message,
+        public ?string $subject = null
     ) {
     }
 
     /**
      * Execute the job.
      */
-    public function handle(FonteService $fonteService): void
+    public function handle(NotificationServiceInterface $notificationService): void
     {
         try {
             // Add delay to prevent spam (3 seconds between messages)
             sleep(3);
 
-            $result = $fonteService->sendMessage($this->phone, $this->message);
+            $result = $notificationService->sendMessage(
+                $this->recipient,
+                $this->message,
+                $this->subject
+            );
 
             if (! $result['success']) {
-                Log::warning('Failed to send WhatsApp notification', [
-                    'phone' => $this->phone,
+                Log::warning('Failed to send expired notification', [
+                    'recipient' => $this->recipient,
                     'error' => $result['error'] ?? 'Unknown error',
                 ]);
 
@@ -55,7 +60,7 @@ class SendWaExpiredNotification implements ShouldQueue
             }
         } catch (\Exception $e) {
             Log::error('Exception in SendWaExpiredNotification job', [
-                'phone' => $this->phone,
+                'recipient' => $this->recipient,
                 'error' => $e->getMessage(),
             ]);
 
@@ -70,7 +75,7 @@ class SendWaExpiredNotification implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error('SendWaExpiredNotification job failed permanently', [
-            'phone' => $this->phone,
+            'recipient' => $this->recipient,
             'error' => $exception->getMessage(),
         ]);
     }
