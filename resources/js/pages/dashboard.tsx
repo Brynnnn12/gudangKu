@@ -2,23 +2,37 @@ import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { FefoWarnings } from '@/pages/dashboard/FefoWarnings';
 import { RecentActivities } from '@/pages/dashboard/RecentActivities';
-import { StockByCategoryChart } from '@/pages/dashboard/StockByCategoryChart';
+import { StockByWarehouseChart } from '@/pages/dashboard/StockByWarehouseChart';
 import { RevenueVsCostChart } from '@/pages/dashboard/StockMovementChart';
 import { SummaryCards } from '@/pages/dashboard/SummaryCards';
+import { TopSellingProductsChart } from '@/pages/dashboard/TopSellingProductsChart';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
 interface DashboardProps {
     summaryCards: {
-        totalRevenue: number;
-        totalCosts: number;
-        profit: number;
-        profitMargin: number;
-        totalValue: number;
-        nearExpiryCount: number;
+        financial: {
+            revenue: number;
+            costs: number;
+            profit: number;
+            profitMargin: number;
+        };
+        nearExpiry: {
+            count: number;
+        };
+        stockMovement: {
+            stockIn: number;
+            stockOut: number;
+        };
     };
-    stockByCategory: Array<{
+    stockByWarehouse: Array<{
         name: string;
+        items: number;
+        quantity: number;
+    }>;
+    topSellingProducts: Array<{
+        name: string;
+        sku: string;
         total: number;
     }>;
     revenueVsCost: Array<{
@@ -60,7 +74,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({
     summaryCards,
-    stockByCategory,
+    stockByWarehouse,
+    topSellingProducts,
     revenueVsCost,
     recentActivities,
     fefoWarnings,
@@ -76,14 +91,17 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* Summary Cards */}
+                {/* Summary Cards - 3 Cards */}
                 <SummaryCards {...summaryCards} />
 
-                {/* Charts Row */}
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Charts Row - 2 Charts */}
+                <div className="grid gap-4 lg:grid-cols-2">
                     <RevenueVsCostChart data={revenueVsCost} />
-                    <StockByCategoryChart data={stockByCategory} />
+                    <TopSellingProductsChart data={topSellingProducts} />
                 </div>
+
+                {/* Stock by Warehouse */}
+                <StockByWarehouseChart data={stockByWarehouse} />
 
                 {/* FEFO Warnings (Priority) */}
                 {fefoWarnings.length > 0 && <FefoWarnings data={fefoWarnings} />}

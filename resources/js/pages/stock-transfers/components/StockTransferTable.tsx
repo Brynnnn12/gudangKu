@@ -9,8 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import type { StockTransfer } from '@/types/models/stock-transfers';
 import type { User } from '@/types/auth';
+import type { StockTransfer } from '@/types/models/stock-transfers';
 
 interface StockTransferTableProps {
     stockTransfers: StockTransfer[];

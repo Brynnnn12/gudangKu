@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\StockBatch;
 use App\Models\StockLog;
 use Illuminate\Support\Facades\Auth;
@@ -19,38 +18,43 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->hasRole('super-admin');
+        $isViewer = $user->hasRole('viewer');
 
         // Get warehouse IDs for non-super-admin users
-        $warehouseIds = $isSuperAdmin
+        $warehouseIds = ($isSuperAdmin || $isViewer)
             ? null
             : $user->warehouses()->pluck('warehouses.id')->toArray();
 
-        // 1. Summary Cards with Financial Metrics
+        // 1. Summary Cards (3 Cards: Financial, Near Expiry, Stock Movement)
         $summaryCards = $this->getSummaryCards($warehouseIds);
 
-        // 2. Stock by Category Chart
-        $stockByCategory = $this->getStockByCategory($warehouseIds);
+        // 2. Stock by Warehouse
+        $stockByWarehouse = $this->getStockByWarehouse($warehouseIds);
 
         // 3. Revenue vs Cost Chart (Last 7 Days)
         $revenueVsCost = $this->getRevenueVsCost($warehouseIds);
 
-        // 4. Recent Activities (Top 8 Stock Logs)
+        // 4. Top Selling Products (Last 30 Days)
+        $topSellingProducts = $this->getTopSellingProducts($warehouseIds);
+
+        // 5. Recent Activities (Top 8 Stock Logs)
         $recentActivities = $this->getRecentActivities($warehouseIds);
 
-        // 5. FEFO Warnings (Expired & Near Expiry Batches)
+        // 6. FEFO Warnings (Expired & Near Expiry Batches)
         $fefoWarnings = $this->getFefoWarnings($warehouseIds);
 
         return Inertia::render('dashboard', [
             'summaryCards' => $summaryCards,
-            'stockByCategory' => $stockByCategory,
+            'stockByWarehouse' => $stockByWarehouse,
             'revenueVsCost' => $revenueVsCost,
+            'topSellingProducts' => $topSellingProducts,
             'recentActivities' => $recentActivities,
             'fefoWarnings' => $fefoWarnings,
         ]);
     }
 
     /**
-     * Get summary cards data with financial metrics.
+     * Get summary cards data with financial metrics (3 cards).
      */
     private function getSummaryCards(?array $warehouseIds): array
     {
@@ -75,7 +79,6 @@ class DashboardController extends Controller
         }
 
         $totalRevenue = $revenueQuery->get()->sum(function ($log) {
-            // Use selling_price if available, otherwise fallback to cost_price * 1.3
             $sellingPrice = $log->selling_price ?? ($log->cost_price * 1.3);
 
             return abs($log->qty) * $sellingPrice;
@@ -95,19 +98,9 @@ class DashboardController extends Controller
             return $log->qty * $log->cost_price;
         });
 
-        // Profit Margin
+        // Profit
         $profit = $totalRevenue - $totalCosts;
         $profitMargin = $totalRevenue > 0 ? ($profit / $totalRevenue) * 100 : 0;
-
-        // Total Inventory Value
-        $stockBatchesQuery = StockBatch::query()->whereHas('warehouseStock');
-        if ($warehouseIds !== null) {
-            $stockBatchesQuery->whereHas('warehouseStock', fn ($q) => $q->whereIn('warehouse_id', $warehouseIds));
-        }
-
-        $totalValue = $stockBatchesQuery->get()->sum(function ($batch) {
-            return $batch->current_qty * $batch->cost_price;
-        });
 
         // Near Expiry Count (< 3 months)
         $threeMonthsFromNow = now()->addMonths(3);
@@ -118,46 +111,93 @@ class DashboardController extends Controller
             ->where('current_qty', '>', 0)
             ->count();
 
+        // Stock Movement (Last 7 Days) - In vs Out
+        $stockInQuery = StockLog::query()
+            ->where('created_at', '>=', $sevenDaysAgo)
+            ->where('qty', '>', 0);
+
+        $stockOutQuery = StockLog::query()
+            ->where('created_at', '>=', $sevenDaysAgo)
+            ->where('qty', '<', 0);
+
+        if ($warehouseIds !== null) {
+            $stockInQuery->whereIn('warehouse_id', $warehouseIds);
+            $stockOutQuery->whereIn('warehouse_id', $warehouseIds);
+        }
+
+        $stockIn = $stockInQuery->sum('qty');
+        $stockOut = abs($stockOutQuery->sum('qty'));
+
         return [
-            'totalRevenue' => round($totalRevenue, 0),
-            'totalCosts' => round($totalCosts, 0),
-            'profit' => round($profit, 0),
-            'profitMargin' => round($profitMargin, 1),
-            'totalValue' => round($totalValue, 0),
-            'nearExpiryCount' => $nearExpiryCount,
+            'financial' => [
+                'revenue' => round($totalRevenue, 0),
+                'costs' => round($totalCosts, 0),
+                'profit' => round($profit, 0),
+                'profitMargin' => round($profitMargin, 1),
+            ],
+            'nearExpiry' => [
+                'count' => $nearExpiryCount,
+            ],
+            'stockMovement' => [
+                'stockIn' => round($stockIn, 0),
+                'stockOut' => round($stockOut, 0),
+            ],
         ];
     }
 
     /**
-     * Get stock aggregated by category.
+     * Get stock aggregated by warehouse.
      */
-    private function getStockByCategory(?array $warehouseIds): array
+    private function getStockByWarehouse(?array $warehouseIds): array
     {
-        $categories = Category::query()
-            ->with(['products' => function ($query) {
-                $query->with('warehouseStocks');
-            }])
-            ->get()
-            ->map(function ($category) use ($warehouseIds) {
-                $total = $category->products->sum(function ($product) use ($warehouseIds) {
-                    return $product->warehouseStocks
-                        ->when($warehouseIds !== null, function ($collection) use ($warehouseIds) {
-                            return $collection->whereIn('warehouse_id', $warehouseIds);
-                        })
-                        ->sum('total_quantity');
-                });
+        $query = DB::table('warehouses')
+            ->join('warehouse_stocks', 'warehouses.id', '=', 'warehouse_stocks.warehouse_id')
+            ->when($warehouseIds !== null, fn ($q) => $q->whereIn('warehouses.id', $warehouseIds))
+            ->select(
+                'warehouses.name',
+                DB::raw('COUNT(DISTINCT warehouse_stocks.product_id) as total_items'),
+                DB::raw('SUM(warehouse_stocks.total_quantity) as total_quantity')
+            )
+            ->groupBy('warehouses.id', 'warehouses.name')
+            ->orderByDesc('total_quantity')
+            ->get();
 
-                return [
-                    'name' => $category->name,
-                    'total' => $total,
-                ];
-            })
-            ->filter(fn ($item) => $item['total'] > 0)
-            ->sortByDesc('total')
-            ->take(10)
-            ->values();
+        return $query->map(fn ($item) => [
+            'name' => $item->name,
+            'items' => $item->total_items,
+            'quantity' => $item->total_quantity,
+        ])->toArray();
+    }
 
-        return $categories->toArray();
+    /**
+     * Get top selling products (last 30 days).
+     */
+    private function getTopSellingProducts(?array $warehouseIds): array
+    {
+        $thirtyDaysAgo = now()->subDays(30);
+
+        $query = StockLog::query()
+            ->join('stock_batches', 'stock_logs.batch_id', '=', 'stock_batches.id')
+            ->join('warehouse_stocks', 'stock_batches.warehouse_stock_id', '=', 'warehouse_stocks.id')
+            ->join('products', 'warehouse_stocks.product_id', '=', 'products.id')
+            ->where('stock_logs.created_at', '>=', $thirtyDaysAgo)
+            ->where('stock_logs.qty', '<', 0) // Only stock out (sales)
+            ->when($warehouseIds !== null, fn ($q) => $q->whereIn('stock_logs.warehouse_id', $warehouseIds))
+            ->select(
+                'products.name',
+                'products.sku',
+                DB::raw('SUM(ABS(stock_logs.qty)) as total_sold')
+            )
+            ->groupBy('products.id', 'products.name', 'products.sku')
+            ->orderByDesc('total_sold')
+            ->limit(10)
+            ->get();
+
+        return $query->map(fn ($item) => [
+            'name' => $item->name,
+            'sku' => $item->sku,
+            'total' => (int) $item->total_sold,
+        ])->toArray();
     }
 
     /**

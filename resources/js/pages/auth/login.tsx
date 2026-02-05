@@ -1,6 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
-import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import AuthImageSection from '@/components/auth-image-section';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';

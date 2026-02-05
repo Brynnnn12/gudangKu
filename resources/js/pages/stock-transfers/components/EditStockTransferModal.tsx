@@ -1,8 +1,6 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { ArrowRightLeft, Check, ChevronsUpDown, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import type { SharedData } from '@/types';
 import InputError from '@/components/input-error';
 import { ModalHeader } from '@/components/modal-header';
 import { Button } from '@/components/ui/button';
@@ -24,7 +22,9 @@ import {
 } from '@/components/ui/popover';
 
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
+import type { SharedData } from '@/types';
 import type { Product } from '@/types/models/products';
 import type { StockTransfer, StockTransferFormData } from '@/types/models/stock-transfers';
 import type { WarehouseStock } from '@/types/models/warehouse-stocks';
