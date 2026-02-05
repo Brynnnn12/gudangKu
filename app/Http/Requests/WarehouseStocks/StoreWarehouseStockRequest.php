@@ -27,19 +27,28 @@ class StoreWarehouseStockRequest extends FormRequest
                 'required',
                 'integer',
                 'exists:warehouses,id',
+                'min:1',
+                'max:2147483647',
             ],
             'product_id' => [
                 'required',
                 'integer',
                 'exists:products,id',
+                'min:1',
+                'max:2147483647',
                 Rule::unique('warehouse_stocks')->where(function ($query) {
-                    return $query->where('warehouse_id', $this->warehouse_id);
+                    if (is_numeric($this->warehouse_id)) {
+                        return $query->where('warehouse_id', $this->warehouse_id);
+                    }
+
+                    return $query;
                 }),
             ],
             'total_quantity' => [
                 'required',
                 'integer',
                 'min:0',
+                'max:2147483647',
             ],
         ];
     }

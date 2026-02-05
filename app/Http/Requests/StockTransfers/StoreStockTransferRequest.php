@@ -27,17 +27,21 @@ class StoreStockTransferRequest extends FormRequest
                 'integer',
                 'exists:warehouses,id',
                 'different:to_warehouse_id',
+                'min:1',
+                'max:2147483647',
             ],
             'to_warehouse_id' => [
                 'required',
                 'integer',
                 'exists:warehouses,id',
                 'different:from_warehouse_id',
+                'min:1',
+                'max:2147483647',
             ],
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'qty' => ['required', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'product_id' => ['required', 'integer', 'exists:products,id', 'min:1', 'max:2147483647'],
+            'qty' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'notes' => ['nullable', 'string', 'max:1000', 'regex:/^[\p{L}\p{N}\s\.,\-\/()]*$/u'],
+            'user_id' => ['required', 'integer', 'exists:users,id', 'min:1', 'max:2147483647'],
         ];
     }
 
@@ -66,8 +70,14 @@ class StoreStockTransferRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $data = [
             'user_id' => $this->user()->id,
-        ]);
+        ];
+
+        if ($this->has('notes')) {
+            $data['notes'] = strip_tags($this->notes);
+        }
+
+        $this->merge($data);
     }
 }

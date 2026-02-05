@@ -15,6 +15,19 @@ class UpdateCategoryRequest extends FormRequest
     }
 
     /**
+     * Sanitasi input sebelum validasi running
+     */
+    protected function prepareForValidation()
+    {
+        if ($this->has('name')) {
+            $this->merge([
+                // Bersihkan dari tag HTML dan spasi berlebih
+                'name' => strip_tags(trim($this->name)),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -28,7 +41,19 @@ class UpdateCategoryRequest extends FormRequest
                 'string',
                 'max:50',
                 'unique:categories,name,'.$this->route('category')->id,
+                'regex:/^[a-zA-Z0-9\s\-]+$/',
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.string' => 'Nama kategori harus berupa teks.',
+            'name.max' => 'Nama kategori tidak boleh lebih dari 50 karakter.',
+            'name.unique' => 'Nama kategori sudah digunakan.',
+            'name.regex' => 'Nama kategori hanya boleh mengandung huruf, angka, spasi, dan tanda hubung (-).',
         ];
     }
 }

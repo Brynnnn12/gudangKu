@@ -22,9 +22,9 @@ class UpdateStockBatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'expired_at' => ['nullable', 'date'],
-            'current_qty' => ['required', 'integer', 'min:0'], // Can be 0 for depleted batches
-            'cost_price' => ['required', 'numeric', 'min:0'],
+            'expired_at' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:today', 'before:'.now()->addYears(50)->format('Y-m-d')],
+            'current_qty' => ['required', 'integer', 'min:0', 'max:1000000'], // Can be 0 for depleted batches
+            'cost_price' => ['required', 'numeric', 'min:0', 'max:999999999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
         ];
     }
 

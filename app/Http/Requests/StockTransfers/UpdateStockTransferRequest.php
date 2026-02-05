@@ -27,17 +27,33 @@ class UpdateStockTransferRequest extends FormRequest
                 'integer',
                 'exists:warehouses,id',
                 'different:to_warehouse_id',
+                'min:1',
+                'max:2147483647',
             ],
             'to_warehouse_id' => [
                 'required',
                 'integer',
                 'exists:warehouses,id',
                 'different:from_warehouse_id',
+                'min:1',
+                'max:2147483647',
             ],
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'qty' => ['required', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'product_id' => ['required', 'integer', 'exists:products,id', 'min:1', 'max:2147483647'],
+            'qty' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'notes' => ['nullable', 'string', 'max:1000', 'regex:/^[\p{L}\p{N}\s\.,\-\/()]*$/u'],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('notes')) {
+            $this->merge([
+                'notes' => strip_tags($this->notes),
+            ]);
+        }
     }
 
     /**

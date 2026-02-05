@@ -22,13 +22,25 @@ class StoreStockBatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'batch_number' => ['required', 'string', 'max:50', 'unique:stock_batches,batch_number'],
-            'expired_at' => ['nullable', 'date', 'after:today'],
-            'current_qty' => ['required', 'integer', 'min:1'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id', 'min:1', 'max:2147483647'],
+            'product_id' => ['required', 'integer', 'exists:products,id', 'min:1', 'max:2147483647'],
+            'batch_number' => ['required', 'string', 'max:50', 'unique:stock_batches,batch_number', 'regex:/^[A-Z0-9\-\/]+$/i'],
+            'expired_at' => ['nullable', 'date', 'date_format:Y-m-d', 'after:today', 'before:'.now()->addYears(50)->format('Y-m-d')],
+            'current_qty' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'cost_price' => ['required', 'numeric', 'min:0', 'max:999999999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('batch_number')) {
+            $this->merge([
+                'batch_number' => strtoupper(strip_tags($this->batch_number)),
+            ]);
+        }
     }
 
     /**

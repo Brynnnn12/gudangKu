@@ -14,37 +14,56 @@ class UpdateProductPriceRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        // Sanitasi input angka jika user input pakai titik/koma (misal: 10.000)
+        $this->merge([
+            'cost_price' => $this->has('cost_price') ? $this->cleanNumber($this->cost_price) : null,
+            'selling_price' => $this->has('selling_price') ? $this->cleanNumber($this->selling_price) : null,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
+            // Pakai 'sometimes' agar jika hanya mau update harga jual saja tidak error
             'product_id' => [
+                'sometimes',
                 'required',
                 'integer',
                 'exists:products,id',
             ],
             'cost_price' => [
+                'sometimes',
                 'required',
                 'numeric',
                 'min:0',
                 'max:999999999999.99',
             ],
             'selling_price' => [
+                'sometimes',
                 'required',
                 'numeric',
                 'min:0',
                 'max:999999999999.99',
+                // Logika bisnis: Harga jual tetap harus lebih besar dari modal saat ini
                 'gte:cost_price',
             ],
             'effective_from' => [
+                'sometimes',
                 'required',
                 'date',
+                'after_or_equal:today', // Opsional: mencegah input tanggal masa lalu
             ],
         ];
+    }
+
+    /**
+     * Membersihkan format angka dari pemisah ribuan
+     */
+    private function cleanNumber($value)
+    {
+        return is_string($value) ? str_replace(['.', ','], '', $value) : $value;
     }
 
     public function messages(): array
@@ -63,6 +82,7 @@ class UpdateProductPriceRequest extends FormRequest
             'selling_price.gte' => 'Harga jual harus lebih besar atau sama dengan harga modal.',
             'effective_from.required' => 'Tanggal efektif wajib diisi.',
             'effective_from.date' => 'Tanggal efektif tidak valid.',
+            'effective_from.after_or_equal' => 'Tanggal efektif tidak boleh sebelum hari ini.',
         ];
     }
 }

@@ -6,37 +6,40 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateWarehouseRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name')) {
+            $this->merge(['name' => strip_tags(trim($this->name))]);
+        }
+        if ($this->has('address')) {
+            $this->merge(['address' => strip_tags(trim($this->address))]);
+        }
+    }
+
     public function rules(): array
     {
-        // pakai sometimes untuk nama dan address karena saat update, address bisa saja tidak diubah
         return [
-            'name' => 'sometimes|string|max:50',
-            'address' => 'sometimes|string',
+            'name' => 'sometimes|required|string|max:50|regex:/^[a-zA-Z0-9\s\-]+$/',
+            'address' => 'sometimes|required|string|min:10',
         ];
     }
 
-    // pakai bahasa indonesia di pesan errornya
     public function messages(): array
     {
         return [
-            'name.sometimes' => 'Nama gudang wajib diisi.',
+            'name.required' => 'Nama gudang tidak boleh dikosongkan.',
             'name.string' => 'Nama gudang harus berupa teks.',
-            'name.max' => 'Nama gudang tidak boleh lebih dari 50 karakter.',
-            'address.sometimes' => 'Alamat gudang wajib diisi.',
+            'name.max' => 'Nama gudang maksimal 50 karakter.',
+            'name.regex' => 'Nama gudang hanya boleh berisi huruf, angka, spasi, dan tanda hubung.',
+
+            'address.required' => 'Alamat gudang tidak boleh dikosongkan.',
             'address.string' => 'Alamat gudang harus berupa teks.',
+            'address.min' => 'Alamat gudang minimal 10 karakter.',
         ];
     }
 }

@@ -26,6 +26,7 @@ class UpdateWarehouseStockRequest extends FormRequest
                 'required',
                 'integer',
                 'min:0',
+                'max:2147483647',
             ],
         ];
     }

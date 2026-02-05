@@ -27,15 +27,24 @@ class StoreWarehouseUserRequest extends FormRequest
                 'required',
                 'integer',
                 'exists:warehouses,id',
+                'min:1',
+                'max:2147483647',
             ],
             'user_id' => [
                 'required',
                 'integer',
                 'exists:users,id',
+                'min:1',
+                'max:2147483647',
                 Rule::unique('warehouse_users', 'user_id')
                     ->whereNull('deleted_at')
                     ->whereNull('end_date'),
                 function ($attribute, $value, $fail) {
+                    if (! is_numeric($value) || $value != (int) $value) {
+                        $fail('ID pengguna tidak valid.');
+
+                        return;
+                    }
                     $user = \App\Models\User::find($value);
                     if ($user && ! $user->hasRole('admin')) {
                         $fail('Pengguna yang dipilih harus memiliki role Admin.');
@@ -45,6 +54,9 @@ class StoreWarehouseUserRequest extends FormRequest
             'start_date' => [
                 'required',
                 'date',
+                'date_format:Y-m-d',
+                'after_or_equal:2000-01-01',
+                'before_or_equal:'.now()->addYears(10)->format('Y-m-d'),
             ],
         ];
     }

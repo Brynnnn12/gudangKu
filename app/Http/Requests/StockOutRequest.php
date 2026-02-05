@@ -22,12 +22,28 @@ class StockOutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'type' => ['required', 'string', 'in:exit,damage'],
-            'notes' => ['nullable', 'string', 'max:500'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id', 'min:1', 'max:2147483647'],
+            'product_id' => ['required', 'integer', 'exists:products,id', 'min:1', 'max:2147483647'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'type' => ['required', 'string', 'in:exit,damage', 'regex:/^(exit|damage)$/'],
+            'notes' => ['nullable', 'string', 'max:500', 'regex:/^[\p{L}\p{N}\s\.,\-\/()]*$/u'],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $data = [];
+
+        if ($this->has('notes')) {
+            $data['notes'] = strip_tags($this->notes);
+        }
+
+        if (! empty($data)) {
+            $this->merge($data);
+        }
     }
 
     /**
