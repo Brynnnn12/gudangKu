@@ -76,7 +76,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification()
     {
-        // Mengirim notifikasi ke queue (antrean)
-        $this->notify((new \App\Notifications\VerifyEmailQueued)->delay(now()->addSeconds(5)));
+        // Tidak perlu override karena sudah dihandle di FortifyServiceProvider
+        // menggunakan VerifyEmail::toMailUsing dengan VerifyEmailMail
     }
 }
