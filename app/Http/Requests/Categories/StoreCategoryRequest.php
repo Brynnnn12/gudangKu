@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Categories;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -37,7 +38,7 @@ class StoreCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                'unique:categories,name',
+                Rule::unique('categories', 'name')->whereNull('deleted_at'),
                 'regex:/^[a-zA-Z0-9\s\-]+$/',
             ],
         ];

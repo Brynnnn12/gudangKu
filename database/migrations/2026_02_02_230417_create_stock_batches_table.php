@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stock_batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('warehouse_stock_id')->constrained('warehouse_stocks')->cascadeOnDelete();
+            $table->foreignId('warehouse_stock_id')->constrained('warehouse_stocks')->onDelete('restrict');
             $table->string('batch_number')->index();
             $table->date('expired_at')->nullable()->index();
             $table->integer('current_qty')->default(0);

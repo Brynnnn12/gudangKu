@@ -11,6 +11,12 @@ class UpdateStockBatchAction
     public function execute(StockBatch $batch, array $input): StockBatch
     {
         return DB::transaction(function () use ($batch, $input) {
+            // Lock for update to prevent race conditions
+            $batch = StockBatch::where('id', $batch->id)
+                ->with('warehouseStock')
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $oldQty = $batch->current_qty;
             $newQty = $input['current_qty'];
             $difference = $newQty - $oldQty;

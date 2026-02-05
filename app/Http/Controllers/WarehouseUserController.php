@@ -31,8 +31,8 @@ class WarehouseUserController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $warehouses = Warehouse::select('id', 'name')->get();
-        $users = User::role('admin')->select('id', 'name', 'email')->get();
+        $warehouses = Warehouse::select('id', 'name')->whereNull('deleted_at')->get();
+        $users = User::role('admin')->select('id', 'name', 'email')->whereNull('deleted_at')->get();
 
         return Inertia::render('warehouse-users/index', [
             'warehouseUsers' => $warehouseUsers,

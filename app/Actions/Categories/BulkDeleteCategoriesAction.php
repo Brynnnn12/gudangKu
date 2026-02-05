@@ -3,6 +3,7 @@
 namespace App\Actions\Categories;
 
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 
 class BulkDeleteCategoriesAction
 {
@@ -15,19 +16,23 @@ class BulkDeleteCategoriesAction
      */
     public function execute(array $ids): int
     {
-        // Get categories that have products
-        $categoriesWithProducts = Category::whereIn('id', $ids)
-            ->has('products')
-            ->pluck('name')
-            ->toArray();
+        return DB::transaction(function () use ($ids) {
+            // Lock for update to prevent race conditions
+            $categories = Category::whereIn('id', $ids)->lockForUpdate()->get();
 
-        if (! empty($categoriesWithProducts)) {
-            throw new \Exception(
-                'Cannot delete categories with products: '.implode(', ', $categoriesWithProducts).
-                '. Please reassign or delete products first.'
-            );
-        }
+            // Get categories that have products
+            $categoriesWithProducts = $categories->filter(fn ($cat) => $cat->products()->exists())
+                ->pluck('name')
+                ->toArray();
 
-        return Category::whereIn('id', $ids)->delete();
+            if (! empty($categoriesWithProducts)) {
+                throw new \Exception(
+                    'Cannot delete categories with products: '.implode(', ', $categoriesWithProducts).
+                    '. Please reassign or delete products first.'
+                );
+            }
+
+            return Category::whereIn('id', $ids)->delete();
+        });
     }
 }

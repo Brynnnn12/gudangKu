@@ -29,7 +29,7 @@ class ProductController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $categories = Category::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->whereNull('deleted_at')->get();
 
         return Inertia::render('products/index', [
             'products' => $products,
@@ -83,9 +83,13 @@ class ProductController extends Controller
     {
         $this->authorize('delete', $product);
 
-        $action->execute($product);
+        try {
+            $action->execute($product);
 
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('products.index')->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -100,8 +104,12 @@ class ProductController extends Controller
             'ids.*' => 'required|integer|exists:products,id',
         ]);
 
-        $count = $action->execute($request->ids);
+        try {
+            $count = $action->execute($request->ids);
 
-        return redirect()->route('products.index')->with('success', "{$count} products deleted successfully.");
+            return redirect()->route('products.index')->with('success', "{$count} products deleted successfully.");
+        } catch (\Exception $e) {
+            return redirect()->route('products.index')->with('error', $e->getMessage());
+        }
     }
 }

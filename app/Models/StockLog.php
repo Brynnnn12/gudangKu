@@ -54,18 +54,20 @@ class StockLog extends Model
 
     /**
      * Get the warehouse associated with this log.
+     * Includes soft-deleted warehouses for audit trail integrity.
      */
     public function warehouse(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(Warehouse::class)->withTrashed();
     }
 
     /**
      * Get the product associated with this log.
+     * Includes soft-deleted products for audit trail integrity.
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 
     /**
@@ -78,9 +80,10 @@ class StockLog extends Model
 
     /**
      * Get the user who created this log.
+     * Includes soft-deleted users for audit trail integrity.
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 }

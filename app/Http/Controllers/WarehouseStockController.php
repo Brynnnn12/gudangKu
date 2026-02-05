@@ -3,13 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\WarehouseStocks\BulkDeleteWarehouseStocksAction;
-use App\Actions\WarehouseStocks\CreateWarehouseStockAction;
 use App\Actions\WarehouseStocks\DeleteWarehouseStockAction;
 use App\Actions\WarehouseStocks\StockOutAction;
-use App\Actions\WarehouseStocks\UpdateWarehouseStockAction;
 use App\Http\Requests\StockOutRequest;
-use App\Http\Requests\WarehouseStocks\StoreWarehouseStockRequest;
-use App\Http\Requests\WarehouseStocks\UpdateWarehouseStockRequest;
 use App\Models\Product;
 use App\Models\Warehouse;
 use App\Models\WarehouseStock;
@@ -43,22 +39,22 @@ class WarehouseStockController extends Controller
 
         return Inertia::render('warehouse-stocks/index', [
             'warehouseStocks' => $warehouseStocks,
-            'warehouses' => Warehouse::select('id', 'name')->get(),
-            'products' => Product::select('id', 'name', 'sku', 'brand')->get(),
+            'warehouses' => Warehouse::select('id', 'name')->whereNull('deleted_at')->get(),
+            'products' => Product::select('id', 'name', 'sku', 'brand')->whereNull('deleted_at')->get(),
             'filters' => $request->only(['search', 'warehouse_id', 'product_id']),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
-     * ⚠️ WarehouseStock cannot be created manually - use CreateStockBatchAction.
+     * ⚠️ WarehouseStock cannot be created manually - use CreateStockBatchAction instead.
      */
-    public function store(StoreWarehouseStockRequest $request, CreateWarehouseStockAction $action)
+    public function store()
     {
         $this->authorize('create', WarehouseStock::class);
 
-        // Prevent manual creation - guide users to use batch creation
-        return redirect()->route('warehouse-stocks.index')->with('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
+        return redirect()->route('warehouse-stocks.index')
+            ->with('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
     }
 
     /**
@@ -77,14 +73,14 @@ class WarehouseStockController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * ⚠️ WarehouseStock cannot be updated manually - use UpdateStockBatchAction.
+     * ⚠️ WarehouseStock cannot be updated manually - use UpdateStockBatchAction instead.
      */
-    public function update(UpdateWarehouseStockRequest $request, WarehouseStock $warehouseStock, UpdateWarehouseStockAction $action)
+    public function update(WarehouseStock $warehouseStock)
     {
         $this->authorize('update', $warehouseStock);
 
-        // Prevent manual updates - guide users to use batch operations
-        return redirect()->route('warehouse-stocks.index')->with('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
+        return redirect()->route('warehouse-stocks.index')
+            ->with('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
     }
 
     /**
@@ -95,15 +91,19 @@ class WarehouseStockController extends Controller
     {
         $this->authorize('delete', $warehouseStock);
 
-        $batchCount = $warehouseStock->batches()->count();
+        try {
+            $batchCount = $warehouseStock->batches()->count();
 
-        $action->execute($warehouseStock);
+            $action->execute($warehouseStock);
 
-        $message = $batchCount > 0
-            ? "Warehouse stock and {$batchCount} related batches deleted successfully."
-            : 'Warehouse stock deleted successfully.';
+            $message = $batchCount > 0
+                ? "Warehouse stock and {$batchCount} related batches deleted successfully."
+                : 'Warehouse stock deleted successfully.';
 
-        return redirect()->route('warehouse-stocks.index')->with('success', $message);
+            return redirect()->route('warehouse-stocks.index')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->route('warehouse-stocks.index')->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -118,11 +118,15 @@ class WarehouseStockController extends Controller
             'ids.*' => 'required|integer|exists:warehouse_stocks,id',
         ]);
 
-        $action->execute($request->ids);
+        try {
+            $action->execute($request->ids);
 
-        $count = count($request->ids);
+            $count = count($request->ids);
 
-        return redirect()->route('warehouse-stocks.index')->with('success', "{$count} warehouse stocks deleted successfully.");
+            return redirect()->route('warehouse-stocks.index')->with('success', "{$count} warehouse stocks deleted successfully.");
+        } catch (\Exception $e) {
+            return redirect()->route('warehouse-stocks.index')->with('error', $e->getMessage());
+        }
     }
 
     /**

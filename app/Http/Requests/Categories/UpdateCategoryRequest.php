@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Categories;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -40,7 +41,9 @@ class UpdateCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                'unique:categories,name,'.$this->route('category')->id,
+                Rule::unique('categories', 'name')
+                    ->ignore($this->route('category')->id)
+                    ->whereNull('deleted_at'),
                 'regex:/^[a-zA-Z0-9\s\-]+$/',
             ],
         ];

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50)->unique()->index();
             $table->string('slug', 50)->unique()->index();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class StoreEmployeeRequest extends FormRequest
@@ -26,7 +27,13 @@ class StoreEmployeeRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-            'email' => ['required', 'string', 'email:dns', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'string',
+                'email:dns',
+                'max:255',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
+            ],
             'phone_number' => ['required', 'string', 'regex:/^628[0-9]{9,11}$/'],
             'password' => [
                 'required',

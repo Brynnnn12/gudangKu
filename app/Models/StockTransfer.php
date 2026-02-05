@@ -52,34 +52,38 @@ class StockTransfer extends Model
 
     /**
      * Get the source warehouse.
+     * Includes soft-deleted warehouses for audit trail integrity.
      */
     public function fromWarehouse(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class, 'from_warehouse_id');
+        return $this->belongsTo(Warehouse::class, 'from_warehouse_id')->withTrashed();
     }
 
     /**
      * Get the destination warehouse.
+     * Includes soft-deleted warehouses for audit trail integrity.
      */
     public function toWarehouse(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class, 'to_warehouse_id');
+        return $this->belongsTo(Warehouse::class, 'to_warehouse_id')->withTrashed();
     }
 
     /**
      * Get the product being transferred.
+     * Includes soft-deleted products for audit trail integrity.
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 
     /**
      * Get the user who created the transfer.
+     * Includes soft-deleted users for audit trail integrity.
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     /**

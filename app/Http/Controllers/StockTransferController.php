@@ -39,8 +39,8 @@ class StockTransferController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name']);
-        $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'brand', 'unit']);
+        $warehouses = Warehouse::whereNull('deleted_at')->orderBy('name')->get(['id', 'name']);
+        $products = Product::whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'sku', 'brand', 'unit']);
         $warehouseStocks = WarehouseStock::with(['warehouse', 'product'])
             ->where('total_quantity', '>', 0)
             ->get();

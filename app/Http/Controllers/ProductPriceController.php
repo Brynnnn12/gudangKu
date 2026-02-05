@@ -37,6 +37,7 @@ class ProductPriceController extends Controller
             ->withQueryString();
 
         $products = Product::select('id', 'name', 'sku')
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->get();
 

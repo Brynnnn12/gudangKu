@@ -88,9 +88,13 @@ class EmployeeController extends Controller
     {
         $this->authorize('delete', $employee);
 
-        $action->execute($employee);
+        try {
+            $action->execute($employee);
 
-        return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
+            return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('employees.index')->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -105,8 +109,12 @@ class EmployeeController extends Controller
             'ids.*' => 'required|integer|exists:users,id',
         ]);
 
-        $count = $action->execute($request->ids);
+        try {
+            $count = $action->execute($request->ids);
 
-        return redirect()->route('employees.index')->with('success', "{$count} employees deleted successfully.");
+            return redirect()->route('employees.index')->with('success', "{$count} employees deleted successfully.");
+        } catch (\Exception $e) {
+            return redirect()->route('employees.index')->with('error', $e->getMessage());
+        }
     }
 }

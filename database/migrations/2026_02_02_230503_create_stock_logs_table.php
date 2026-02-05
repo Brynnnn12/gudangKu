@@ -13,16 +13,15 @@ return new class extends Migration
     {
         Schema::create('stock_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('warehouse_id')->constrained()->onDelete('restrict');
+            $table->foreignId('product_id')->constrained()->onDelete('restrict');
             $table->foreignId('batch_id')->nullable()->constrained('stock_batches')->onDelete('set null');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('restrict');
             $table->integer('qty'); // (+) masuk, (-) keluar
             $table->enum('type', ['entry', 'exit', 'transfer', 'adjustment', 'damage']);
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            // ⚠️ NO softDeletes() - audit trail harus permanen
             $table->index(['warehouse_id', 'product_id', 'created_at']);
             $table->index(['user_id', 'created_at']);
             $table->index(['type', 'created_at']);

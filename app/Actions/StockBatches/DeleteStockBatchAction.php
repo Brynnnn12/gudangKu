@@ -8,14 +8,31 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteStockBatchAction
 {
+    /**
+     * Delete a stock batch.
+     *
+     * @throws \Exception
+     */
     public function execute(StockBatch $batch): void
     {
         DB::transaction(function () use ($batch) {
+            // Lock for update to prevent race conditions
+            $batch = StockBatch::where('id', $batch->id)
+                ->with('warehouseStock')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Validate: Cannot delete batch with remaining quantity
             if ($batch->current_qty > 0) {
-                $this->createDeletionLog($batch);
-                $this->updateWarehouseStock($batch);
+                throw new \Exception(
+                    "Cannot delete batch {$batch->batch_number} with remaining quantity {$batch->current_qty}. ".'Please adjust stock to zero first.'
+                );
             }
 
+            // Create deletion log for audit trail
+            $this->createDeletionLog($batch);
+
+            // Delete the batch
             $batch->delete();
         });
     }
@@ -29,14 +46,9 @@ class DeleteStockBatchAction
             'product_id' => $warehouseStock->product_id,
             'batch_id' => $batch->id,
             'user_id' => auth()->id(),
-            'qty' => -$batch->current_qty,
+            'qty' => 0,
             'type' => 'adjustment',
-            'notes' => "Batch {$batch->batch_number} deleted (qty was {$batch->current_qty})",
+            'notes' => "Batch {$batch->batch_number} deleted (qty was 0)",
         ]);
-    }
-
-    protected function updateWarehouseStock(StockBatch $batch): void
-    {
-        $batch->warehouseStock->decrement('total_quantity', $batch->current_qty);
     }
 }

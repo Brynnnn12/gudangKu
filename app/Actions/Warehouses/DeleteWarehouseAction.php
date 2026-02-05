@@ -3,6 +3,7 @@
 namespace App\Actions\Warehouses;
 
 use App\Models\Warehouse;
+use Illuminate\Support\Facades\DB;
 
 class DeleteWarehouseAction
 {
@@ -13,16 +14,22 @@ class DeleteWarehouseAction
      */
     public function execute(Warehouse $warehouse): bool
     {
-        // Check if warehouse has stock
-        if ($warehouse->warehouseStocks()->exists()) {
-            throw new \Exception('Cannot delete warehouse with existing stock. Please transfer or remove stock first.');
-        }
+        return DB::transaction(function () use ($warehouse) {
+            // Lock for update to prevent race conditions
+            $warehouse = Warehouse::where('id', $warehouse->id)->lockForUpdate()->firstOrFail();
 
-        // Check if warehouse has assigned users
-        if ($warehouse->users()->exists()) {
-            throw new \Exception('Cannot delete warehouse with assigned users. Please unassign users first.');
-        }
+            // Check dependencies (aligned with restrict foreign keys)
+            if ($warehouse->warehouseStocks()->exists()) {
+                throw new \Exception('Cannot delete warehouse with existing stock. Please transfer or remove stock first.');
+            }
 
-        return $warehouse->delete();
+            if ($warehouse->users()->exists()) {
+                throw new \Exception('Cannot delete warehouse with assigned users. Please unassign users first.');
+            }
+
+            // Note: stock_logs and stock_transfers will prevent deletion via restrict foreign key
+            // Soft delete preserves historical data
+            return $warehouse->delete();
+        });
     }
 }

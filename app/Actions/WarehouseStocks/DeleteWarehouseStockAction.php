@@ -2,50 +2,47 @@
 
 namespace App\Actions\WarehouseStocks;
 
-use App\Actions\StockBatches\DeleteStockBatchAction;
 use App\Models\StockLog;
 use App\Models\WarehouseStock;
+use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DeleteWarehouseStockAction
 {
-    /**
-     * Delete a warehouse stock.
-     * ⚠️ This will also delete ALL related batches.
-     */
     public function execute(WarehouseStock $warehouseStock): void
     {
         DB::transaction(function () use ($warehouseStock) {
-            // Check if has batches
-            $batches = $warehouseStock->batches;
+            $warehouseStock->load(['product:id,name', 'warehouse:id,name', 'batches']);
 
-            if ($batches->isNotEmpty()) {
-                // Delete all batches first (this will auto-update parent total and create logs)
-                $deleteBatchAction = new DeleteStockBatchAction;
-                foreach ($batches as $batch) {
-                    $deleteBatchAction->execute($batch);
-                }
+            $hasActiveStock = $warehouseStock->activeBatches()->where('current_qty', '>', 0)->lockForUpdate()->exists();
 
-                // Recalculate to ensure total is 0
-                $warehouseStock->refresh();
-                $warehouseStock->recalculateTotal();
+            if ($hasActiveStock) {
+                throw new Exception(
+                    "Gagal menghapus! Produk '{$warehouseStock->product->name}' di gudang '{$warehouseStock->warehouse->name}' masih memiliki stok aktif di batch."
+                );
             }
 
-            // Create final stock log before deletion
-            if ($warehouseStock->total_quantity != 0) {
+            foreach ($warehouseStock->batches as $batch) {
                 StockLog::create([
                     'warehouse_id' => $warehouseStock->warehouse_id,
                     'product_id' => $warehouseStock->product_id,
-                    'batch_id' => null,
-                    'user_id' => auth()->id(),
-                    'qty' => -$warehouseStock->total_quantity,
+                    'batch_id' => $batch->id,
+                    'user_id' => Auth::id(),
+                    'qty' => -$batch->current_qty,
                     'type' => 'adjustment',
-                    'notes' => 'Warehouse stock record deleted (final adjustment)',
+                    'notes' => "Batch {$batch->batch_number} dihapus oleh {$this->getUserName()} (Qty: {$batch->current_qty})",
                 ]);
+
+                $batch->delete();
             }
 
-            // Delete the warehouse stock record
             $warehouseStock->delete();
         });
+    }
+
+    private function getUserName(): string
+    {
+        return Auth::user()->name ?? 'System';
     }
 }

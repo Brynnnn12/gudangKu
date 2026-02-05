@@ -45,10 +45,21 @@ class CreateStockBatchAction
 
     protected function getOrCreateWarehouseStock(int $warehouseId, int $productId): WarehouseStock
     {
-        return WarehouseStock::firstOrCreate(
-            ['warehouse_id' => $warehouseId, 'product_id' => $productId],
-            ['total_quantity' => 0]
-        );
+        // Use lockForUpdate to prevent race conditions when creating warehouse stock
+        $warehouseStock = WarehouseStock::where('warehouse_id', $warehouseId)
+            ->where('product_id', $productId)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $warehouseStock) {
+            $warehouseStock = WarehouseStock::create([
+                'warehouse_id' => $warehouseId,
+                'product_id' => $productId,
+                'total_quantity' => 0,
+            ]);
+        }
+
+        return $warehouseStock;
     }
 
     protected function createBatch(WarehouseStock $warehouseStock, array $input): StockBatch

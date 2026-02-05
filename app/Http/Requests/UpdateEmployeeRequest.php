@@ -35,7 +35,7 @@ class UpdateEmployeeRequest extends FormRequest
                 'string',
                 'email:dns',
                 'max:255',
-                Rule::unique('users')->ignore($employee->id),
+                Rule::unique('users')->ignore($employee->id)->whereNull('deleted_at'),
             ],
             'phone_number' => ['sometimes', 'required', 'string', 'regex:/^628[0-9]{9,11}$/'],
             'role' => [

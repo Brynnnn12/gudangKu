@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('stock_transfers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('from_warehouse_id')->constrained('warehouses')->cascadeOnDelete();
-            $table->foreignId('to_warehouse_id')->constrained('warehouses')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->foreignId('from_warehouse_id')->constrained('warehouses')->onDelete('restrict');
+            $table->foreignId('to_warehouse_id')->constrained('warehouses')->onDelete('restrict');
+            $table->foreignId('product_id')->constrained('products')->onDelete('restrict');
             $table->integer('qty')->default(0);
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->enum('status', ['pending', 'completed', 'rejected'])->default('pending')->index();
             $table->text('notes')->nullable();
             $table->timestamps();

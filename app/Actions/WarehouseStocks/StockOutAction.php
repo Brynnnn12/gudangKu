@@ -29,8 +29,11 @@ class StockOutAction
         }
 
         return DB::transaction(function () use ($warehouseStockId, $quantity, $type, $notes) {
+            // Lock warehouse stock and batches for update to prevent race conditions
             $warehouseStock = WarehouseStock::with(['product', 'warehouse'])
-                ->findOrFail($warehouseStockId);
+                ->where('id', $warehouseStockId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             // Check available stock
             if ($warehouseStock->total_quantity < $quantity) {
@@ -44,6 +47,7 @@ class StockOutAction
                 ->where('current_qty', '>', 0)
                 ->orderBy('expired_at', 'asc')
                 ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
                 ->get();
 
             if ($batches->isEmpty()) {
