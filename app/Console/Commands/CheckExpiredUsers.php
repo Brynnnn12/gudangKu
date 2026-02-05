@@ -10,177 +10,95 @@ use Illuminate\Console\Command;
 
 class CheckExpiredUsers extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'stock:check-expired-batches';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Check expired stock batches and send WhatsApp notifications to users';
+    protected $description = 'Cek stok kadaluwarsa dan kirim notifikasi via WhatsApp/Email';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
-        $this->info('Checking expired stock batches...');
+        $this->info('Memulai pengecekan stok...');
 
-        // Get batches expiring in 7 days for viewers
-        $sevenDaysBatches = StockBatch::with(['warehouseStock.product', 'warehouseStock.warehouse'])
+        $batch7Hari = StockBatch::with(['warehouseStock.product', 'warehouseStock.warehouse'])
             ->where('is_active', true)
             ->whereDate('expired_at', '=', Carbon::now()->addDays(7)->toDateString())
             ->get();
 
-        // Get batches expiring in 30 days for admin and super admin
-        $thirtyDaysBatches = StockBatch::with(['warehouseStock.product', 'warehouseStock.warehouse'])
+        $batch30Hari = StockBatch::with(['warehouseStock.product', 'warehouseStock.warehouse'])
             ->where('is_active', true)
             ->whereDate('expired_at', '=', Carbon::now()->addDays(30)->toDateString())
             ->get();
 
-        // Send notifications to viewers (7 days)
-        if ($sevenDaysBatches->isNotEmpty()) {
-            $this->sendNotificationsToViewers($sevenDaysBatches);
+        if ($batch7Hari->isNotEmpty()) {
+            $this->kirimNotifikasi($batch7Hari, ['viewer'], 7, 'warning');
+        }
+        if ($batch30Hari->isNotEmpty()) {
+            $this->kirimNotifikasi($batch30Hari, ['admin', 'super-admin'], 30, 'info');
         }
 
-        // Send notifications to admin and super admin (30 days)
-        if ($thirtyDaysBatches->isNotEmpty()) {
-            $this->sendNotificationsToAdmins($thirtyDaysBatches);
-        }
-
-        $this->info('Finished checking expired stock batches.');
-        $this->info("Sent notifications for {$sevenDaysBatches->count()} batches (7 days) to viewers");
-        $this->info("Sent notifications for {$thirtyDaysBatches->count()} batches (30 days) to admins");
+        $this->info('Pengecekan selesai.');
 
         return Command::SUCCESS;
     }
 
-    /**
-     * Send notifications to viewers for batches expiring in 7 days
-     */
-    protected function sendNotificationsToViewers($batches): void
+    protected function kirimNotifikasi($batches, array $roles, int $hari, string $tipeAlert): void
     {
         $channel = config('services.notification_channel', 'whatsapp');
-        $recipientField = $channel === 'email' ? 'email' : 'phone_number';
+        $field = $channel === 'email' ? 'email' : 'phone_number';
+        $users = User::role($roles)->whereNotNull($field)->get();
 
-        $viewers = User::role('viewer')
-            ->whereNotNull($recipientField)
-            ->get();
-
-        foreach ($viewers as $viewer) {
-            $recipient = $channel === 'email' ? $viewer->email : $viewer->phone_number;
-
+        foreach ($users as $user) {
             if ($channel === 'email') {
-                // For email, send structured data for Mailable
-                $mailableData = $this->buildEmailData($batches, $viewer->name, 7, 'warning');
-                $mailableDataJson = json_encode([
-                    'mailable' => 'ExpiredStockMail',
-                    'data' => $mailableData,
-                ]);
-                $subject = 'Peringatan Stock Expired (7 Hari)';
-                SendWaExpiredNotification::dispatch($recipient, '', $subject, $mailableDataJson);
+                $data = $this->buatDataEmail($batches, $user->name, $hari, $tipeAlert);
+                $json = json_encode(['mailable' => 'ExpiredStockMail', 'data' => $data]);
+                SendWaExpiredNotification::dispatch($user->$field, '', "Peringatan Stok Expired ($hari Hari)", $json);
             } else {
-                // For WhatsApp, send plain text message
-                $message = $this->buildWhatsAppMessage($batches, $viewer->name, 7);
-                SendWaExpiredNotification::dispatch($recipient, $message);
+                $pesan = $this->buatPesanWA($batches, $user->name, $hari);
+                SendWaExpiredNotification::dispatch($user->$field, $pesan);
             }
         }
-
-        $this->info("Sent notifications to {$viewers->count()} viewers via {$channel}");
     }
 
-    /**
-     * Send notifications to admins for batches expiring in 30 days
-     */
-    protected function sendNotificationsToAdmins($batches): void
+    protected function buatDataEmail($batches, string $nama, int $hari, string $tipe): array
     {
-        $channel = config('services.notification_channel', 'whatsapp');
-        $recipientField = $channel === 'email' ? 'email' : 'phone_number';
-
-        $admins = User::role(['admin', 'super-admin'])
-            ->whereNotNull($recipientField)
-            ->get();
-
-        foreach ($admins as $admin) {
-            $recipient = $channel === 'email' ? $admin->email : $admin->phone_number;
-
-            if ($channel === 'email') {
-                // For email, send structured data for Mailable
-                $mailableData = $this->buildEmailData($batches, $admin->name, 30, 'info');
-                $mailableDataJson = json_encode([
-                    'mailable' => 'ExpiredStockMail',
-                    'data' => $mailableData,
-                ]);
-                $subject = 'Peringatan Stock Expired (30 Hari)';
-                SendWaExpiredNotification::dispatch($recipient, '', $subject, $mailableDataJson);
-            } else {
-                // For WhatsApp, send plain text message
-                $message = $this->buildWhatsAppMessage($batches, $admin->name, 30);
-                SendWaExpiredNotification::dispatch($recipient, $message);
-            }
-        }
-
-        $this->info("Sent notifications to {$admins->count()} admins via {$channel}");
-    }
-
-    /**
-     * Build email data for Mailable
-     */
-    protected function buildEmailData($batches, string $userName, int $days, string $alertType): array
-    {
-        $batchesData = [];
-        foreach ($batches as $batch) {
-            $product = $batch->warehouseStock->product;
-            $warehouse = $batch->warehouseStock->warehouse;
-
-            $batchesData[] = [
-                'product_name' => $product->name,
-                'batch_number' => $batch->batch_number,
-                'sku' => $product->sku,
-                'warehouse_name' => $warehouse->name,
-                'current_qty' => $batch->current_qty,
-                'expired_at' => Carbon::parse($batch->expired_at)->format('d/m/Y'),
-            ];
-        }
-
         return [
-            'userName' => $userName,
-            'days' => $days,
-            'batches' => $batchesData,
-            'alertType' => $alertType, // 'warning' for 7 days, 'info' for 30 days
+            'userName' => $nama,
+            'days' => $hari,
+            'alertType' => $tipe,
+            'batches' => $batches->map(fn ($b) => [
+                'product_name' => $b->warehouseStock->product->name,
+                'batch_number' => $b->batch_number,
+                'sku' => $b->warehouseStock->product->sku,
+                'warehouse_name' => $b->warehouseStock->warehouse->name,
+                'current_qty' => $b->current_qty,
+                'expired_at' => Carbon::parse($b->expired_at)->format('d/m/Y'),
+            ])->toArray(),
         ];
     }
 
-    /**
-     * Build WhatsApp message (plain text)
-     */
-    protected function buildWhatsAppMessage($batches, string $userName, int $days): string
+    protected function buatPesanWA($batches, string $nama, int $hari): string
     {
-        $message = "*PERINGATAN STOCK EXPIRED*\n\n";
-        $message .= "Halo {$userName},\n\n";
-        $message .= "Berikut adalah stock yang akan expired dalam *{$days} hari*:\n\n";
+        $limit = 10;
+        $total = $batches->count();
+        $displayBatches = $batches->take($limit);
 
-        foreach ($batches as $batch) {
-            $product = $batch->warehouseStock->product;
-            $warehouse = $batch->warehouseStock->warehouse;
-            $expiredDate = Carbon::parse($batch->expired_at)->format('d/m/Y');
+        $msg = "*PERINGATAN STOK KADALUWARSA*\n\n";
+        $msg .= "Halo $nama,\n";
+        $msg .= "Ada *$total* batch stok yang akan kadaluwarsa dlm *$hari hari*:\n\n";
 
-            $message .= "📦 *{$product->name}*\n";
-            $message .= "   Batch: {$batch->batch_number}\n";
-            $message .= "   SKU: {$product->sku}\n";
-            $message .= "   Gudang: {$warehouse->name}\n";
-            $message .= "   Qty: {$batch->current_qty}\n";
-            $message .= "   Expired: {$expiredDate}\n\n";
+        foreach ($displayBatches as $b) {
+            $prod = $b->warehouseStock->product;
+            $msg .= "📦 *{$prod->name}* ({$b->batch_number})\n";
+            $msg .= '   Exp: '.Carbon::parse($b->expired_at)->format('d/m/Y')." | Qty: {$b->current_qty}\n\n";
         }
 
-        $message .= "Mohon segera lakukan tindakan yang diperlukan.\n\n";
-        $message .= '_Pesan otomatis dari sistem GudangKu_';
+        if ($total > $limit) {
+            $sisa = $total - $limit;
+            $msg .= "...dan *$sisa* item lainnya.\n\n";
+        }
 
-        return $message;
+        $msg .= "Mohon segera cek dashboard GudangKu.\n";
+        $msg .= '_Pesan otomatis sistem_ ['.bin2hex(random_bytes(2)).']';
+
+        return $msg;
     }
 }

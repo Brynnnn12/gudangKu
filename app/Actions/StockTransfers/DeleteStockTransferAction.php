@@ -3,22 +3,16 @@
 namespace App\Actions\StockTransfers;
 
 use App\Models\StockTransfer;
-use Illuminate\Support\Facades\DB;
+use Exception;
 
 class DeleteStockTransferAction
 {
-    /**
-     * Delete a stock transfer.
-     * Only pending or rejected transfers can be deleted.
-     */
     public function execute(StockTransfer $transfer): bool
     {
         if (! $transfer->isPending() && ! $transfer->isRejected()) {
-            throw new \Exception('Only pending or rejected transfers can be deleted.');
+            throw new Exception('Hanya transfer pending atau rejected yang dapat dihapus.');
         }
 
-        return DB::transaction(function () use ($transfer) {
-            return $transfer->delete();
-        });
+        return $transfer->delete();
     }
 }

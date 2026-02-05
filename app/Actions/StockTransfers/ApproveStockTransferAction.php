@@ -6,129 +6,109 @@ use App\Models\StockBatch;
 use App\Models\StockLog;
 use App\Models\StockTransfer;
 use App\Models\WarehouseStock;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ApproveStockTransferAction
 {
-    /**
-     * Approve and execute stock transfer using FEFO logic.
-     * Deducts stock from source warehouse batches (oldest expiry first).
-     * Creates new batch in destination warehouse.
-     *
-     * @throws \Exception
-     */
     public function execute(StockTransfer $transfer): StockTransfer
     {
         if (! $transfer->isPending()) {
-            throw new \Exception('Maaf, hanya transfer dengan status pending yang dapat disetujui.');
+            throw new Exception('Maaf, hanya transfer dengan status pending yang dapat disetujui.');
         }
 
         return DB::transaction(function () use ($transfer) {
-            // Get source warehouse stock
             $sourceStock = WarehouseStock::where('warehouse_id', $transfer->from_warehouse_id)
                 ->where('product_id', $transfer->product_id)
+                ->lockForUpdate()
                 ->first();
 
-            if (! $sourceStock) {
-                throw new \Exception('Stok tidak ditemukan di gudang asal.');
+            if (! $sourceStock || $sourceStock->total_quantity < $transfer->qty) {
+                throw new Exception('Stok tidak cukup atau tidak ditemukan.');
             }
 
-            // Check if enough stock available
-            if ($sourceStock->total_quantity < $transfer->qty) {
-                throw new \Exception(
-                    "Stok tidak cukup. Tersedia: {$sourceStock->total_quantity}, Dibutuhkan: {$transfer->qty}"
-                );
-            }
+            $batches = $sourceStock->activeBatches()
+                ->where('current_qty', '>', 0)
+                ->orderBy('expired_at', 'asc')
+                ->lockForUpdate()
+                ->get();
 
-            // Deduct from source warehouse using FEFO (First Expired First Out)
-            $remainingQty = $transfer->qty;
-            $batches = $sourceStock->activeBatches()->get();
-            $avgCostPrice = 0;
-            $totalDeducted = 0;
+            $remainingToDeduct = $transfer->qty;
+            $totalCost = 0;
+            $earliestExpiry = null;
 
             foreach ($batches as $batch) {
-                if ($remainingQty <= 0) {
+                if ($remainingToDeduct <= 0) {
                     break;
                 }
 
-                $deductQty = min($remainingQty, $batch->current_qty);
+                $deductQty = min($remainingToDeduct, $batch->current_qty);
+                $earliestExpiry = $earliestExpiry ?? $batch->expired_at;
 
-                // Track weighted average cost
-                $avgCostPrice += $batch->cost_price * $deductQty;
-                $totalDeducted += $deductQty;
+                $totalCost += ($batch->cost_price * $deductQty);
 
-                // Update batch quantity
-                $batch->current_qty -= $deductQty;
-                $batch->save();
+                $batch->decrement('current_qty', $deductQty);
 
-                // Create stock log for deduction
-                StockLog::create([
-                    'warehouse_id' => $transfer->from_warehouse_id,
-                    'product_id' => $transfer->product_id,
-                    'batch_id' => $batch->id,
-                    'user_id' => Auth::id(),
-                    'qty' => -$deductQty,
-                    'type' => 'transfer',
-                    'notes' => "Transfer ke {$transfer->toWarehouse->name} - Transfer #{$transfer->id}",
-                ]);
+                $this->logStock(
+                    $transfer->from_warehouse_id,
+                    $transfer->product_id,
+                    $batch->id,
+                    -$deductQty,
+                    "Transfer Keluar ke {$transfer->toWarehouse->name} (#{$transfer->id})"
+                );
 
-                $remainingQty -= $deductQty;
+                $remainingToDeduct -= $deductQty;
             }
 
-            // Calculate weighted average cost price
-            $avgCostPrice = $totalDeducted > 0 ? $avgCostPrice / $totalDeducted : 0;
+            if ($remainingToDeduct > 0) {
+                throw new Exception('Gagal mengalokasikan batch. Data batch mungkin tidak sinkron.');
+            }
 
-            // Update source warehouse stock total
-            $sourceStock->recalculateTotal();
+            $avgCostPrice = $totalCost / $transfer->qty;
 
-            // Get or create destination warehouse stock
-            $destStock = WarehouseStock::firstOrCreate(
-                [
-                    'warehouse_id' => $transfer->to_warehouse_id,
-                    'product_id' => $transfer->product_id,
-                ],
-                [
-                    'total_quantity' => 0,
-                ]
-            );
+            $destStock = WarehouseStock::firstOrCreate([
+                'warehouse_id' => $transfer->to_warehouse_id,
+                'product_id' => $transfer->product_id,
+            ]);
 
-            // Create batch in destination warehouse
             $newBatch = StockBatch::create([
                 'warehouse_stock_id' => $destStock->id,
-                'batch_number' => 'TRF-'.now()->format('Ymd').'-'.strtoupper(substr(md5($transfer->id), 0, 6)),
-                'expired_at' => null, // Transferred items inherit no expiry by default
+                'batch_number' => 'TRF-'.now()->format('YmdHis').'-'.strtoupper(bin2hex(random_bytes(3))),
+                'expired_at' => $earliestExpiry,
                 'current_qty' => $transfer->qty,
                 'cost_price' => $avgCostPrice,
                 'is_active' => true,
                 'status' => 'available',
             ]);
 
-            // Create stock log for destination
-            StockLog::create([
-                'warehouse_id' => $transfer->to_warehouse_id,
-                'product_id' => $transfer->product_id,
-                'batch_id' => $newBatch->id,
-                'user_id' => Auth::id(),
-                'qty' => $transfer->qty,
-                'type' => 'transfer',
-                'notes' => "Transfer dari {$transfer->fromWarehouse->name} - Transfer #{$transfer->id}",
-            ]);
+            $this->logStock(
+                $transfer->to_warehouse_id,
+                $transfer->product_id,
+                $newBatch->id,
+                $transfer->qty,
+                "Transfer Masuk dari {$transfer->fromWarehouse->name} (#{$transfer->id})"
+            );
 
-            // Update destination warehouse stock total
-            $destStock->increment('total_quantity', $transfer->qty);
+            $sourceStock->recalculateTotal();
+            $destStock->recalculateTotal();
 
-            // Update transfer status
-            $transfer->update([
-                'status' => 'completed',
-            ]);
+            $transfer->update(['status' => 'completed']);
 
-            return $transfer->fresh([
-                'fromWarehouse',
-                'toWarehouse',
-                'product',
-                'user',
-            ]);
+            return $transfer->load(['fromWarehouse', 'toWarehouse', 'product']);
         });
+    }
+
+    private function logStock(int $warehouseId, int $productId, int $batchId, int $qty, string $notes): void
+    {
+        StockLog::create([
+            'warehouse_id' => $warehouseId,
+            'product_id' => $productId,
+            'batch_id' => $batchId,
+            'user_id' => Auth::id(),
+            'qty' => $qty,
+            'type' => 'transfer',
+            'notes' => $notes,
+        ]);
     }
 }

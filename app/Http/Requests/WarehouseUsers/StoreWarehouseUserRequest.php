@@ -58,6 +58,13 @@ class StoreWarehouseUserRequest extends FormRequest
                 'after_or_equal:2000-01-01',
                 'before_or_equal:'.now()->addYears(10)->format('Y-m-d'),
             ],
+            'end_date' => [
+                'nullable',
+                'date',
+                'date_format:Y-m-d',
+                'after:start_date',
+                'before_or_equal:'.now()->addYears(10)->format('Y-m-d'),
+            ],
         ];
     }
 
@@ -73,6 +80,8 @@ class StoreWarehouseUserRequest extends FormRequest
             'user_id.unique' => 'Pengguna ini sudah ditugaskan ke gudang lain. Satu pengguna hanya bisa mengelola satu gudang.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'start_date.date' => 'Tanggal mulai harus berupa tanggal yang valid.',
+            'end_date.date' => 'Tanggal selesai harus berupa tanggal yang valid.',
+            'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
         ];
     }
 }

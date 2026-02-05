@@ -83,14 +83,36 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureRateLimiting(): void
     {
+        // Two-factor authentication: 3 attempts per minute
         RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+            return Limit::perMinute(3)
+                ->by($request->session()->get('login.id'))
+                ->response(function (Request $request, array $headers) {
+                    return response('Terlalu banyak percobaan. Silakan coba lagi dalam 1 menit.', 429, $headers);
+                });
         });
 
+        // Login attempts: 3 per minute, 10 per hour
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(3)->by($throttleKey)->response(function (Request $request, array $headers) {
+                    return response('Terlalu banyak percobaan login. Silakan coba lagi dalam 1 menit.', 429, $headers);
+                }),
+                Limit::perHour(10)->by($throttleKey)->response(function (Request $request, array $headers) {
+                    return response('Akun Anda telah dikunci sementara. Silakan coba lagi dalam 1 jam.', 429, $headers);
+                }),
+            ];
+        });
+
+        // Password reset: 3 per 10 minutes
+        RateLimiter::for('password-reset', function (Request $request) {
+            return Limit::perMinutes(10, 3)
+                ->by($request->input('email').'|'.$request->ip())
+                ->response(function (Request $request, array $headers) {
+                    return response('Terlalu banyak permintaan reset password. Silakan coba lagi dalam 10 menit.', 429, $headers);
+                });
         });
     }
 

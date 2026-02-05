@@ -3,72 +3,20 @@
 namespace App\Services;
 
 use App\Contracts\NotificationServiceInterface;
-use App\Mail\ExpiredStockMail;
-use App\Mail\StockReportMail;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EmailNotificationService implements NotificationServiceInterface
 {
-    /**
-     * Send email notification
-     *
-     * @param  string  $recipient  Email address
-     * @param  string  $message  Message content or JSON data
-     * @param  string|null  $subject  Email subject
-     * @return array Response
-     */
     public function sendMessage(string $recipient, string $message, ?string $subject = null): array
     {
         try {
             $data = json_decode($message, true);
 
             if (json_last_error() === JSON_ERROR_NONE && isset($data['mailable'])) {
-                $mailableClass = $data['mailable'];
-                $mailableData = $data['data'];
-
-                switch ($mailableClass) {
-                    case 'StockReportMail':
-                        Mail::to($recipient)->send(new StockReportMail(
-                            $mailableData['period'],
-                            $mailableData['dateRange'],
-                            $mailableData['totalCosts'],
-                            $mailableData['totalRevenue'],
-                            $mailableData['profit'],
-                            $mailableData['stockIn'],
-                            $mailableData['stockOut'],
-                            $mailableData['warehouses'],
-                            $mailableData['totalItems'],
-                            $mailableData['totalQty']
-                        ));
-                        break;
-                    case 'ExpiredStockMail':
-                        Mail::to($recipient)->send(new ExpiredStockMail(
-                            $mailableData['userName'],
-                            $mailableData['days'],
-                            $mailableData['batches'],
-                            $mailableData['alertType']
-                        ));
-                        break;
-                    default:
-                        // Fallback to plain text
-                        Mail::raw($message, function ($mail) use ($recipient, $subject) {
-                            $mail->to($recipient)
-                                ->subject($subject ?? 'Notifikasi dari GudangKu');
-                        });
-                }
+                $this->sendMailable($recipient, $data['mailable'], $data['data']);
             } else {
-                // Send plain text email
-                Mail::raw($message, function ($mail) use ($recipient, $subject) {
-                    $mail->to($recipient)
-                        ->subject($subject ?? 'Notifikasi dari GudangKu');
-                });
+                $this->sendPlainEmail($recipient, $message, $subject);
             }
-
-            Log::info('Email notification sent successfully', [
-                'recipient' => $recipient,
-                'subject' => $subject,
-            ]);
 
             return [
                 'success' => true,
@@ -78,11 +26,6 @@ class EmailNotificationService implements NotificationServiceInterface
                 ],
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to send email notification', [
-                'recipient' => $recipient,
-                'error' => $e->getMessage(),
-            ]);
-
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -90,19 +33,13 @@ class EmailNotificationService implements NotificationServiceInterface
         }
     }
 
-    /**
-     * Send bulk email notifications
-     *
-     * @param  array  $recipients  Array of recipients with recipient, message, and subject
-     * @return array Results of bulk sending
-     */
     public function sendBulkMessages(array $recipients): array
     {
         $results = [];
 
         foreach ($recipients as $item) {
             $results[] = $this->sendMessage(
-                $item['recipient'] ?? $item['email'], // Support both keys
+                $item['recipient'] ?? $item['email'],
                 $item['message'],
                 $item['subject'] ?? null
             );
@@ -111,5 +48,40 @@ class EmailNotificationService implements NotificationServiceInterface
         }
 
         return $results;
+    }
+
+    protected function sendMailable(string $recipient, string $mailableClass, array $data): void
+    {
+        $fullClassName = "App\\Mail\\{$mailableClass}";
+
+        if (! class_exists($fullClassName)) {
+            throw new \InvalidArgumentException("Mailable class {$fullClassName} not found");
+        }
+
+        $reflection = new \ReflectionClass($fullClassName);
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor) {
+            $parameters = $constructor->getParameters();
+            $args = [];
+
+            foreach ($parameters as $param) {
+                $paramName = $param->getName();
+                $args[] = $data[$paramName] ?? ($param->isDefaultValueAvailable() ? $param->getDefaultValue() : null);
+            }
+
+            $mailable = $reflection->newInstanceArgs($args);
+        } else {
+            $mailable = new $fullClassName;
+        }
+
+        Mail::to($recipient)->send($mailable);
+    }
+
+    protected function sendPlainEmail(string $recipient, string $message, ?string $subject): void
+    {
+        Mail::raw($message, function ($mail) use ($recipient, $subject) {
+            $mail->to($recipient)->subject($subject ?? 'Notifikasi dari GudangKu');
+        });
     }
 }

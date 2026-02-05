@@ -3,6 +3,7 @@
 namespace App\Http\Requests\StockBatches;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStockBatchRequest extends FormRequest
 {
@@ -24,7 +25,15 @@ class StoreStockBatchRequest extends FormRequest
         return [
             'warehouse_id' => ['required', 'integer', 'exists:warehouses,id', 'min:1', 'max:2147483647'],
             'product_id' => ['required', 'integer', 'exists:products,id', 'min:1', 'max:2147483647'],
-            'batch_number' => ['required', 'string', 'max:50', 'unique:stock_batches,batch_number', 'regex:/^[A-Z0-9\-\/]+$/i'],
+            'batch_number' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[A-Z0-9\-\/]+$/i',
+                Rule::unique('stock_batches')->where(function ($query) {
+                    return $query->where('product_id', $this->product_id);
+                }),
+            ],
             'expired_at' => ['nullable', 'date', 'date_format:Y-m-d', 'after:today', 'before:'.now()->addYears(50)->format('Y-m-d')],
             'current_qty' => ['required', 'integer', 'min:1', 'max:1000000'],
             'cost_price' => ['required', 'numeric', 'min:0', 'max:999999999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
@@ -54,7 +63,7 @@ class StoreStockBatchRequest extends FormRequest
             'product_id.required' => 'Produk wajib diisi.',
             'product_id.exists' => 'Produk yang dipilih tidak ada.',
             'batch_number.required' => 'Nomor batch wajib diisi.',
-            'batch_number.unique' => 'Nomor batch ini sudah ada.',
+            'batch_number.unique' => 'Nomor batch ini sudah ada untuk produk ini.',
             'expired_at.after' => 'Tanggal kedaluwarsa harus setelah hari ini.',
             'current_qty.required' => 'Kuantitas wajib diisi.',
             'current_qty.min' => 'Kuantitas harus minimal 1.',

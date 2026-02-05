@@ -75,6 +75,8 @@ class UpdateWarehouseUserAction
             $warehouseUser->update([
                 'warehouse_id' => $newWarehouseId,
                 'user_id' => $newUserId,
+                'start_date' => $input['start_date'],
+                'end_date' => $input['end_date'] ?? null,
             ]);
 
             return $warehouseUser->fresh();

@@ -8,31 +8,35 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteStockBatchAction
 {
-    /**
-     * Delete a stock batch.
-     */
     public function execute(StockBatch $batch): void
     {
         DB::transaction(function () use ($batch) {
-            $warehouseStock = $batch->warehouseStock;
-
-            // Create stock log before deletion
             if ($batch->current_qty > 0) {
-                StockLog::create([
-                    'warehouse_id' => $warehouseStock->warehouse_id,
-                    'product_id' => $warehouseStock->product_id,
-                    'batch_id' => $batch->id,
-                    'user_id' => auth()->id(),
-                    'qty' => -$batch->current_qty,
-                    'type' => 'adjustment',
-                    'notes' => "Batch {$batch->batch_number} deleted (qty was {$batch->current_qty})",
-                ]);
-
-                // Update warehouse stock total
-                $warehouseStock->decrement('total_quantity', $batch->current_qty);
+                $this->createDeletionLog($batch);
+                $this->updateWarehouseStock($batch);
             }
 
             $batch->delete();
         });
+    }
+
+    protected function createDeletionLog(StockBatch $batch): void
+    {
+        $warehouseStock = $batch->warehouseStock;
+
+        StockLog::create([
+            'warehouse_id' => $warehouseStock->warehouse_id,
+            'product_id' => $warehouseStock->product_id,
+            'batch_id' => $batch->id,
+            'user_id' => auth()->id(),
+            'qty' => -$batch->current_qty,
+            'type' => 'adjustment',
+            'notes' => "Batch {$batch->batch_number} deleted (qty was {$batch->current_qty})",
+        ]);
+    }
+
+    protected function updateWarehouseStock(StockBatch $batch): void
+    {
+        $batch->warehouseStock->decrement('total_quantity', $batch->current_qty);
     }
 }

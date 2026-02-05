@@ -22,6 +22,10 @@ class CreateWarehouseUserAction
         // Jika ada yang sudah dihapus, restore saja
         if ($existingDeleted && $existingDeleted->trashed()) {
             $existingDeleted->restore();
+            $existingDeleted->update([
+                'start_date' => $input['start_date'],
+                'end_date' => $input['end_date'] ?? null,
+            ]);
 
             return $existingDeleted->fresh();
         }
@@ -30,6 +34,8 @@ class CreateWarehouseUserAction
         $warehouseUser = WarehouseUser::create([
             'warehouse_id' => $input['warehouse_id'],
             'user_id' => $input['user_id'],
+            'start_date' => $input['start_date'],
+            'end_date' => $input['end_date'] ?? null,
         ]);
 
         return $warehouseUser;

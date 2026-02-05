@@ -108,8 +108,9 @@ export function ProductPriceFormModal({
                             <Select
                                 value={form.data.product_id}
                                 onValueChange={(value) => form.setData('product_id', value)}
+                                disabled={isEditing}
                             >
-                                <SelectTrigger id={`${isEditing ? 'edit' : 'create'}-product`}>
+                                <SelectTrigger id={`${isEditing ? 'edit' : 'create'}-product`} disabled={isEditing}>
                                     <SelectValue placeholder="Pilih produk" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -126,6 +127,11 @@ export function ProductPriceFormModal({
                                 </SelectContent>
                             </Select>
                             <InputError message={form.errors.product_id} />
+                            {isEditing && (
+                                <p className="text-xs text-muted-foreground">
+                                    Produk tidak dapat diubah saat mengedit harga
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
