@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             ProductPriceSeeder::class,   // 5. Create product prices (needs products)
             WarehouseUserSeeder::class,  // 6. Assign users to warehouses
 
-
         ]);
     }
 }

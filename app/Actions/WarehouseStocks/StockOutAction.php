@@ -13,11 +13,8 @@ class StockOutAction
     /**
      * Reduce stock using FEFO (First Expired First Out) method.
      *
-     * @param  int  $warehouseStockId
-     * @param  int  $quantity
      * @param  string  $type  'exit' or 'damage'
-     * @param  string|null  $notes
-     * @return array  Details of batches affected
+     * @return array Details of batches affected
      *
      * @throws InvalidArgumentException
      */

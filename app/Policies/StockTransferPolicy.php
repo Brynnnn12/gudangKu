@@ -29,7 +29,7 @@ class StockTransferPolicy
         if ($user->hasRole('admin')) {
             return $user->warehouses()->whereIn('warehouse_id', [
                 $stockTransfer->from_warehouse_id,
-                $stockTransfer->to_warehouse_id
+                $stockTransfer->to_warehouse_id,
             ])->exists();
         }
 
@@ -51,7 +51,7 @@ class StockTransferPolicy
      */
     public function update(User $user, StockTransfer $stockTransfer): bool
     {
-        if (!$stockTransfer->isPending()) {
+        if (! $stockTransfer->isPending()) {
             return false;
         }
 
@@ -74,7 +74,7 @@ class StockTransferPolicy
      */
     public function approve(User $user, StockTransfer $stockTransfer): bool
     {
-        if (!$stockTransfer->isPending()) {
+        if (! $stockTransfer->isPending()) {
             return false;
         }
 
@@ -87,7 +87,7 @@ class StockTransferPolicy
      */
     public function reject(User $user, StockTransfer $stockTransfer): bool
     {
-        if (!$stockTransfer->isPending()) {
+        if (! $stockTransfer->isPending()) {
             return false;
         }
 

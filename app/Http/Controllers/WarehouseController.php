@@ -33,8 +33,6 @@ class WarehouseController extends Controller
         ]);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
@@ -58,8 +56,6 @@ class WarehouseController extends Controller
             'warehouse' => $warehouse,
         ]);
     }
-
-
 
     /**
      * Update the specified resource in storage.

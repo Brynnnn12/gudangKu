@@ -42,8 +42,6 @@ class WarehouseUserController extends Controller
         ]);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
@@ -69,7 +67,6 @@ class WarehouseUserController extends Controller
             'warehouseUser' => $warehouseUser,
         ]);
     }
-
 
     /**
      * Update the specified resource in storage.

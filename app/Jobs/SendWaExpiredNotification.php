@@ -30,9 +30,9 @@ class SendWaExpiredNotification implements ShouldQueue
     public function __construct(
         public string $recipient,
         public string $message,
-        public ?string $subject = null
-    ) {
-    }
+        public ?string $subject = null,
+        public ?string $mailableDataJson = null
+    ) {}
 
     /**
      * Execute the job.
@@ -43,9 +43,12 @@ class SendWaExpiredNotification implements ShouldQueue
             // Add delay to prevent spam (3 seconds between messages)
             sleep(3);
 
+            // Use mailableDataJson if provided, otherwise use regular message
+            $message = $this->mailableDataJson ?? $this->message;
+
             $result = $notificationService->sendMessage(
                 $this->recipient,
-                $this->message,
+                $message,
                 $this->subject
             );
 

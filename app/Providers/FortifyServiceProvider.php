@@ -4,8 +4,13 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Mail\ResetPasswordMail;
+use App\Mail\VerifyEmailMail;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -31,6 +36,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureEmailNotifications();
     }
 
     /**
@@ -85,6 +91,33 @@ class FortifyServiceProvider extends ServiceProvider
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
+        });
+    }
+
+    /**
+     * Configure custom email notifications.
+     */
+    private function configureEmailNotifications(): void
+    {
+        // Custom email verification
+        VerifyEmail::toMailUsing(function ($notifiable, $url) {
+            Mail::to($notifiable->email)->send(new VerifyEmailMail(
+                $notifiable->name,
+                $url
+            ));
+        });
+
+        // Custom reset password
+        ResetPassword::toMailUsing(function ($notifiable, $token) {
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            Mail::to($notifiable->email)->send(new ResetPasswordMail(
+                $notifiable->name,
+                $url
+            ));
         });
     }
 }

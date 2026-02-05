@@ -49,8 +49,6 @@ class WarehouseStockController extends Controller
         ]);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      * ⚠️ WarehouseStock cannot be created manually - use CreateStockBatchAction.
@@ -76,7 +74,6 @@ class WarehouseStockController extends Controller
             'warehouseStock' => $warehouseStock,
         ]);
     }
-
 
     /**
      * Update the specified resource in storage.

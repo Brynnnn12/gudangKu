@@ -3,7 +3,6 @@
 namespace App\Http\Requests\StockBatches;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateStockBatchRequest extends FormRequest
 {
@@ -32,7 +31,7 @@ class UpdateStockBatchRequest extends FormRequest
     /**
      * Get custom messages for validator errors.
      */
-//pakai bahasa indo
+    // pakai bahasa indo
     public function messages(): array
     {
         return [

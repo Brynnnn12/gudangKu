@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import {
     Collapsible,
     CollapsibleContent,
@@ -18,19 +19,39 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
-export function NavMain({ items = [] }: { items: NavItem[] }) {
+export function NavMain({ items = [], title }: { items: NavItem[]; title?: string }) {
     const { isCurrentUrl } = useCurrentUrl();
+    const [openItems, setOpenItems] = useState<Record<string, boolean>>(() => {
+        const initial: Record<string, boolean> = {};
+        items.forEach((item) => {
+            if (item.items?.length) {
+                // Open by default if any sub-item is active
+                initial[item.title] = item.items.some((subItem) =>
+                    window.location.pathname.startsWith(subItem.href)
+                );
+            }
+        });
+        return initial;
+    });
+
+    const toggleItem = (itemTitle: string) => {
+        setOpenItems((prev) => ({
+            ...prev,
+            [itemTitle]: !prev[itemTitle],
+        }));
+    };
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+            {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
             <SidebarMenu>
                 {items.map((item) =>
                     item.items?.length ? (
                         <Collapsible
                             key={item.title}
                             asChild
-                            defaultOpen={item.isActive}
+                            open={openItems[item.title]}
+                            onOpenChange={() => toggleItem(item.title)}
                             className="group/collapsible"
                         >
                             <SidebarMenuItem>

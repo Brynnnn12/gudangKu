@@ -16,6 +16,7 @@ class UpdateWarehouseStockAction
      * To fix inconsistencies, use: $warehouseStock->recalculateTotal()
      *
      * @deprecated Use UpdateStockBatchAction::execute() instead
+     *
      * @param  array<string, mixed>  $input
      */
     public function execute(WarehouseStock $warehouseStock, array $input): WarehouseStock

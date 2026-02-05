@@ -38,8 +38,6 @@ class ProductController extends Controller
         ]);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
@@ -65,8 +63,6 @@ class ProductController extends Controller
             'product' => $product,
         ]);
     }
-
-
 
     /**
      * Update the specified resource in storage.

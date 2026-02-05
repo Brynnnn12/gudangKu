@@ -21,7 +21,7 @@ class DeleteWarehouseStockAction
 
             if ($batches->isNotEmpty()) {
                 // Delete all batches first (this will auto-update parent total and create logs)
-                $deleteBatchAction = new DeleteStockBatchAction();
+                $deleteBatchAction = new DeleteStockBatchAction;
                 foreach ($batches as $batch) {
                     $deleteBatchAction->execute($batch);
                 }
@@ -40,7 +40,7 @@ class DeleteWarehouseStockAction
                     'user_id' => auth()->id(),
                     'qty' => -$warehouseStock->total_quantity,
                     'type' => 'adjustment',
-                    'notes' => "Warehouse stock record deleted (final adjustment)",
+                    'notes' => 'Warehouse stock record deleted (final adjustment)',
                 ]);
             }
 

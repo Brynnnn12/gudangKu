@@ -7,9 +7,7 @@ export default function AppLogo() {
                 <AppLogoIcon className="h-full w-full object-contain" />
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    PT. RIZQUNA BERKAH MANDIRI
-                </span>
+                <p className="font-semibold leading-tight">PT.RIZQUNA BERKAH MANDIRI</p>
             </div>
         </>
     );

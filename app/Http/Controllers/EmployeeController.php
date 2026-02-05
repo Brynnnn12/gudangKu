@@ -34,6 +34,7 @@ class EmployeeController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone_number' => $user->phone_number,
                 'roles' => $user->roles->map(fn ($role) => [
                     'id' => $role->id,
                     'name' => $role->name,
@@ -47,8 +48,6 @@ class EmployeeController extends Controller
             'filters' => $request->only(['search', 'role']),
         ]);
     }
-
-
 
     /**
      * Store a newly created resource in storage.
@@ -71,8 +70,6 @@ class EmployeeController extends Controller
             'employee' => $employee->load('roles'),
         ]);
     }
-
-
 
     /**
      * Update the specified resource in storage.

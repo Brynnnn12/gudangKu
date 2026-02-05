@@ -22,7 +22,7 @@ class StockBatchSeeder extends Seeder
 
         $warehouses = Warehouse::all();
         $products = Product::all();
-        $action = new CreateStockBatchAction();
+        $action = new CreateStockBatchAction;
 
         foreach ($warehouses as $warehouse) {
             // Each warehouse has 60-80% of all products

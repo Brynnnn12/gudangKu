@@ -49,13 +49,9 @@ class SendStockReport extends Command
         $stockMovement = $this->getStockMovement($startDate, $endDate);
         $warehouseStocks = $this->getWarehouseStocks();
 
-        // Build message
-        $message = $this->buildReportMessage($period, $startDate, $endDate, $stockMovement, $warehouseStocks);
-
         // Determine notification channel and recipient field
         $channel = config('services.notification_channel', 'whatsapp');
         $recipientField = $channel === 'email' ? 'email' : 'phone_number';
-        $subject = $channel === 'email' ? 'Laporan Stock '.ucfirst($period).' GudangKu' : null;
 
         // Send to viewers
         $viewers = User::role('viewer')
@@ -64,7 +60,21 @@ class SendStockReport extends Command
 
         foreach ($viewers as $viewer) {
             $recipient = $channel === 'email' ? $viewer->email : $viewer->phone_number;
-            SendReportNotification::dispatch($recipient, $message, $subject);
+
+            if ($channel === 'email') {
+                // For email, send structured data for Mailable as JSON
+                $mailableData = $this->buildEmailData($period, $startDate, $endDate, $stockMovement, $warehouseStocks);
+                $mailableDataJson = json_encode([
+                    'mailable' => 'StockReportMail',
+                    'data' => $mailableData,
+                ]);
+                $subject = 'Laporan Stock '.ucfirst($period).' GudangKu';
+                SendReportNotification::dispatch($recipient, '', $subject, $mailableDataJson);
+            } else {
+                // For WhatsApp, send plain text message
+                $message = $this->buildWhatsAppMessage($period, $startDate, $endDate, $stockMovement, $warehouseStocks);
+                SendReportNotification::dispatch($recipient, $message);
+            }
         }
 
         $this->info("Report sent to {$viewers->count()} viewers via {$channel}.");
@@ -152,9 +162,40 @@ class SendStockReport extends Command
     }
 
     /**
-     * Build WhatsApp message (concise version with financial info)
+     * Build email data for Mailable
      */
-    protected function buildReportMessage(string $period, Carbon $startDate, Carbon $endDate, array $stockMovement, array $warehouseStocks): string
+    protected function buildEmailData(string $period, Carbon $startDate, Carbon $endDate, array $stockMovement, array $warehouseStocks): array
+    {
+        $warehouses = [];
+        foreach ($warehouseStocks as $name => $data) {
+            $warehouses[] = [
+                'name' => $name,
+                'items' => $data['total_items'],
+                'qty' => $data['total_qty'],
+            ];
+        }
+
+        $grandTotalItems = array_sum(array_column($warehouses, 'items'));
+        $grandTotalQty = array_sum(array_column($warehouses, 'qty'));
+
+        return [
+            'period' => $period,
+            'dateRange' => $startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'),
+            'totalCosts' => $stockMovement['total_costs'],
+            'totalRevenue' => $stockMovement['total_revenue'],
+            'profit' => $stockMovement['profit'],
+            'stockIn' => $stockMovement['stock_in'],
+            'stockOut' => $stockMovement['stock_out'],
+            'warehouses' => $warehouses,
+            'totalItems' => $grandTotalItems,
+            'totalQty' => $grandTotalQty,
+        ];
+    }
+
+    /**
+     * Build WhatsApp message (plain text)
+     */
+    protected function buildWhatsAppMessage(string $period, Carbon $startDate, Carbon $endDate, array $stockMovement, array $warehouseStocks): string
     {
         $periodLabel = $period === 'weekly' ? 'MINGGUAN' : 'BULANAN';
         $dateRange = $startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y');

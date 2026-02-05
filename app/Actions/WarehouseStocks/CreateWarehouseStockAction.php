@@ -14,6 +14,7 @@ class CreateWarehouseStockAction
      * Creating it manually causes double-counting issues.
      *
      * @deprecated Use CreateStockBatchAction::execute() instead
+     *
      * @param  array<string, mixed>  $input
      */
     public function execute(array $input): WarehouseStock

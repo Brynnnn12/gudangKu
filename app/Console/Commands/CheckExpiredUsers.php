@@ -7,7 +7,6 @@ use App\Models\StockBatch;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class CheckExpiredUsers extends Command
 {
@@ -74,11 +73,22 @@ class CheckExpiredUsers extends Command
             ->get();
 
         foreach ($viewers as $viewer) {
-            $message = $this->buildMessage($batches, $viewer->name, 7);
             $recipient = $channel === 'email' ? $viewer->email : $viewer->phone_number;
-            $subject = $channel === 'email' ? 'Peringatan Stock Expired (7 Hari)' : null;
 
-            SendWaExpiredNotification::dispatch($recipient, $message, $subject);
+            if ($channel === 'email') {
+                // For email, send structured data for Mailable
+                $mailableData = $this->buildEmailData($batches, $viewer->name, 7, 'warning');
+                $mailableDataJson = json_encode([
+                    'mailable' => 'ExpiredStockMail',
+                    'data' => $mailableData,
+                ]);
+                $subject = 'Peringatan Stock Expired (7 Hari)';
+                SendWaExpiredNotification::dispatch($recipient, '', $subject, $mailableDataJson);
+            } else {
+                // For WhatsApp, send plain text message
+                $message = $this->buildWhatsAppMessage($batches, $viewer->name, 7);
+                SendWaExpiredNotification::dispatch($recipient, $message);
+            }
         }
 
         $this->info("Sent notifications to {$viewers->count()} viewers via {$channel}");
@@ -97,20 +107,59 @@ class CheckExpiredUsers extends Command
             ->get();
 
         foreach ($admins as $admin) {
-            $message = $this->buildMessage($batches, $admin->name, 30);
             $recipient = $channel === 'email' ? $admin->email : $admin->phone_number;
-            $subject = $channel === 'email' ? 'Peringatan Stock Expired (30 Hari)' : null;
 
-            SendWaExpiredNotification::dispatch($recipient, $message, $subject);
+            if ($channel === 'email') {
+                // For email, send structured data for Mailable
+                $mailableData = $this->buildEmailData($batches, $admin->name, 30, 'info');
+                $mailableDataJson = json_encode([
+                    'mailable' => 'ExpiredStockMail',
+                    'data' => $mailableData,
+                ]);
+                $subject = 'Peringatan Stock Expired (30 Hari)';
+                SendWaExpiredNotification::dispatch($recipient, '', $subject, $mailableDataJson);
+            } else {
+                // For WhatsApp, send plain text message
+                $message = $this->buildWhatsAppMessage($batches, $admin->name, 30);
+                SendWaExpiredNotification::dispatch($recipient, $message);
+            }
         }
 
         $this->info("Sent notifications to {$admins->count()} admins via {$channel}");
     }
 
     /**
-     * Build WhatsApp message
+     * Build email data for Mailable
      */
-    protected function buildMessage($batches, string $userName, int $days): string
+    protected function buildEmailData($batches, string $userName, int $days, string $alertType): array
+    {
+        $batchesData = [];
+        foreach ($batches as $batch) {
+            $product = $batch->warehouseStock->product;
+            $warehouse = $batch->warehouseStock->warehouse;
+
+            $batchesData[] = [
+                'product_name' => $product->name,
+                'batch_number' => $batch->batch_number,
+                'sku' => $product->sku,
+                'warehouse_name' => $warehouse->name,
+                'current_qty' => $batch->current_qty,
+                'expired_at' => Carbon::parse($batch->expired_at)->format('d/m/Y'),
+            ];
+        }
+
+        return [
+            'userName' => $userName,
+            'days' => $days,
+            'batches' => $batchesData,
+            'alertType' => $alertType, // 'warning' for 7 days, 'info' for 30 days
+        ];
+    }
+
+    /**
+     * Build WhatsApp message (plain text)
+     */
+    protected function buildWhatsAppMessage($batches, string $userName, int $days): string
     {
         $message = "*PERINGATAN STOCK EXPIRED*\n\n";
         $message .= "Halo {$userName},\n\n";
@@ -130,7 +179,7 @@ class CheckExpiredUsers extends Command
         }
 
         $message .= "Mohon segera lakukan tindakan yang diperlukan.\n\n";
-        $message .= "_Pesan otomatis dari sistem GudangKu_";
+        $message .= '_Pesan otomatis dari sistem GudangKu_';
 
         return $message;
     }
