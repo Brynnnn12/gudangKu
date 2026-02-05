@@ -38,6 +38,8 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request, CreateCategoryAction $action)
     {
+        $this->authorize('create', Category::class);
+
         $action->execute($request->validated());
 
         return redirect()->route('categories.index')->with('success', 'Kategori Berhasil Dibuat.');
@@ -64,6 +66,8 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category, UpdateCategoryAction $action)
     {
+        $this->authorize('update', $category);
+
         $action->execute($category, $request->validated());
 
         return redirect()->route('categories.index')->with('success', 'Kategori Berhasil Diperbarui.');

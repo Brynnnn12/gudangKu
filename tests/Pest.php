@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -30,6 +33,12 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
+expect()->extend('toHaveRole', function (string $roleName) {
+    expect($this->value->hasRole($roleName))->toBeTrue();
+
+    return $this;
+});
+
 /*
 |--------------------------------------------------------------------------
 | Functions
@@ -41,7 +50,50 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Create a user with specific role(s)
+ */
+function createUserWithRole(string|array $roles, array $attributes = []): User
 {
-    // ..
+    $user = User::factory()->create($attributes);
+
+    $roleInstances = collect((array) $roles)->map(function ($roleName) {
+        return Role::firstOrCreate(['name' => $roleName]);
+    });
+
+    $user->assignRole($roleInstances);
+
+    return $user;
+}
+
+/**
+ * Create a super-admin user
+ */
+function createSuperAdmin(array $attributes = []): User
+{
+    return createUserWithRole('super-admin', $attributes);
+}
+
+/**
+ * Create an admin user
+ */
+function createAdmin(array $attributes = []): User
+{
+    return createUserWithRole('admin', $attributes);
+}
+
+/**
+ * Create a viewer user
+ */
+function createViewer(array $attributes = []): User
+{
+    return createUserWithRole('viewer', $attributes);
+}
+
+/**
+ * Create multiple roles
+ */
+function createRoles(array $roles): \Illuminate\Support\Collection
+{
+    return collect($roles)->map(fn ($role) => Role::firstOrCreate(['name' => $role]));
 }

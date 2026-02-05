@@ -7,13 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Category } from '@/types/models/categories';
+import type {  CategoryFormModalProps } from '@/types/models/categories';
 
-interface CategoryFormModalProps {
-    open: boolean;
-    category?: Category | null;
-    onClose: () => void;
-}
 
 export function CategoryFormModal({ open, category, onClose }: CategoryFormModalProps) {
     const isEdit = !!category;

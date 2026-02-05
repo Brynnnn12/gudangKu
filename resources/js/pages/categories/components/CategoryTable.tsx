@@ -10,18 +10,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import type { Category } from '@/types/models/categories';
+import type {  CategoryTableProps } from '@/types/models/categories';
 
-interface CategoryTableProps {
-    categories: Category[];
-    selectedIds: number[];
-    onSelectAll: (checked: boolean) => void;
-    onSelectOne: (id: number, checked: boolean) => void;
-    onEdit: (category: Category) => void;
-    onDelete: (category: Category) => void;
-    allSelected: boolean;
-    someSelected: boolean;
-}
 
 export function CategoryTable({
     categories,

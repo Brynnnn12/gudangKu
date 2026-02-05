@@ -1,17 +1,9 @@
 import { Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import type {  CategoryToolbarProps } from '@/types/models/categories';
 
-interface CategoryToolbarProps {
-    searchValue: string;
-    onSearchChange: (value: string) => void;
-    onAddClick: () => void;
-    onBulkDeleteClick: () => void;
-    onClearFilters: () => void;
-    selectedCount: number;
-    isSearching: boolean;
-    hasActiveFilters: boolean;
-}
+
 
 export function CategoryToolbar({
     searchValue,

@@ -25,5 +25,36 @@ interface Filters {
     search?: string;
 }
 
+interface CategoryFormModalProps {
+    open: boolean;
+    category?: Category | null;
+    onClose: () => void;
+}
 
-export type { Category, PageProps, Filters };
+interface CategoryTableProps {
+    categories: Category[];
+    selectedIds: number[];
+    onSelectAll: (checked: boolean) => void;
+    onSelectOne: (id: number, checked: boolean) => void;
+    onEdit: (category: Category) => void;
+    onDelete: (category: Category) => void;
+    allSelected: boolean;
+    someSelected: boolean;
+}
+
+interface CategoryToolbarProps {
+    searchValue: string;
+    onSearchChange: (value: string) => void;
+    onAddClick: () => void;
+    onBulkDeleteClick: () => void;
+    onClearFilters: () => void;
+    selectedCount: number;
+    isSearching: boolean;
+    hasActiveFilters: boolean;
+}
+
+
+
+
+
+export type { Category, PageProps, Filters, CategoryFormModalProps, CategoryTableProps, CategoryToolbarProps };

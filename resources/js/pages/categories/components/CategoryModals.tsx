@@ -63,18 +63,18 @@ export function CategoryModals({
     return (
         <>
             <CategoryFormModal
-                open={modals.create}
+                open={typeof modals.create === 'boolean' ? modals.create : modals.create.isOpen}
                 onClose={() => onCloseModal('create')}
             />
 
             <CategoryFormModal
-                open={modals.edit.isOpen}
+                open={(modals.edit as ModalWithData<Category>).isOpen}
                 category={(modals.edit as ModalWithData<Category>).data}
                 onClose={() => onCloseModal('edit')}
             />
 
             <DeleteConfirmDialog
-                open={modals.bulkDelete}
+                open={typeof modals.bulkDelete === 'boolean' ? modals.bulkDelete : modals.bulkDelete.isOpen}
                 title="Hapus Beberapa Kategori"
                 description={`Apakah Anda yakin ingin menghapus ${selectedCount} kategori? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmBulkDelete}
@@ -82,9 +82,9 @@ export function CategoryModals({
             />
 
             <DeleteConfirmDialog
-                open={modals.delete.isOpen}
+                open={(modals.delete as ModalWithData<Category>).isOpen}
                 title="Hapus Kategori"
-                description={`Apakah Anda yakin ingin menghapus kategori "${modals.delete.category?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+                description={`Apakah Anda yakin ingin menghapus kategori "${(modals.delete as ModalWithData<Category>).data?.name}"? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmDelete}
                 onClose={() => onCloseModal('delete')}
             />
