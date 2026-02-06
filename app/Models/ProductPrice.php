@@ -8,14 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductPrice extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductPriceFactory> */
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'product_id',
         'cost_price',
@@ -34,11 +29,7 @@ class ProductPrice extends Model
         }
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+
     protected function casts(): array
     {
         return [
@@ -48,9 +39,7 @@ class ProductPrice extends Model
         ];
     }
 
-    /**
-     * Get the product that owns the price.
-     */
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

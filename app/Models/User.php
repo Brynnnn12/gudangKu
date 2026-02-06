@@ -12,14 +12,8 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable,SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -46,14 +40,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Warehouse::class, 'warehouse_users')
             ->using(WarehouseUser::class)
             ->withTimestamps()
-            ->withPivot('deleted_at'); // Agar data soft delete bisa diakses jika perlu
+            ->withPivot('deleted_at');
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'two_factor_secret',
@@ -61,11 +50,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [

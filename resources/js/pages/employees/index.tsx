@@ -38,9 +38,7 @@ export default function Index({
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const previousFilters = useRef({ search: filters.search || '', role: filters.role || '' });
 
-    // Search and filter with real-time updates
     useEffect(() => {
-        // Only trigger if filters actually changed
         if (previousFilters.current.search === searchForm.data.search &&
             previousFilters.current.role === searchForm.data.role) {
             return;
@@ -49,18 +47,15 @@ export default function Index({
         previousFilters.current = { search: searchForm.data.search, role: searchForm.data.role };
 
         const timer = setTimeout(() => {
-            // Get current URL params to preserve pagination
             const currentParams = new URLSearchParams(window.location.search);
             const params: Record<string, string> = {};
 
-            // Copy all existing params except page (reset to 1 when filters change)
             currentParams.forEach((value, key) => {
                 if (key !== 'page') {
                     params[key] = value;
                 }
             });
 
-            // Update filter params
             if (searchForm.data.search) params.search = searchForm.data.search;
             else delete params.search;
 
@@ -82,7 +77,6 @@ export default function Index({
         return () => clearTimeout(timer);
     }, [searchForm.data.search, searchForm.data.role]);
 
-    // Delete handlers
     const handleDelete = () => {
         const deleteModal = modals.delete as ModalWithData<User>;
         if (!deleteModal.data) return;
@@ -104,7 +98,6 @@ export default function Index({
         });
     };
 
-    // Selection handlers
     const toggleSelectAll = (checked: boolean) => {
         setSelectedIds(checked ? employees.data.map(emp => emp.id) : []);
     };
@@ -115,7 +108,6 @@ export default function Index({
         );
     };
 
-    // Filter handlers
     const clearFilters = () => {
         searchForm.setData({ search: '', role: '' });
         router.get('/dashboard/employees', {}, {
@@ -124,7 +116,6 @@ export default function Index({
         });
     };
 
-    // Computed values
     const hasActiveFilters = !!searchForm.data.search || !!searchForm.data.role;
     const allSelected = employees.data.length > 0 && selectedIds.length === employees.data.length;
     const someSelected = selectedIds.length > 0 && selectedIds.length < employees.data.length;

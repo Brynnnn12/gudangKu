@@ -11,11 +11,6 @@ class Warehouse extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'address',
@@ -31,11 +26,6 @@ class Warehouse extends Model
         }
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -43,9 +33,6 @@ class Warehouse extends Model
         ];
     }
 
-    /**
-     * Get the users assigned to this warehouse.
-     */
     public function users()
     {
         return $this->belongsToMany(User::class, 'warehouse_users')
@@ -54,35 +41,9 @@ class Warehouse extends Model
             ->withPivot('deleted_at');
     }
 
-    /**
-     * Get the warehouse stocks for this warehouse.
-     */
     public function warehouseStocks(): HasMany
     {
         return $this->hasMany(WarehouseStock::class);
     }
 
-    // /**
-    //  * Get the stock logs for this warehouse.
-    //  */
-    // public function stockLogs(): HasMany
-    // {
-    //     return $this->hasMany(StockLog::class);
-    // }
-
-    // /**
-    //  * Get outgoing stock transfers from this warehouse.
-    //  */
-    // public function outgoingTransfers(): HasMany
-    // {
-    //     return $this->hasMany(StockTransfer::class, 'from_warehouse_id');
-    // }
-
-    // /**
-    //  * Get incoming stock transfers to this warehouse.
-    //  */
-    // public function incomingTransfers(): HasMany
-    // {
-    //     return $this->hasMany(StockTransfer::class, 'to_warehouse_id');
-    // }
 }

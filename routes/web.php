@@ -7,6 +7,14 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])
+    ->middleware('guest')
+    ->name('google.redirect');
+Route::get('auth/google/callback', [ProfileController::class, 'google_callback'])
+    ->middleware('guest')
+    ->name('google.callback');
+
+
 Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -91,7 +99,5 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         ->only(['index', 'show']);
 });
 
-Route::get('auth/google/redirect', [ProfileController::class, 'google_redirect'])->name('google.redirect');
-Route::get('auth/google/callback', [ProfileController::class, 'google_callback'])->name('google.callback');
 
 require __DIR__.'/settings.php';

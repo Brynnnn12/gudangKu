@@ -10,14 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    
     protected $fillable = [
         'category_id',
         'name',
@@ -40,11 +35,7 @@ class Product extends Model
         }
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    
     protected function casts(): array
     {
         return [
@@ -52,25 +43,19 @@ class Product extends Model
         ];
     }
 
-    /**
-     * Get the category that owns the product.
-     */
+    
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Get the prices for the product.
-     */
+    
     public function prices(): HasMany
     {
         return $this->hasMany(ProductPrice::class);
     }
 
-    /**
-     * Get the current active price for the product.
-     */
+    
     public function currentPrice(): ?ProductPrice
     {
         return $this->prices()
@@ -79,9 +64,6 @@ class Product extends Model
             ->first();
     }
 
-    /**
-     * Get the warehouse stocks for this product.
-     */
     public function warehouseStocks(): HasMany
     {
         return $this->hasMany(WarehouseStock::class);

@@ -25,7 +25,6 @@ export function NavMain({ items = [], title }: { items: NavItem[]; title?: strin
         const initial: Record<string, boolean> = {};
         items.forEach((item) => {
             if (item.items?.length) {
-                // Open by default if any sub-item is active
                 initial[item.title] = item.items.some((subItem) =>
                     window.location.pathname.startsWith(subItem.href)
                 );

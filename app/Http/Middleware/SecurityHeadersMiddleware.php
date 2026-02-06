@@ -55,10 +55,14 @@ class SecurityHeadersMiddleware
     {
         $isDevelopment = app()->environment('local', 'development');
 
-        $scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
-        $styleSrc = ["'self'", "'unsafe-inline'"];
-        $fontSrc = ["'self'", 'data:'];
-        $connectSrc = ["'self'"];
+        // Tambahkan domain Google ke script dan connect
+        $scriptSrc = ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com"];
+        $styleSrc = ["'self'", "'unsafe-inline'", "https://fonts.bunny.net"];
+        $fontSrc = ["'self'", 'data:', "https://fonts.bunny.net"];
+        $connectSrc = ["'self'", "https://accounts.google.com", "https://oauth2.googleapis.com"];
+
+        // Penting: Izinkan foto profil Google tampil
+        $imgSrc = ["'self'", "data:", "https://lh3.googleusercontent.com", "https://*.googleusercontent.com"];
 
         if ($isDevelopment) {
             $viteUrls = ['http://127.0.0.1:5173', 'http://localhost:5173'];
@@ -69,19 +73,20 @@ class SecurityHeadersMiddleware
             $connectSrc = array_merge($connectSrc, $viteUrls, $viteWs);
         }
 
-        $styleSrc[] = 'https://fonts.bunny.net';
-        $fontSrc[] = 'https://fonts.bunny.net';
+        // Perbaikan kritis: navigasi keluar ke Google harus diizinkan di form-action
+        $formAction = "form-action 'self' https://accounts.google.com https://*.google.com";
 
         return [
             "default-src 'self'",
-            'script-src '.implode(' ', $scriptSrc),
-            'style-src '.implode(' ', $styleSrc),
-            "img-src 'self' data: https:",
-            'font-src '.implode(' ', $fontSrc),
-            'connect-src '.implode(' ', $connectSrc),
+            'script-src ' . implode(' ', $scriptSrc),
+            'style-src ' . implode(' ', $styleSrc),
+            'img-src ' . implode(' ', $imgSrc),
+            'font-src ' . implode(' ', $fontSrc),
+            'connect-src ' . implode(' ', $connectSrc),
+            "frame-src 'self' https://accounts.google.com",
             "frame-ancestors 'self'",
             "base-uri 'self'",
-            "form-action 'self'",
+            $formAction,
         ];
     }
 }

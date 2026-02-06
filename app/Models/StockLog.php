@@ -8,14 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockLog extends Model
 {
-    /** @use HasFactory<\Database\Factories\StockLogFactory> */
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'warehouse_id',
         'product_id',
@@ -38,11 +33,7 @@ class StockLog extends Model
         }
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+
     protected function casts(): array
     {
         return [
@@ -52,36 +43,24 @@ class StockLog extends Model
         ];
     }
 
-    /**
-     * Get the warehouse associated with this log.
-     * Includes soft-deleted warehouses for audit trail integrity.
-     */
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class)->withTrashed();
     }
 
-    /**
-     * Get the product associated with this log.
-     * Includes soft-deleted products for audit trail integrity.
-     */
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class)->withTrashed();
     }
 
-    /**
-     * Get the batch associated with this log (nullable).
-     */
+
     public function batch(): BelongsTo
     {
         return $this->belongsTo(StockBatch::class, 'batch_id');
     }
 
-    /**
-     * Get the user who created this log.
-     * Includes soft-deleted users for audit trail integrity.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();

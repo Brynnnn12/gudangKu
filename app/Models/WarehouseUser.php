@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WarehouseUser extends Pivot
 {
-    /** @use HasFactory<\Database\Factories\WarehouseUserFactory> */
+
     use HasFactory, SoftDeletes;
 
     protected $table = 'warehouse_users';
@@ -43,17 +43,11 @@ class WarehouseUser extends Pivot
         }
     }
 
-    /**
-     * Get the warehouse that owns the warehouse user.
-     */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    /**
-     * Get the user that owns the warehouse user.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

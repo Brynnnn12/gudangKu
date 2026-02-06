@@ -9,14 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarehouseStock extends Model
 {
-    /** @use HasFactory<\Database\Factories\WarehouseStockFactory> */
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'warehouse_id',
         'product_id',
@@ -38,11 +32,6 @@ class WarehouseStock extends Model
         }
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -50,33 +39,24 @@ class WarehouseStock extends Model
         ];
     }
 
-    /**
-     * Get the warehouse that owns this stock.
-     */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    /**
-     * Get the product associated with this stock.
-     */
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    /**
-     * Get all batches for this warehouse stock (FEFO).
-     */
+
     public function batches(): HasMany
     {
         return $this->hasMany(StockBatch::class);
     }
 
-    /**
-     * Get active batches ordered by expiry date (FEFO).
-     */
+
     public function activeBatches(): HasMany
     {
         return $this->hasMany(StockBatch::class)
@@ -85,10 +65,7 @@ class WarehouseStock extends Model
             ->orderBy('expired_at', 'asc');
     }
 
-    /**
-     * Recalculate total_quantity from sum of all batches.
-     * WarehouseStock.total_quantity should always equal SUM(batches.current_qty).
-     */
+
     public function recalculateTotal(): void
     {
         $this->total_quantity = $this->batches()->sum('current_qty');
