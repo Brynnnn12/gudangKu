@@ -47,7 +47,7 @@ class ProductController extends Controller
 
         $action->execute($request->validated());
 
-        return redirect()->route('products.index')->with('success', 'Product created successfully.');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dibuat.');
     }
 
     /**
@@ -73,7 +73,7 @@ class ProductController extends Controller
 
         $action->execute($product, $request->validated());
 
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
     /**
@@ -86,7 +86,7 @@ class ProductController extends Controller
         try {
             $action->execute($product);
 
-            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+            return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('products.index')->with('error', $e->getMessage());
         }
@@ -107,7 +107,7 @@ class ProductController extends Controller
         try {
             $count = $action->execute($request->ids);
 
-            return redirect()->route('products.index')->with('success', "{$count} products deleted successfully.");
+            return redirect()->route('products.index')->with('success', "Berhasil menghapus {$count} produk.");
         } catch (\Exception $e) {
             return redirect()->route('products.index')->with('error', $e->getMessage());
         }

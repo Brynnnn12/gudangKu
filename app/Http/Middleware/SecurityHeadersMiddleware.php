@@ -74,9 +74,7 @@ class SecurityHeadersMiddleware
         }
 
         // Perbaikan kritis: navigasi keluar ke Google harus diizinkan di form-action
-        $formAction = "form-action 'self' https://accounts.google.com https://*.google.com";
-
-        return [
+        return array(
             "default-src 'self'",
             'script-src ' . implode(' ', $scriptSrc),
             'style-src ' . implode(' ', $styleSrc),
@@ -86,7 +84,7 @@ class SecurityHeadersMiddleware
             "frame-src 'self' https://accounts.google.com",
             "frame-ancestors 'self'",
             "base-uri 'self'",
-            $formAction,
-        ];
+            "form-action 'self' https://accounts.google.com https://*.google.com"
+        );
     }
 }

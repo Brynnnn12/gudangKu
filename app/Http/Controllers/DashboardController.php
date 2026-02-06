@@ -182,6 +182,7 @@ class DashboardController extends Controller
             ->join('products', 'warehouse_stocks.product_id', '=', 'products.id')
             ->where('stock_logs.created_at', '>=', $thirtyDaysAgo)
             ->where('stock_logs.qty', '<', 0) // Only stock out (sales)
+            ->where('stock_logs.type', '!=', 'transfer') // Exclude transfers, only actual sales
             ->when($warehouseIds !== null, fn ($q) => $q->whereIn('stock_logs.warehouse_id', $warehouseIds))
             ->select(
                 'products.name',

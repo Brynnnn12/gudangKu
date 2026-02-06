@@ -71,7 +71,7 @@ class StockTransferController extends Controller
 
         $transfer = $action->execute($request->validated());
 
-        return redirect()->route('stock-transfers.index')->with('success', 'Stock berhasil dikirim.');
+        return redirect()->route('stock-transfers.index')->with('success', 'Stok berhasil dikirim.');
     }
 
     /**
@@ -84,7 +84,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->validated());
 
-            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer updated successfully.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stok berhasil diperbarui.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -100,7 +100,7 @@ class StockTransferController extends Controller
         try {
             $action->execute($stockTransfer);
 
-            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer deleted successfully.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stok berhasil dihapus.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -116,7 +116,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer);
 
-            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer approved and completed successfully. Stock has been moved between warehouses.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stok berhasil disetujui dan dipindahkan antar gudang.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -136,7 +136,7 @@ class StockTransferController extends Controller
         try {
             $transfer = $action->execute($stockTransfer, $request->input('reject_reason'));
 
-            return redirect()->route('stock-transfers.index')->with('success', 'Stock transfer rejected.');
+            return redirect()->route('stock-transfers.index')->with('success', 'Stok berhasil ditolak.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

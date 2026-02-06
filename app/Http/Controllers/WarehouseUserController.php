@@ -51,7 +51,7 @@ class WarehouseUserController extends Controller
 
         $action->execute($request->validated());
 
-        return redirect()->route('warehouse-users.index')->with('success', 'Warehouse user created successfully.');
+        return redirect()->route('warehouse-users.index')->with('success', 'Penempatan berhasil.');
     }
 
     /**
@@ -77,7 +77,7 @@ class WarehouseUserController extends Controller
 
         $action->execute($warehouseUser, $request->validated());
 
-        return redirect()->route('warehouse-users.index')->with('success', 'Warehouse user updated successfully.');
+        return redirect()->route('warehouse-users.index')->with('success', 'Penempatan berhasil.');
     }
 
     /**
@@ -89,7 +89,7 @@ class WarehouseUserController extends Controller
 
         $action->execute($warehouseUser);
 
-        return redirect()->route('warehouse-users.index')->with('success', 'Warehouse user deleted successfully.');
+        return redirect()->route('warehouse-users.index')->with('success', 'Penempatan berhasil.');
     }
 
     /**
@@ -106,6 +106,6 @@ class WarehouseUserController extends Controller
 
         $count = $action->execute($request->ids);
 
-        return redirect()->route('warehouse-users.index')->with('success', "{$count} warehouse users deleted successfully.");
+        return redirect()->route('warehouse-users.index')->with('success', "{$count} penempatan berhasil dihapus.");
     }
 }

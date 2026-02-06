@@ -42,7 +42,9 @@ export default function Index({
 
         router.delete(`/dashboard/products/${deleteModal.data.id}`, {
             preserveScroll: true,
-            onSuccess: () => closeModal('delete'),
+            onSuccess: () => {
+                closeModal('delete');
+            },
         });
     };
 

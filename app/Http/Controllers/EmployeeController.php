@@ -56,7 +56,7 @@ class EmployeeController extends Controller
     {
         $action->execute($request->validated());
 
-        return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
+        return redirect()->route('employees.index')->with('success', 'Berhasil membuat karyawan.');
     }
 
     /**
@@ -78,7 +78,7 @@ class EmployeeController extends Controller
     {
         $action->execute($employee, $request->validated());
 
-        return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
+        return redirect()->route('employees.index')->with('success', 'Berhasil memperbarui karyawan.');
     }
 
     /**
@@ -91,7 +91,7 @@ class EmployeeController extends Controller
         try {
             $action->execute($employee);
 
-            return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
+            return redirect()->route('employees.index')->with('success', 'Berhasil menghapus karyawan.');
         } catch (\Exception $e) {
             return redirect()->route('employees.index')->with('error', $e->getMessage());
         }
@@ -112,7 +112,7 @@ class EmployeeController extends Controller
         try {
             $count = $action->execute($request->ids);
 
-            return redirect()->route('employees.index')->with('success', "{$count} employees deleted successfully.");
+            return redirect()->route('employees.index')->with('success', "Berhasil menghapus {$count} karyawan.");
         } catch (\Exception $e) {
             return redirect()->route('employees.index')->with('error', $e->getMessage());
         }

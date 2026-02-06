@@ -54,7 +54,7 @@ class WarehouseStockController extends Controller
         $this->authorize('create', WarehouseStock::class);
 
         return redirect()->route('warehouse-stocks.index')
-            ->with('warning', 'Warehouse stocks cannot be created directly. Please create a stock batch instead.');
+            ->with('warning', 'Gudang stok tidak dapat dibuat secara langsung. Silakan buat batch stok sebagai gantinya.');
     }
 
     /**
@@ -80,7 +80,7 @@ class WarehouseStockController extends Controller
         $this->authorize('update', $warehouseStock);
 
         return redirect()->route('warehouse-stocks.index')
-            ->with('warning', 'Warehouse stock totals cannot be edited directly. Please update stock batches instead.');
+            ->with('warning', 'Total stok gudang tidak dapat diedit secara langsung. Silakan perbarui batch stok sebagai gantinya.');
     }
 
     /**
@@ -97,8 +97,8 @@ class WarehouseStockController extends Controller
             $action->execute($warehouseStock);
 
             $message = $batchCount > 0
-                ? "Warehouse stock and {$batchCount} related batches deleted successfully."
-                : 'Warehouse stock deleted successfully.';
+                ? "Stok gudang dan {$batchCount} batch terkait berhasil dihapus."
+                : 'Stok gudang berhasil dihapus.';
 
             return redirect()->route('warehouse-stocks.index')->with('success', $message);
         } catch (\Exception $e) {
@@ -123,7 +123,7 @@ class WarehouseStockController extends Controller
 
             $count = count($request->ids);
 
-            return redirect()->route('warehouse-stocks.index')->with('success', "{$count} warehouse stocks deleted successfully.");
+            return redirect()->route('warehouse-stocks.index')->with('success', "{$count} stok gudang berhasil dihapus.");
         } catch (\Exception $e) {
             return redirect()->route('warehouse-stocks.index')->with('error', $e->getMessage());
         }
@@ -150,7 +150,7 @@ class WarehouseStockController extends Controller
 
             $batchCount = count($result['affected_batches']);
 
-            return redirect()->route('warehouse-stocks.index')->with('success', "Successfully reduced {$result['total_reduced']} units using FEFO. {$batchCount} batches affected.");
+            return redirect()->route('warehouse-stocks.index')->with('success', "Berhasil mengurangi {$result['total_reduced']} unit menggunakan FEFO. {$batchCount} batch terpengaruh.");
         } catch (\InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

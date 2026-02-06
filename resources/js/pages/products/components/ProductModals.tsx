@@ -88,7 +88,7 @@ export function ProductModals({
             <DeleteConfirmDialog
                 open={modals.delete.isOpen}
                 title="Hapus Produk"
-                description={`Apakah Anda yakin ingin menghapus produk "${modals.delete.product?.name}" (SKU: ${modals.delete.product?.sku})? Tindakan ini tidak dapat dibatalkan.`}
+                description={`Apakah Anda yakin ingin menghapus produk "${(modals.delete as ModalWithData<Product>).data?.name}" (SKU: ${(modals.delete as ModalWithData<Product>).data?.sku})? Tindakan ini tidak dapat dibatalkan.`}
                 onConfirm={onConfirmDelete}
                 onClose={() => onCloseModal('delete')}
             />
