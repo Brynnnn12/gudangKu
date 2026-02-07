@@ -27,6 +27,7 @@ test('super-admin bisa melihat daftar kategori', function () {
                 ->has('slug')
                 ->has('created_at')
                 ->has('updated_at')
+                ->has('deleted_at')
             )
         );
 });
